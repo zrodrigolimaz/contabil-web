@@ -5,55 +5,79 @@
     }
   </div>
 
-  <div class="mb-5 flex items-center gap-2">
-    <span class="h-3.5 w-[3px] rounded-full bg-primary-500" aria-hidden="true"></span>
-    <p class="eyebrow">Pesquisar lote outros créditos/débitos</p>
-  </div>
+  <p class="eyebrow mb-5">Pesquisar lote outros créditos/débitos</p>
 
   <form [formGroup]="form" (ngSubmit)="aoEnviar()">
-    <div class="grid gap-x-10 gap-y-5 lg:grid-cols-12">
-      <div class="flex flex-col gap-4 lg:col-span-5">
-        <app-campo-form rotulo="Instituição Resp." paraId="filtro-instituicao-responsavel">
-          <select
-            id="filtro-instituicao-responsavel"
-            class="campo campo-select"
-            formControlName="instituicaoResponsavel"
-          >
-            <option [ngValue]="null">Todas</option>
-            @for (opcao of instituicoesResponsaveis; track opcao) {
-              <option [ngValue]="opcao">{{ opcao }}</option>
-            }
-          </select>
-        </app-campo-form>
+    <div class="grid gap-x-6 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
+      <app-campo-form rotulo="Instituição Resp." paraId="filtro-instituicao-responsavel">
+        <select
+          id="filtro-instituicao-responsavel"
+          class="campo campo-select"
+          formControlName="instituicaoResponsavel"
+        >
+          <option [ngValue]="null">Todas</option>
+          @for (opcao of instituicoesResponsaveis; track opcao) {
+            <option [ngValue]="opcao">{{ opcao }}</option>
+          }
+        </select>
+      </app-campo-form>
 
-        <app-campo-form rotulo="Instituição" paraId="filtro-instituicao">
-          <select id="filtro-instituicao" class="campo campo-select" formControlName="instituicao">
-            <option [ngValue]="null">Todas</option>
-            @for (opcao of instituicoes; track opcao) {
-              <option [ngValue]="opcao">{{ opcao }}</option>
-            }
-          </select>
-        </app-campo-form>
+      <app-campo-form rotulo="Instituição" paraId="filtro-instituicao">
+        <select id="filtro-instituicao" class="campo campo-select" formControlName="instituicao">
+          <option [ngValue]="null">Todas</option>
+          @for (opcao of instituicoes; track opcao) {
+            <option [ngValue]="opcao">{{ opcao }}</option>
+          }
+        </select>
+      </app-campo-form>
 
-        <app-campo-form rotulo="Situação Lote" paraId="filtro-situacao">
-          <select id="filtro-situacao" class="campo campo-select" formControlName="situacao">
-            @for (opcao of situacoes; track opcao) {
-              <option [ngValue]="opcao">{{ opcao }}</option>
-            }
-          </select>
-        </app-campo-form>
-      </div>
+      <app-campo-form rotulo="Situação Lote" paraId="filtro-situacao">
+        <select id="filtro-situacao" class="campo campo-select" formControlName="situacao">
+          @for (opcao of situacoes; track opcao) {
+            <option [ngValue]="opcao">{{ opcao }}</option>
+          }
+        </select>
+      </app-campo-form>
 
-      <div class="flex flex-col gap-4 lg:col-span-7">
-        <app-campo-faixa rotulo="ID Lote" tipo="inteiro" [grupo]="form.controls.idLote" />
-        <app-campo-faixa rotulo="Valor Lote" tipo="decimal" [grupo]="form.controls.valor" />
-        <app-campo-faixa rotulo="Data Entrada" tipo="data" [grupo]="form.controls.dataEntrada" />
-      </div>
+      <app-campo-faixa rotulo="ID Lote" tipo="inteiro" [grupo]="form.controls.idLote" />
+      <app-campo-faixa rotulo="Valor Lote" tipo="decimal" [grupo]="form.controls.valor" />
+      <app-campo-faixa rotulo="Data Entrada" tipo="data" [grupo]="form.controls.dataEntrada" />
     </div>
 
-    <div class="mt-6 flex justify-end gap-2 border-t border-petrol-900/8 pt-4">
-      <button type="button" class="btn btn-contorno" (click)="limpar()">Limpar</button>
-      <button type="submit" class="btn btn-primario">Pesquisar</button>
+    <div class="mt-6 flex justify-end gap-1 border-t border-petrol-900/[0.12] pt-4">
+      <button type="button" class="btn btn-texto" (click)="limpar()">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-4"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        Limpar
+      </button>
+
+      <button type="submit" class="btn btn-primario">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-4"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        Pesquisar
+      </button>
     </div>
   </form>
 </app-painel-recolhivel>

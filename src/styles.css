@@ -35,9 +35,9 @@ body {
  */
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-[12px] font-bold
-      transition-[background-color,border-color,box-shadow,color] focus-visible:outline-2
-      focus-visible:outline-offset-2 focus-visible:outline-primary-500
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[12.5px]
+      font-semibold transition-[background-color,border-color,box-shadow,color]
+      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
       disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none;
   }
 
@@ -49,6 +49,11 @@ body {
   .btn-contorno {
     @apply border border-petrol-900/15 bg-white text-petrol-800 hover:border-petrol-900/25
       hover:bg-petrol-900/[0.04] active:translate-y-px;
+  }
+
+  /* Ação secundária ao lado da principal: sem contorno, para não disputar atenção */
+  .btn-texto {
+    @apply text-petrol-700 hover:bg-petrol-900/[0.05] hover:text-petrol-900;
   }
 
   /* Rótulo de seção: sempre acompanhado do filete turquesa, nunca sozinho */
@@ -63,12 +68,12 @@ body {
   }
 
   .campo {
-    @apply w-full rounded-md border border-petrol-900/15 bg-white px-3 py-[7px] text-[13px]
-      font-medium tabular-nums text-petrol-900 shadow-[inset_0_1px_2px_rgba(11,46,51,0.04)]
-      transition-[border-color,box-shadow] placeholder:font-normal placeholder:text-petrol-700/35
-      hover:border-petrol-900/30 focus:border-primary-500 focus:outline-none
-      focus:ring-[3px] focus:ring-primary-500/15 disabled:bg-surface disabled:text-petrol-700/60
-      aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/15;
+    @apply h-10 w-full rounded-lg border border-petrol-900/15 bg-white px-3 text-[13.5px]
+      font-medium tabular-nums text-petrol-900 transition-[border-color,box-shadow]
+      placeholder:font-normal placeholder:text-petrol-700/35 hover:border-petrol-900/30
+      focus:border-primary-500 focus:outline-none focus:ring-[3px] focus:ring-primary-500/15
+      disabled:bg-surface disabled:text-petrol-700/60 aria-[invalid=true]:border-danger
+      aria-[invalid=true]:focus:ring-danger/15;
   }
 
   /*
