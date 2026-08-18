@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { Lote, SituacaoLote } from '../../../../core/models/lote';
@@ -28,7 +28,7 @@ const LARGURAS_ESQUELETO = ['100%', '45%', '70%', '55%', '35%', '65%', '60%', '5
  */
 @Component({
   selector: 'app-tabela-lotes',
-  imports: [DatePipe, DecimalPipe],
+  imports: [CurrencyPipe, DatePipe],
   templateUrl: './tabela-lotes.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

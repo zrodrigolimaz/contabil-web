@@ -76,7 +76,7 @@
               {{ lote.dataEntrada | date: 'dd/MM/yyyy' }}
             </td>
             <td class="whitespace-nowrap px-4 py-3.5 text-right tabular-nums">
-              {{ lote.valor | number: '1.2-2' }}
+              {{ lote.valor | currency: 'BRL' }}
             </td>
             <td class="whitespace-nowrap px-4 py-3.5 text-right tabular-nums">
               {{ lote.quantidadeLancamentos }}

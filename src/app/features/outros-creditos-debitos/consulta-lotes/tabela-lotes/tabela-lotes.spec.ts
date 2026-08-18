@@ -53,14 +53,16 @@ describe('TabelaLotes', () => {
     return fixture.nativeElement.querySelector(`input[aria-label="Selecionar lote ${id}"]`);
   }
 
+  /** O separador entre `R$` e o número é um espaço não-quebrável; vira espaço comum
+   *  aqui para as asserções ficarem legíveis. */
   function texto(): string {
-    return fixture.nativeElement.textContent;
+    return fixture.nativeElement.textContent.replaceAll(' ', ' ');
   }
 
   it('formata valor, data e data/hora em pt-BR', async () => {
     await montar([LOTE_ABERTO]);
 
-    expect(texto()).toContain('1.000,00');
+    expect(texto()).toContain('R$ 1.000,00');
     expect(texto()).toContain('26/04/2026');
     expect(texto()).toContain('27/04/2026, 12:35:11');
   });
@@ -68,7 +70,7 @@ describe('TabelaLotes', () => {
   it('separa os milhares dos valores altos', async () => {
     await montar([LOTE_CONFIRMADO]);
 
-    expect(texto()).toContain('245.300,10');
+    expect(texto()).toContain('R$ 245.300,10');
   });
 
   it('marca a ausência de aprovador em vez de deixar a célula vazia', async () => {
