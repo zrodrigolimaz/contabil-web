@@ -52,7 +52,11 @@ describe('BarraAcoes', () => {
       .map((elemento: HTMLButtonElement) => elemento.textContent?.trim() ?? '');
   }
 
-  it('mostra os sete botões do enunciado, em ordem', async () => {
+  function dica(): string | null {
+    return fixture.nativeElement.querySelector('p')?.textContent?.trim() ?? null;
+  }
+
+  it('mostra os sete botões do enunciado, agrupados por família', async () => {
     await montar([]);
 
     const rotulos = [...fixture.nativeElement.querySelectorAll('button')].map(
@@ -61,12 +65,26 @@ describe('BarraAcoes', () => {
     expect(rotulos).toEqual([
       'Confirmar',
       'Enviar',
-      'Visualizar Justificativa',
       'Incluir',
       'Alterar',
       'Excluir',
       'Visualizar',
+      'Visualizar Justificativa',
     ]);
+  });
+
+  it('separa as famílias de ação em vez de enfileirar os sete', async () => {
+    await montar([]);
+
+    /* Dois separadores para três grupos: situação, manutenção do lote e leitura. */
+    expect(fixture.nativeElement.querySelectorAll('[role="toolbar"] > span').length).toBe(2);
+  });
+
+  it('destaca a exclusão como ação de risco', async () => {
+    await montar([loteCom(1004, 'Aberto')]);
+
+    expect(botao('Excluir').className).toContain('btn-perigo');
+    expect(botao('Alterar').className).toContain('btn-contorno');
   });
 
   it('sem seleção, só Incluir aceita clique', async () => {
@@ -123,17 +141,42 @@ describe('BarraAcoes', () => {
     expect(botao('Visualizar Justificativa').disabled).toBe(true);
   });
 
-  it('explica no title por que o botão está desligado', async () => {
-    await montar([]);
-
-    expect(botao('Alterar').getAttribute('title')).toBe('Selecione exatamente um lote');
-    expect(botao('Enviar').getAttribute('title')).toBe('Nenhum lote aberto na seleção');
-  });
-
-  it('não deixa title em botão que aceita clique', async () => {
+  it('descreve no title o que cada ação faz', async () => {
     await montar([loteCom(1004, 'Aberto')]);
 
-    expect(botao('Confirmar').getAttribute('title')).toBeNull();
+    expect(botao('Alterar').getAttribute('title')).toBe(
+      'Abre os lançamentos do lote selecionado para edição',
+    );
+  });
+
+  it('pede em texto visível a seleção que falta', async () => {
+    await montar([]);
+
+    expect(dica()).toBe('Selecione um lote para agir sobre ele.');
+  });
+
+  it('explica por que as ações de lote único somem com vários marcados', async () => {
+    await montar([loteCom(1004, 'Aberto'), loteCom(1006, 'Enviado')]);
+
+    expect(dica()).toBe('Alterar, excluir e visualizar exigem exatamente um lote selecionado.');
+  });
+
+  it('explica que um lote confirmado não tem mais o que avançar', async () => {
+    await montar([loteCom(1001, 'Confirmado')]);
+
+    expect(dica()).toBe('Este lote já está confirmado: não há o que confirmar nem enviar.');
+  });
+
+  it('explica que um lote enviado só aceita confirmação', async () => {
+    await montar([loteCom(1002, 'Enviado')]);
+
+    expect(dica()).toBe('Este lote já foi enviado: só a confirmação continua disponível.');
+  });
+
+  it('cala a dica quando um lote aberto deixa tudo disponível', async () => {
+    await montar([loteCom(1004, 'Aberto')]);
+
+    expect(dica()).toBeNull();
   });
 
   it('anuncia a ação do botão clicado', async () => {

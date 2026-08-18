@@ -56,6 +56,12 @@ body {
     @apply text-petrol-700 hover:bg-petrol-900/[0.05] hover:text-petrol-900;
   }
 
+  /* Ação destrutiva: sai do cinza dos irmãos para o clique não ser por engano */
+  .btn-perigo {
+    @apply border border-danger/30 bg-white text-danger hover:border-danger/50 hover:bg-danger/5
+      active:translate-y-px;
+  }
+
   /* Cartão de conteúdo sobre o fundo surface: filtros, tabela e futuras seções */
   .cartao {
     @apply overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white
