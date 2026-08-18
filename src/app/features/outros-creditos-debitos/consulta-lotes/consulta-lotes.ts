@@ -10,6 +10,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FiltrosPesquisaLote } from '../../../core/models/filtros';
 import { Lote } from '../../../core/models/lote';
+import { TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
 import { LoteService } from '../../../core/services/lote.service';
 import { Paginacao } from '../../../shared/ui/paginacao/paginacao';
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
@@ -60,6 +61,8 @@ import { TabelaLotes } from './tabela-lotes/tabela-lotes';
           <app-paginacao
             [pagina]="pagina()"
             [totalPaginas]="totalPaginas()"
+            [total]="total() ?? 0"
+            [tamanhoPagina]="tamanhoPagina()"
             (irPara)="irPara($event)"
           />
         } @else if (carregando()) {
@@ -101,6 +104,7 @@ export class ConsultaLotes {
   protected readonly pagina = signal(1);
   protected readonly totalPaginas = signal(1);
   protected readonly total = signal<number | null>(null);
+  protected readonly tamanhoPagina = signal(TAMANHO_PAGINA_PADRAO);
 
   /**
    * Seleção por id, e não por índice: assim ela sobrevive à troca de página e às
@@ -171,6 +175,7 @@ export class ConsultaLotes {
           /* A página vem da resposta: o serviço limita o pedido ao intervalo válido. */
           this.pagina.set(resultado.pagina);
           this.totalPaginas.set(resultado.totalPaginas);
+          this.tamanhoPagina.set(resultado.tamanhoPagina);
           this.carregando.set(false);
         },
         error: (falha: Error) => {
