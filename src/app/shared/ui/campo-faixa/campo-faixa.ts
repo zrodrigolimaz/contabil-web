@@ -118,11 +118,7 @@ export class CampoFaixa {
   readonly tipo = input.required<'inteiro' | 'decimal' | 'data'>();
   /** Símbolo fixo dentro do campo, como `R$` em uma faixa de valor. */
   readonly prefixo = input<string>();
-  /**
-   * Exemplos exibidos como placeholder: mostram o formato esperado sem gastar uma
-   * linha de ajuda. Vêm de quem usa o componente — os valores são do domínio da tela,
-   * não deste componente. Campos de data já mostram o formato do navegador.
-   */
+  /** Exemplo exibido como placeholder; fornecido por quem usa o componente. */
   readonly exemploDe = input<string>();
   readonly exemploAte = input<string>();
 
