@@ -1,1 +1,30 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+
+/*
+ * Design tokens — paleta verde-petróleo do sistema legado.
+ * Expostos como utilitários Tailwind (ex.: bg-primary, text-petrol-900).
+ */
+@theme {
+  /* Turquesa institucional — botões de ação primária, links, foco */
+  --color-primary-50: #e6f7f5;
+  --color-primary-100: #c0ebe6;
+  --color-primary-300: #5cccbf;
+  --color-primary-500: #00ae9d;
+  --color-primary-600: #009486;
+  --color-primary-700: #007a6f;
+
+  /* Verde-petróleo escuro — cabeçalhos de tabela, sidebar, títulos */
+  --color-petrol-700: #1b555c;
+  --color-petrol-800: #123f45;
+  --color-petrol-900: #0b2e33;
+
+  /* Superfícies e feedback */
+  --color-surface: #f4f6f6;
+  --color-danger: #c0392b;
+
+  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+}
+
+body {
+  @apply bg-surface font-sans text-petrol-900 antialiased;
+}
