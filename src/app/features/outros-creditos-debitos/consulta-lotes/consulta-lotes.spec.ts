@@ -319,6 +319,23 @@ describe('ConsultaLotes', () => {
     expect(texto()).not.toContain('1 lote enviado.');
   });
 
+  it('responde ao clique das ações que ainda não têm tela', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Visualizar');
+
+    expect(texto()).toContain('Visualizar abre os lançamentos do lote em leitura');
+  });
+
+  it('avisa o que Incluir fará mesmo sem nenhuma seleção', async () => {
+    await grade([loteCom(1004)]);
+
+    await clicarNaAcao('Incluir');
+
+    expect(texto()).toContain('Incluir abre a tela de lançamentos de um lote novo');
+  });
+
   it('abre a justificativa do lote selecionado', async () => {
     await grade([loteCom(1002, 'Enviado', 'Reenviado após ajuste do histórico.')]);
     await marcar(1002);

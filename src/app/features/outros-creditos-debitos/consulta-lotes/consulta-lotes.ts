@@ -21,6 +21,24 @@ import { TabelaLotes } from './tabela-lotes/tabela-lotes';
 /** Ações que mudam a situação de um lote pelo serviço. */
 type AcaoDeSituacao = 'confirmar' | 'enviar';
 
+/** Resultado de uma ação, para a faixa de aviso saber que tom usar. */
+interface Aviso {
+  readonly texto: string;
+  readonly tom: 'sucesso' | 'informacao';
+}
+
+/**
+ * As quatro ações que dependem da tela de lançamentos. Elas respondem ao clique
+ * dizendo o que fariam: botão que aceita o clique e não dá sinal nenhum é
+ * indistinguível de aplicação quebrada.
+ */
+const AINDA_SEM_TELA: Record<'incluir' | 'alterar' | 'excluir' | 'visualizar', string> = {
+  incluir: 'Incluir abre a tela de lançamentos de um lote novo, ainda não implementada.',
+  alterar: 'Alterar abre os lançamentos do lote para edição, tela ainda não implementada.',
+  excluir: 'A exclusão de lote chega junto com a tela de lançamentos.',
+  visualizar: 'Visualizar abre os lançamentos do lote em leitura, tela ainda não implementada.',
+};
+
 /**
  * Frases do aviso de resultado. Ficam escritas por extenso, e não montadas por regra de
  * plural, porque cada ação tem o seu motivo de ignorar um lote.
@@ -97,9 +115,14 @@ const RESULTADO: Record<
             />
           </div>
 
-          @if (aviso(); as texto) {
+          @if (aviso(); as resultado) {
             <p
-              class="flex items-center gap-2 border-b border-petrol-900/[0.07] bg-primary-50/60 px-6 py-2.5 text-[12.5px] font-medium text-primary-700"
+              class="flex items-center gap-2 border-b border-petrol-900/[0.07] px-6 py-2.5 text-[12.5px] font-medium"
+              [class]="
+                resultado.tom === 'sucesso'
+                  ? 'bg-primary-50/60 text-primary-700'
+                  : 'bg-petrol-900/[0.03] text-petrol-700'
+              "
               role="status"
             >
               <svg
@@ -112,9 +135,14 @@ const RESULTADO: Record<
                 class="size-4 shrink-0"
                 aria-hidden="true"
               >
-                <path d="m4 12 5 5L20 6" />
+                @if (resultado.tom === 'sucesso') {
+                  <path d="m4 12 5 5L20 6" />
+                } @else {
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v5M12 8h.01" />
+                }
               </svg>
-              {{ texto }}
+              {{ resultado.texto }}
             </p>
           }
 
@@ -182,7 +210,7 @@ export class ConsultaLotes {
   /** Enquanto uma ação corre, a barra para de aceitar cliques. */
   protected readonly executando = signal(false);
   /** Resultado da última ação, em uma frase. */
-  protected readonly aviso = signal<string | null>(null);
+  protected readonly aviso = signal<Aviso | null>(null);
   protected readonly justificativaAberta = signal<Lote | null>(null);
 
   /**
@@ -256,8 +284,8 @@ export class ConsultaLotes {
       case 'justificativa':
         this.justificativaAberta.set(this.lotesSelecionados()[0] ?? null);
         break;
-      /* Incluir, Alterar, Visualizar e Excluir ganham destino com o modal de lançamentos. */
       default:
+        this.aviso.set({ texto: AINDA_SEM_TELA[acao], tom: 'informacao' });
         break;
     }
   }
@@ -271,7 +299,10 @@ export class ConsultaLotes {
 
     chamada.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (alterados) => {
-        this.aviso.set(descrever(acao, alterados.length, ids.length - alterados.length));
+        this.aviso.set({
+          texto: descrever(acao, alterados.length, ids.length - alterados.length),
+          tom: 'sucesso',
+        });
         this.selecionados.set(new Map());
         this.executando.set(false);
         /*
