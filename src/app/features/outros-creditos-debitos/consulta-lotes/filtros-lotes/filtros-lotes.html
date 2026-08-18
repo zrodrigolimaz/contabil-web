@@ -37,11 +37,19 @@
         </select>
       </app-campo-form>
 
-      <app-campo-faixa rotulo="ID Lote" tipo="inteiro" [grupo]="form.controls.idLote" />
+      <app-campo-faixa
+        rotulo="ID Lote"
+        tipo="inteiro"
+        exemploDe="1001"
+        exemploAte="1024"
+        [grupo]="form.controls.idLote"
+      />
       <app-campo-faixa
         rotulo="Valor Lote"
         tipo="decimal"
         prefixo="R$"
+        exemploDe="0,00"
+        exemploAte="999.999,99"
         [grupo]="form.controls.valor"
       />
       <app-campo-faixa rotulo="Data Entrada" tipo="data" [grupo]="form.controls.dataEntrada" />

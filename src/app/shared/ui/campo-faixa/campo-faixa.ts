@@ -58,7 +58,7 @@ let sequencia = 0;
                 [id]="idDe"
                 type="number"
                 [attr.step]="passo()"
-                [placeholder]="exemplos().de"
+                [placeholder]="exemploDe() ?? ''"
                 formControlName="de"
                 class="campo"
                 [class.pl-9]="prefixo()"
@@ -94,7 +94,7 @@ let sequencia = 0;
                 [id]="idAte"
                 type="number"
                 [attr.step]="passo()"
-                [placeholder]="exemplos().ate"
+                [placeholder]="exemploAte() ?? ''"
                 formControlName="ate"
                 class="campo"
                 [class.pl-9]="prefixo()"
@@ -118,6 +118,13 @@ export class CampoFaixa {
   readonly tipo = input.required<'inteiro' | 'decimal' | 'data'>();
   /** Símbolo fixo dentro do campo, como `R$` em uma faixa de valor. */
   readonly prefixo = input<string>();
+  /**
+   * Exemplos exibidos como placeholder: mostram o formato esperado sem gastar uma
+   * linha de ajuda. Vêm de quem usa o componente — os valores são do domínio da tela,
+   * não deste componente. Campos de data já mostram o formato do navegador.
+   */
+  readonly exemploDe = input<string>();
+  readonly exemploAte = input<string>();
 
   protected readonly idRotulo = `rotulo-faixa-${sequencia}`;
   protected readonly idDe = `faixa-de-${sequencia}`;
@@ -128,12 +135,4 @@ export class CampoFaixa {
 
   /** Centavos na faixa de valor; ID de lote é inteiro. */
   protected readonly passo = computed(() => (this.tipo() === 'decimal' ? '0.01' : '1'));
-
-  /**
-   * Exemplos no lugar de campos vazios: o formato esperado fica visível sem gastar
-   * uma linha de texto de ajuda. Campos de data já mostram o formato do navegador.
-   */
-  protected readonly exemplos = computed(() =>
-    this.tipo() === 'decimal' ? { de: '0,00', ate: '999.999,99' } : { de: '1001', ate: '1024' },
-  );
 }
