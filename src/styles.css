@@ -20,8 +20,6 @@
 
   /* Superfícies e feedback */
   --color-surface: #f4f6f6;
-  /* Blocos dentro do cartão branco — separa sem precisar de sombra */
-  --color-panel: #f4f8f8;
   --color-danger: #c0392b;
 
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
