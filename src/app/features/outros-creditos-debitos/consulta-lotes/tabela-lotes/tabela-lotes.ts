@@ -1,10 +1,23 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-import { Lote } from '../../../../core/models/lote';
+import { Lote, SituacaoLote } from '../../../../core/models/lote';
 
 /** Marcador de campo sem valor, no lugar de deixar a célula em branco. */
 export const SEM_VALOR = '—';
+
+/** Tom da pastilha por situação; o avanço no fluxo aparece na intensidade da cor. */
+const CLASSE_DA_SITUACAO: Record<SituacaoLote, string> = {
+  Aberto: 'chip chip-neutro',
+  Enviado: 'chip',
+  Confirmado: 'chip chip-solido',
+};
+
+/**
+ * Larguras das barras de esqueleto, uma por coluna. Variar o tamanho evita o bloco
+ * uniforme que não se parece com texto nenhum.
+ */
+const LARGURAS_ESQUELETO = ['100%', '45%', '70%', '55%', '35%', '65%', '60%', '50%', '80%'];
 
 /**
  * Grade de resultados da consulta de lotes.
@@ -31,10 +44,11 @@ export class TabelaLotes {
   readonly alternarTodos = output<boolean>();
 
   protected readonly semValor = SEM_VALOR;
+  protected readonly classeDaSituacao = CLASSE_DA_SITUACAO;
 
   /** Células cinzas no lugar do corpo enquanto a consulta responde. */
   protected readonly linhasEsqueleto = Array.from({ length: 5 });
-  protected readonly celulasEsqueleto = Array.from({ length: 9 });
+  protected readonly largurasEsqueleto = LARGURAS_ESQUELETO;
 
   private readonly marcadosNaPagina = computed(
     () => this.lotes().filter((lote) => this.selecionados().has(lote.id)).length,

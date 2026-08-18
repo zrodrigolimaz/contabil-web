@@ -78,6 +78,20 @@ describe('TabelaLotes', () => {
     expect(celulas[6].textContent.trim()).toBe('—');
   });
 
+  it('distingue as situações pelo tom da pastilha', async () => {
+    const enviado: Lote = { ...LOTE_ABERTO, id: 1006, situacao: 'Enviado' };
+    await montar([LOTE_ABERTO, enviado, LOTE_CONFIRMADO]);
+
+    const pastilhas = [...fixture.nativeElement.querySelectorAll('tbody .chip')];
+    const classePor = (situacao: string) =>
+      pastilhas.find((pastilha: HTMLElement) => pastilha.textContent?.trim() === situacao)
+        ?.className;
+
+    expect(classePor('Aberto')).toContain('chip-neutro');
+    expect(classePor('Confirmado')).toContain('chip-solido');
+    expect(classePor('Enviado')).toBe('chip');
+  });
+
   it('mostra a frase do legado quando não há resultados', async () => {
     await montar([]);
 
