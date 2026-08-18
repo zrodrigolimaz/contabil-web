@@ -73,6 +73,20 @@ body {
       px-2.5 py-[3px] text-[11px] font-semibold text-primary-700;
   }
 
+  /*
+   * Variantes da pastilha para a situação do lote. O tom acompanha o avanço no fluxo
+   * Aberto → Enviado → Confirmado, de modo que a coluna se leia de relance: cinza para
+   * o que ainda não saiu do lugar, turquesa claro para o que está em trânsito e
+   * turquesa sólido para o que foi concluído.
+   */
+  .chip-neutro {
+    @apply border-petrol-900/[0.14] bg-petrol-900/[0.04] text-petrol-700;
+  }
+
+  .chip-solido {
+    @apply border-primary-600 bg-primary-600 text-white;
+  }
+
   .campo {
     @apply h-10 w-full rounded-lg border border-petrol-900/[0.18] bg-white px-3 text-[13px]
       font-medium tabular-nums text-petrol-900
