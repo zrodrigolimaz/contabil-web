@@ -17,7 +17,7 @@ let sequencia = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col">
-      <label [attr.for]="paraId()" class="mb-1 text-[12px] font-bold text-petrol-900">
+      <label [attr.for]="paraId()" class="mb-1.5 text-[11.5px] font-semibold text-petrol-800">
         {{ rotulo() }}
         @if (obrigatorio()) {
           <span class="text-danger" aria-hidden="true">*</span>

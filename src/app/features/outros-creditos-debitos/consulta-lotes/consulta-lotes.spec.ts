@@ -58,7 +58,7 @@ describe('ConsultaLotes', () => {
   }
 
   it('mostra a orientação inicial antes de qualquer pesquisa', () => {
-    expect(texto()).toContain('Informe os filtros desejados e clique em Pesquisar.');
+    expect(texto()).toContain('Nenhuma pesquisa realizada');
   });
 
   it('repassa ao serviço os filtros emitidos pelo painel', async () => {
@@ -87,6 +87,13 @@ describe('ConsultaLotes', () => {
     await responder(1);
 
     expect(texto()).toContain('1 lote encontrado.');
+  });
+
+  it('usa a frase do legado quando nada é encontrado', async () => {
+    await pesquisarCom();
+    await responder(0);
+
+    expect(texto()).toContain('Nenhum registro encontrado.');
   });
 
   it('exibe a mensagem de falha quando a consulta dá erro', async () => {

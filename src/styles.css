@@ -20,6 +20,8 @@
 
   /* Superfícies e feedback */
   --color-surface: #f4f6f6;
+  /* Blocos dentro do cartão branco — separa sem precisar de sombra */
+  --color-panel: #f4f8f8;
   --color-danger: #c0392b;
 
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
@@ -36,23 +38,51 @@ body {
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-[12px] font-bold
-      transition-colors focus-visible:outline-2 focus-visible:outline-offset-2
-      focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-45;
+      transition-[background-color,border-color,box-shadow,color] focus-visible:outline-2
+      focus-visible:outline-offset-2 focus-visible:outline-primary-500
+      disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none;
   }
 
   .btn-primario {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-primary-600 text-white shadow-[0_1px_2px_rgba(11,46,51,0.16)] hover:bg-primary-700
+      active:translate-y-px active:shadow-none;
   }
 
   .btn-contorno {
-    @apply border border-petrol-900/15 bg-white text-petrol-800 hover:bg-petrol-900/5;
+    @apply border border-petrol-900/15 bg-white text-petrol-800 hover:border-petrol-900/25
+      hover:bg-petrol-900/[0.04] active:translate-y-px;
+  }
+
+  /* Rótulo de seção: sempre acompanhado do filete turquesa, nunca sozinho */
+  .eyebrow {
+    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-primary-700;
+  }
+
+  /* Critério de pesquisa em vigor, exibido quando o painel está recolhido */
+  .chip {
+    @apply inline-flex items-center rounded-full border border-primary-500/25 bg-primary-50
+      px-2.5 py-[3px] text-[11px] font-semibold text-primary-700;
   }
 
   .campo {
-    @apply w-full rounded-md border border-petrol-900/15 bg-white px-3 py-2 text-[13px]
-      text-petrol-900 transition-colors placeholder:text-petrol-700/40
-      focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20
-      disabled:bg-surface disabled:text-petrol-700/60
-      aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/20;
+    @apply w-full rounded-md border border-petrol-900/15 bg-white px-3 py-[7px] text-[13px]
+      font-medium tabular-nums text-petrol-900 shadow-[inset_0_1px_2px_rgba(11,46,51,0.04)]
+      transition-[border-color,box-shadow] placeholder:font-normal placeholder:text-petrol-700/35
+      hover:border-petrol-900/30 focus:border-primary-500 focus:outline-none
+      focus:ring-[3px] focus:ring-primary-500/15 disabled:bg-surface disabled:text-petrol-700/60
+      aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/15;
+  }
+
+  /*
+   * Seta própria no select: a nativa varia entre navegadores e sistemas, e nesta tela
+   * os selects ficam lado a lado com inputs, onde a diferença de altura salta à vista.
+   */
+  .campo-select {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b555c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1rem;
   }
 }
