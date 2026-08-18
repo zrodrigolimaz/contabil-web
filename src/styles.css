@@ -28,3 +28,111 @@
 body {
   @apply bg-surface font-sans text-petrol-900 antialiased;
 }
+
+/*
+ * Botões e campos como classes utilitárias em vez de componentes wrapper: a barra de
+ * ações da consulta tem sete botões e reusa exatamente estes estilos, sem indireção.
+ */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[12.5px]
+      font-semibold transition-[background-color,border-color,box-shadow,color]
+      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+      disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none;
+  }
+
+  .btn-primario {
+    @apply bg-primary-600 text-white shadow-[0_1px_2px_rgba(11,46,51,0.16)] hover:bg-primary-700
+      active:translate-y-px active:shadow-none;
+  }
+
+  .btn-contorno {
+    @apply border border-petrol-900/15 bg-white text-petrol-800 hover:border-petrol-900/25
+      hover:bg-petrol-900/[0.04] active:translate-y-px;
+  }
+
+  /* Ação secundária ao lado da principal: sem contorno, para não disputar atenção */
+  .btn-texto {
+    @apply text-petrol-700 hover:bg-petrol-900/[0.05] hover:text-petrol-900;
+  }
+
+  /* Cartão de conteúdo sobre o fundo surface: filtros, tabela e futuras seções */
+  .cartao {
+    @apply overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white
+      shadow-[0_1px_1px_rgba(11,46,51,0.04)];
+  }
+
+  /* Rótulo de seção: sempre acompanhado do filete turquesa, nunca sozinho */
+  .eyebrow {
+    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-primary-700;
+  }
+
+  /* Critério de pesquisa em vigor, exibido quando o painel está recolhido */
+  .chip {
+    @apply inline-flex items-center rounded-full border border-primary-500/25 bg-primary-50
+      px-2.5 py-[3px] text-[11px] font-semibold text-primary-700;
+  }
+
+  .campo {
+    @apply h-10 w-full rounded-lg border border-petrol-900/[0.18] bg-white px-3 text-[13px]
+      font-medium tabular-nums text-petrol-900
+      transition-[border-color,box-shadow,background-color] placeholder:font-normal
+      placeholder:text-petrol-700/45 hover:border-petrol-900/35 hover:bg-petrol-900/[0.01]
+      focus:border-primary-500 focus:outline-none focus:ring-[3px] focus:ring-primary-500/20
+      disabled:bg-surface disabled:text-petrol-700/60 aria-[invalid=true]:border-danger
+      aria-[invalid=true]:focus:ring-danger/20;
+  }
+
+  /*
+   * As setinhas de incremento roubam largura de campos estreitos e ninguém ajusta um
+   * ID de lote de um em um — some com elas em todos os navegadores.
+   */
+  .campo[type='number'] {
+    appearance: textfield;
+  }
+
+  .campo[type='number']::-webkit-outer-spin-button,
+  .campo[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /*
+   * O campo de data nativo pinta cada parte (dia, mês, ano) com sua própria cor e um
+   * ícone de calendário azulado. Aqui ele passa a falar a mesma língua dos outros campos.
+   */
+  .campo[type='date']::-webkit-datetime-edit {
+    color: var(--color-petrol-900);
+  }
+
+  .campo[type='date']::-webkit-datetime-edit-text,
+  .campo[type='date']::-webkit-datetime-edit-month-field,
+  .campo[type='date']::-webkit-datetime-edit-day-field,
+  .campo[type='date']::-webkit-datetime-edit-year-field {
+    color: inherit;
+  }
+
+  .campo[type='date']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.45;
+    transition: opacity 120ms;
+  }
+
+  .campo[type='date']:hover::-webkit-calendar-picker-indicator,
+  .campo[type='date']:focus::-webkit-calendar-picker-indicator {
+    opacity: 0.9;
+  }
+
+  /*
+   * Seta própria no select: a nativa varia entre navegadores e sistemas, e nesta tela
+   * os selects ficam lado a lado com inputs, onde a diferença de altura salta à vista.
+   */
+  .campo-select {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b555c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1rem;
+  }
+}
