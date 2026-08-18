@@ -18,19 +18,16 @@ import { DialogoJustificativa } from './dialogo-justificativa/dialogo-justificat
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 import { TabelaLotes } from './tabela-lotes/tabela-lotes';
 
-/** Ações que mudam a situação de um lote pelo serviço. */
 type AcaoDeSituacao = 'confirmar' | 'enviar';
 
-/** Resultado de uma ação, para a faixa de aviso saber que tom usar. */
 interface Aviso {
   readonly texto: string;
   readonly tom: 'sucesso' | 'informacao';
 }
 
 /**
- * As quatro ações que dependem da tela de lançamentos. Elas respondem ao clique
- * dizendo o que fariam: botão que aceita o clique e não dá sinal nenhum é
- * indistinguível de aplicação quebrada.
+ * Respostas das ações que dependem da tela de lançamentos: botão que aceita o clique e
+ * não dá sinal nenhum é indistinguível de aplicação quebrada.
  */
 const AINDA_SEM_TELA: Record<'incluir' | 'alterar' | 'excluir' | 'visualizar', string> = {
   incluir: 'Incluir abre a tela de lançamentos de um lote novo, ainda não implementada.',
@@ -39,10 +36,7 @@ const AINDA_SEM_TELA: Record<'incluir' | 'alterar' | 'excluir' | 'visualizar', s
   visualizar: 'Visualizar abre os lançamentos do lote em leitura, tela ainda não implementada.',
 };
 
-/**
- * Frases do aviso de resultado. Ficam escritas por extenso, e não montadas por regra de
- * plural, porque cada ação tem o seu motivo de ignorar um lote.
- */
+/** Escritas por extenso porque cada ação tem seu próprio motivo de ignorar um lote. */
 const RESULTADO: Record<
   AcaoDeSituacao,
   { alterados: (quantidade: number) => string; ignorados: (quantidade: number) => string }
@@ -207,16 +201,14 @@ export class ConsultaLotes {
   protected readonly total = signal<number | null>(null);
   protected readonly tamanhoPagina = signal(TAMANHO_PAGINA_PADRAO);
 
-  /** Enquanto uma ação corre, a barra para de aceitar cliques. */
   protected readonly executando = signal(false);
-  /** Resultado da última ação, em uma frase. */
   protected readonly aviso = signal<Aviso | null>(null);
   protected readonly justificativaAberta = signal<Lote | null>(null);
 
   /**
-   * Seleção por id, e não por índice: sobrevive à troca de página e é o que as ações
-   * usam. Guarda o lote inteiro porque a barra decide o que habilitar pela situação, e
-   * um lote marcado em outra página não está mais em `lotes()`.
+   * Seleção por id, e não por índice: sobrevive à troca de página. Guarda o lote
+   * inteiro porque a barra habilita pela situação, e um lote marcado em outra página
+   * não está mais em `lotes()`.
    */
   private readonly selecionados = signal<ReadonlyMap<number, Lote>>(new Map());
 
@@ -226,7 +218,6 @@ export class ConsultaLotes {
   /** Critérios da última pesquisa, para paginar sem depender do formulário. */
   private filtrosAtuais: FiltrosPesquisaLote | null = null;
 
-  /** A grade só aparece depois da primeira consulta bem-sucedida. */
   protected readonly pesquisou = computed(() => this.total() !== null);
 
   protected pesquisar(filtros: FiltrosPesquisaLote): void {
@@ -305,10 +296,8 @@ export class ConsultaLotes {
         });
         this.selecionados.set(new Map());
         this.executando.set(false);
-        /*
-         * Reconsulta em vez de remendar a lista: assim a grade continua obedecendo ao
-         * filtro em vigor — um lote que vira Enviado sai de uma consulta por Aberto.
-         */
+        /* Reconsulta em vez de remendar a lista: um lote que vira Enviado precisa sair
+           de uma consulta filtrada por Aberto. */
         this.consultar(this.pagina());
       },
       error: (falha: Error) => {
@@ -350,7 +339,6 @@ export class ConsultaLotes {
   }
 }
 
-/** Junta o que mudou e o que ficou de fora em uma frase só. */
 function descrever(acao: AcaoDeSituacao, alterados: number, ignorados: number): string {
   const frases = [RESULTADO[acao].alterados(alterados)];
   if (ignorados > 0) {

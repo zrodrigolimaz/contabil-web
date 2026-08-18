@@ -13,11 +13,8 @@ import { Lote } from '../../../../core/models/lote';
 let sequencia = 0;
 
 /**
- * Justificativa do lote em um `<dialog>` nativo.
- *
- * O elemento nativo já entrega foco preso, Esc para fechar e fundo escurecido, sem
- * dependência nova. O shell de modal sobre CDK Dialog chega com a tela de lançamentos;
- * até lá, este diálogo pequeno resolve sozinho.
+ * Justificativa do lote em um `<dialog>` nativo, que já entrega foco preso, Esc e fundo
+ * escurecido sem dependência nova.
  *
  * Componente controlado: quem abre e fecha é o container, pelo `lote` — `null` fechado.
  */
@@ -26,9 +23,8 @@ let sequencia = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!--
-      A classe m-auto é o que centraliza: o reset do Tailwind zera a margem de todo
-      elemento, inclusive o "margin: auto" que o navegador dá ao dialog em modo modal, e
-      sem ela o diálogo encosta no canto superior esquerdo da tela.
+      m-auto é o que centraliza: o reset do Tailwind zera o "margin: auto" que o
+      navegador dá ao dialog em modo modal, e sem ela ele encosta no canto da tela.
     -->
     <dialog
       #dialogo
@@ -54,10 +50,10 @@ let sequencia = 0;
   `,
 })
 export class DialogoJustificativa {
-  /** Lote cuja justificativa está em exibição; `null` mantém o diálogo fechado. */
+  /** `null` mantém o diálogo fechado. */
   readonly lote = input.required<Lote | null>();
 
-  /** Fechamento pedido pelo usuário — no botão, no Esc ou no backdrop. */
+  /** Dispara também no Esc e no backdrop, não só no botão. */
   readonly fechar = output<void>();
 
   protected readonly idTitulo = `justificativa-titulo-${sequencia++}`;

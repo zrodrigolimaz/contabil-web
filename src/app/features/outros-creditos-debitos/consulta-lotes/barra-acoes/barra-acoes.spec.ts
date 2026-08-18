@@ -45,7 +45,6 @@ describe('BarraAcoes', () => {
     return encontrado as HTMLButtonElement;
   }
 
-  /** Rótulos dos botões que aceitam clique no estado atual. */
   function habilitados(): string[] {
     return [...fixture.nativeElement.querySelectorAll('button')]
       .filter((elemento: HTMLButtonElement) => !elemento.disabled)

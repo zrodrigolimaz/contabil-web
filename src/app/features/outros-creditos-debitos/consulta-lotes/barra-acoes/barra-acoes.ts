@@ -2,35 +2,27 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 
 import { Lote } from '../../../../core/models/lote';
 
-/** Ações que a barra oferece sobre os lotes selecionados. */
 export type AcaoLote =
   'confirmar' | 'enviar' | 'incluir' | 'alterar' | 'excluir' | 'visualizar' | 'justificativa';
 
-/** Um botão da barra já resolvido: se está ligado e o que ele faz. */
 interface Botao {
   readonly acao: AcaoLote;
   readonly rotulo: string;
   readonly habilitado: boolean;
-  /** Descrição da ação, exibida como `title` — só aparece em botão que aceita clique. */
+  /** Vira `title`, que o navegador só mostra em botão habilitado. */
   readonly descricao: string;
-  /** Ação principal da tela, em turquesa sólido. */
   readonly destaque?: boolean;
-  /** Ação destrutiva, que ganha tratamento de risco. */
   readonly perigo?: boolean;
 }
 
 /**
  * Barra de ações da consulta de lotes.
  *
- * Componente de apresentação: recebe os lotes marcados, resolve o que cada botão pode
- * fazer e apenas anuncia a ação escolhida. Quem executa é o container.
- *
  * A entrada são os lotes inteiros, e não os ids, porque a habilitação de Confirmar e
  * Enviar depende da situação de cada um.
  *
- * Os botões saem agrupados por família — mudar situação, manter o lote, abrir para
- * leitura —, e não na fila única do sistema legado: sete botões idênticos lado a lado
- * não dão ao olho onde se apoiar. Os rótulos, esses, são os do enunciado.
+ * Os botões saem agrupados por família, e não na fila única do sistema legado; os
+ * rótulos, esses, são os do enunciado.
  */
 @Component({
   selector: 'app-barra-acoes',
@@ -65,9 +57,8 @@ interface Botao {
       </div>
 
       <!--
-        A dica precisa ser visível, e não um atributo title: o navegador não dispara
-        evento de mouse em botão desabilitado, então a explicação nunca chegaria a quem
-        mais precisa dela — quem olha para o botão apagado sem saber o que fazer.
+        A dica é visível, e não um title: o navegador não dispara evento de mouse em
+        botão desabilitado, então o tooltip nunca chegaria a quem olha o botão apagado.
       -->
       @if (dica(); as texto) {
         <p class="text-[11.5px] text-petrol-700/70">{{ texto }}</p>
@@ -78,7 +69,6 @@ interface Botao {
 export class BarraAcoes {
   /** Lotes marcados em toda a consulta, não só os da página exibida. */
   readonly selecionados = input.required<readonly Lote[]>();
-  /** Enquanto uma ação corre, a barra inteira para de aceitar cliques. */
   readonly executando = input(false);
 
   readonly acionar = output<AcaoLote>();
@@ -92,7 +82,7 @@ export class BarraAcoes {
     this.selecionados().some((lote) => lote.situacao === 'Aberto'),
   );
 
-  /** Confirmar age sobre o que ainda não foi confirmado, venha de Aberto ou de Enviado. */
+  /** Confirmar aceita tanto Aberto quanto Enviado — daí a negação, e não uma lista. */
   private readonly temPendente = computed(() =>
     this.selecionados().some((lote) => lote.situacao !== 'Confirmado'),
   );
@@ -154,7 +144,6 @@ export class BarraAcoes {
     ];
   });
 
-  /** Diz em voz alta o que falta para os botões apagados voltarem à vida. */
   protected readonly dica = computed(() => {
     const quantidade = this.selecionados().length;
 

@@ -11,7 +11,6 @@ import { aparelharDialogos } from '../../../core/testing/dialogo-jsdom';
 import { ConsultaLotes } from './consulta-lotes';
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 
-/** Pedido registrado pelo dublê: os filtros e a página consultada. */
 interface Consulta {
   readonly filtros: FiltrosPesquisaLote;
   readonly pagina: number;
@@ -25,7 +24,6 @@ class LoteServiceFalso {
   readonly resposta = new Subject<ResultadoPaginado<Lote>>();
   readonly recebidos: Consulta[] = [];
 
-  /** Retorno de `confirmar`/`enviar`: os lotes que de fato mudaram de situação. */
   readonly alteracao = new Subject<readonly Lote[]>();
   readonly confirmados: number[][] = [];
   readonly enviados: number[][] = [];
@@ -66,12 +64,10 @@ function loteCom(
   };
 }
 
-/** Três páginas de um lote cada — o suficiente para exercitar a navegação. */
 function paginaCom(id: number, pagina: number): ResultadoPaginado<Lote> {
   return { itens: [loteCom(id)], total: 3, pagina, tamanhoPagina: 1, totalPaginas: 3 };
 }
 
-/** Uma página única com os lotes informados, para os testes de ação. */
 function paginaUnica(itens: readonly Lote[]): ResultadoPaginado<Lote> {
   return { itens, total: itens.length, pagina: 1, tamanhoPagina: 10, totalPaginas: 1 };
 }
@@ -104,7 +100,6 @@ describe('ConsultaLotes', () => {
     aparelharDialogos(fixture.nativeElement);
   }
 
-  /** Pesquisa e responde de uma vez, deixando a grade pronta para agir. */
   async function grade(itens: readonly Lote[]): Promise<void> {
     await pesquisarCom();
     await responder(paginaUnica(itens));

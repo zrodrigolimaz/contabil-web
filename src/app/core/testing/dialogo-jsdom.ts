@@ -1,8 +1,7 @@
 /**
- * O jsdom conhece a tag `<dialog>`, mas não implementa a abertura modal: `showModal` e
- * `close` simplesmente não existem no elemento, e chamá-los estoura. Esta função põe as
- * duas no lugar, mantendo o que os testes precisam observar — a propriedade `open` e o
- * evento `close`, que é por onde o Esc e o backdrop avisam a aplicação.
+ * O jsdom conhece a tag `<dialog>` mas não implementa a abertura modal: `showModal` e
+ * `close` não existem no elemento, e chamá-los estoura. Esta função põe as duas no
+ * lugar, preservando o que os testes observam — `open` e o evento `close`.
  */
 export function aparelharDialogo(elemento: HTMLDialogElement): void {
   elemento.showModal = () => {
@@ -15,7 +14,6 @@ export function aparelharDialogo(elemento: HTMLDialogElement): void {
   };
 }
 
-/** Aparelha todos os `<dialog>` já renderizados na fixture. */
 export function aparelharDialogos(raiz: HTMLElement): void {
   raiz.querySelectorAll('dialog').forEach(aparelharDialogo);
 }
