@@ -13,12 +13,51 @@ import { Lote } from '../../../core/models/lote';
 import { TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
 import { LoteService } from '../../../core/services/lote.service';
 import { Paginacao } from '../../../shared/ui/paginacao/paginacao';
+import { AcaoLote, BarraAcoes } from './barra-acoes/barra-acoes';
+import { DialogoJustificativa } from './dialogo-justificativa/dialogo-justificativa';
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 import { TabelaLotes } from './tabela-lotes/tabela-lotes';
 
+/** Ações que mudam a situação de um lote pelo serviço. */
+type AcaoDeSituacao = 'confirmar' | 'enviar';
+
+/**
+ * Frases do aviso de resultado. Ficam escritas por extenso, e não montadas por regra de
+ * plural, porque cada ação tem o seu motivo de ignorar um lote.
+ */
+const RESULTADO: Record<
+  AcaoDeSituacao,
+  { alterados: (quantidade: number) => string; ignorados: (quantidade: number) => string }
+> = {
+  confirmar: {
+    alterados: (quantidade) =>
+      quantidade === 0
+        ? 'Nenhum lote confirmado.'
+        : quantidade === 1
+          ? '1 lote confirmado.'
+          : `${quantidade} lotes confirmados.`,
+    ignorados: (quantidade) =>
+      quantidade === 1
+        ? '1 lote já estava confirmado e foi ignorado.'
+        : `${quantidade} lotes já estavam confirmados e foram ignorados.`,
+  },
+  enviar: {
+    alterados: (quantidade) =>
+      quantidade === 0
+        ? 'Nenhum lote enviado.'
+        : quantidade === 1
+          ? '1 lote enviado.'
+          : `${quantidade} lotes enviados.`,
+    ignorados: (quantidade) =>
+      quantidade === 1
+        ? '1 lote não estava aberto e foi ignorado.'
+        : `${quantidade} lotes não estavam abertos e foram ignorados.`,
+  },
+};
+
 @Component({
   selector: 'app-consulta-lotes',
-  imports: [FiltrosLotes, TabelaLotes, Paginacao],
+  imports: [FiltrosLotes, BarraAcoes, TabelaLotes, Paginacao, DialogoJustificativa],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-4">
@@ -50,10 +89,39 @@ import { TabelaLotes } from './tabela-lotes/tabela-lotes';
             </p>
           </div>
         } @else if (pesquisou()) {
+          <div class="border-b border-petrol-900/[0.1] px-6 py-3">
+            <app-barra-acoes
+              [selecionados]="lotesSelecionados()"
+              [executando]="executando()"
+              (acionar)="acionar($event)"
+            />
+          </div>
+
+          @if (aviso(); as texto) {
+            <p
+              class="flex items-center gap-2 border-b border-petrol-900/[0.07] bg-primary-50/60 px-6 py-2.5 text-[12.5px] font-medium text-primary-700"
+              role="status"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-4 shrink-0"
+                aria-hidden="true"
+              >
+                <path d="m4 12 5 5L20 6" />
+              </svg>
+              {{ texto }}
+            </p>
+          }
+
           <app-tabela-lotes
             [lotes]="lotes()"
             [carregando]="carregando()"
-            [selecionados]="selecionados()"
+            [selecionados]="idsSelecionados()"
             (alternarSelecao)="alternarSelecao($event)"
             (alternarTodos)="alternarTodos($event)"
           />
@@ -92,6 +160,11 @@ import { TabelaLotes } from './tabela-lotes/tabela-lotes';
         }
       </div>
     </div>
+
+    <app-dialogo-justificativa
+      [lote]="justificativaAberta()"
+      (fechar)="justificativaAberta.set(null)"
+    />
   `,
 })
 export class ConsultaLotes {
@@ -106,11 +179,21 @@ export class ConsultaLotes {
   protected readonly total = signal<number | null>(null);
   protected readonly tamanhoPagina = signal(TAMANHO_PAGINA_PADRAO);
 
+  /** Enquanto uma ação corre, a barra para de aceitar cliques. */
+  protected readonly executando = signal(false);
+  /** Resultado da última ação, em uma frase. */
+  protected readonly aviso = signal<string | null>(null);
+  protected readonly justificativaAberta = signal<Lote | null>(null);
+
   /**
-   * Seleção por id, e não por índice: assim ela sobrevive à troca de página e às
-   * ações da barra, que agem sobre os lotes escolhidos e não sobre linhas da grade.
+   * Seleção por id, e não por índice: sobrevive à troca de página e é o que as ações
+   * usam. Guarda o lote inteiro porque a barra decide o que habilitar pela situação, e
+   * um lote marcado em outra página não está mais em `lotes()`.
    */
-  protected readonly selecionados = signal<ReadonlySet<number>>(new Set());
+  private readonly selecionados = signal<ReadonlyMap<number, Lote>>(new Map());
+
+  protected readonly idsSelecionados = computed(() => new Set(this.selecionados().keys()));
+  protected readonly lotesSelecionados = computed(() => [...this.selecionados().values()]);
 
   /** Critérios da última pesquisa, para paginar sem depender do formulário. */
   private filtrosAtuais: FiltrosPesquisaLote | null = null;
@@ -120,6 +203,7 @@ export class ConsultaLotes {
 
   protected pesquisar(filtros: FiltrosPesquisaLote): void {
     this.filtrosAtuais = filtros;
+    this.aviso.set(null);
     this.consultar(1);
   }
 
@@ -128,10 +212,15 @@ export class ConsultaLotes {
   }
 
   protected alternarSelecao(id: number): void {
+    const lote = this.lotes().find((candidato) => candidato.id === id);
+    if (!lote) {
+      return;
+    }
+
     this.selecionados.update((atuais) => {
-      const proximos = new Set(atuais);
+      const proximos = new Map(atuais);
       if (!proximos.delete(id)) {
-        proximos.add(id);
+        proximos.set(id, lote);
       }
 
       return proximos;
@@ -140,19 +229,61 @@ export class ConsultaLotes {
 
   /** Age só sobre a página exibida; o que foi marcado nas outras continua marcado. */
   protected alternarTodos(marcar: boolean): void {
-    const idsDaPagina = this.lotes().map((lote) => lote.id);
+    const daPagina = this.lotes();
 
     this.selecionados.update((atuais) => {
-      const proximos = new Set(atuais);
-      for (const id of idsDaPagina) {
+      const proximos = new Map(atuais);
+      for (const lote of daPagina) {
         if (marcar) {
-          proximos.add(id);
+          proximos.set(lote.id, lote);
         } else {
-          proximos.delete(id);
+          proximos.delete(lote.id);
         }
       }
 
       return proximos;
+    });
+  }
+
+  protected acionar(acao: AcaoLote): void {
+    this.aviso.set(null);
+
+    switch (acao) {
+      case 'confirmar':
+      case 'enviar':
+        this.mudarSituacao(acao);
+        break;
+      case 'justificativa':
+        this.justificativaAberta.set(this.lotesSelecionados()[0] ?? null);
+        break;
+      /* Incluir, Alterar, Visualizar e Excluir ganham destino com o modal de lançamentos. */
+      default:
+        break;
+    }
+  }
+
+  private mudarSituacao(acao: AcaoDeSituacao): void {
+    const ids = [...this.selecionados().keys()];
+    this.executando.set(true);
+
+    const chamada =
+      acao === 'confirmar' ? this.loteService.confirmar(ids) : this.loteService.enviar(ids);
+
+    chamada.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (alterados) => {
+        this.aviso.set(descrever(acao, alterados.length, ids.length - alterados.length));
+        this.selecionados.set(new Map());
+        this.executando.set(false);
+        /*
+         * Reconsulta em vez de remendar a lista: assim a grade continua obedecendo ao
+         * filtro em vigor — um lote que vira Enviado sai de uma consulta por Aberto.
+         */
+        this.consultar(this.pagina());
+      },
+      error: (falha: Error) => {
+        this.erro.set(falha.message);
+        this.executando.set(false);
+      },
     });
   }
 
@@ -186,4 +317,14 @@ export class ConsultaLotes {
         },
       });
   }
+}
+
+/** Junta o que mudou e o que ficou de fora em uma frase só. */
+function descrever(acao: AcaoDeSituacao, alterados: number, ignorados: number): string {
+  const frases = [RESULTADO[acao].alterados(alterados)];
+  if (ignorados > 0) {
+    frases.push(RESULTADO[acao].ignorados(ignorados));
+  }
+
+  return frases.join(' ');
 }
