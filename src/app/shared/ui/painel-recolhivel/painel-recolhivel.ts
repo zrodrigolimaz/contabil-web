@@ -17,8 +17,16 @@ let sequencia = 0;
     <section
       class="overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white shadow-[0_1px_1px_rgba(11,46,51,0.04)]"
     >
-      <div class="flex items-center gap-4 px-6 py-4">
-        <h2 class="shrink-0 text-[13px] font-bold text-petrol-900">{{ titulo() }}</h2>
+      <div
+        class="flex items-center gap-4 px-6 py-4"
+        [class]="aberto() ? 'border-b border-petrol-900/[0.12] bg-surface/60' : ''"
+      >
+        <div class="shrink-0">
+          <h2 class="text-[14px] font-semibold text-petrol-900">{{ titulo() }}</h2>
+          @if (subtitulo(); as descricao) {
+            <p class="mt-0.5 text-[12px] text-petrol-700/70">{{ descricao }}</p>
+          }
+        </div>
 
         @if (!aberto()) {
           <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
@@ -57,7 +65,7 @@ let sequencia = 0;
         [class]="aberto() ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
       >
         <div [id]="idConteudo" class="overflow-hidden" [attr.inert]="aberto() ? null : ''">
-          <div class="border-t border-petrol-900/[0.12] px-6 pb-6 pt-5">
+          <div class="px-6 pb-6 pt-6">
             <ng-content />
           </div>
         </div>
@@ -67,6 +75,8 @@ let sequencia = 0;
 })
 export class PainelRecolhivel {
   readonly titulo = input.required<string>();
+  /** Linha de apoio sob o título, no padrão de cabeçalho de cartão. */
+  readonly subtitulo = input<string>();
   readonly aberto = model(true);
 
   protected readonly idConteudo = `painel-conteudo-${sequencia++}`;
