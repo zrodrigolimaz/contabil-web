@@ -18,7 +18,7 @@ import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-5">
-      <app-filtros-lotes (pesquisar)="pesquisar($event)" />
+      <app-filtros-lotes [carregando]="carregando()" (pesquisar)="pesquisar($event)" />
 
       <div class="flex flex-col items-center gap-2 py-14 text-center">
         @if (carregando()) {

@@ -8,7 +8,7 @@
   <p class="eyebrow mb-5">Pesquisar lote outros créditos/débitos</p>
 
   <form [formGroup]="form" (ngSubmit)="aoEnviar()">
-    <div class="grid gap-x-6 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid items-end gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-3">
       <app-campo-form rotulo="Instituição Resp." paraId="filtro-instituicao-responsavel">
         <select
           id="filtro-instituicao-responsavel"
@@ -40,11 +40,16 @@
       </app-campo-form>
 
       <app-campo-faixa rotulo="ID Lote" tipo="inteiro" [grupo]="form.controls.idLote" />
-      <app-campo-faixa rotulo="Valor Lote" tipo="decimal" [grupo]="form.controls.valor" />
+      <app-campo-faixa
+        rotulo="Valor Lote"
+        tipo="decimal"
+        prefixo="R$"
+        [grupo]="form.controls.valor"
+      />
       <app-campo-faixa rotulo="Data Entrada" tipo="data" [grupo]="form.controls.dataEntrada" />
     </div>
 
-    <div class="mt-6 flex justify-end gap-1 border-t border-petrol-900/[0.12] pt-4">
+    <div class="mt-4 flex justify-end gap-1">
       <button type="button" class="btn btn-texto" (click)="limpar()">
         <svg
           viewBox="0 0 24 24"
@@ -62,21 +67,36 @@
         Limpar
       </button>
 
-      <button type="submit" class="btn btn-primario">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="size-4"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="7" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        Pesquisar
+      <button type="submit" class="btn btn-primario" [disabled]="carregando()">
+        @if (carregando()) {
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            class="size-4 animate-spin motion-reduce:animate-none"
+            aria-hidden="true"
+          >
+            <path d="M12 3a9 9 0 1 0 9 9" />
+          </svg>
+          Buscando…
+        } @else {
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="size-4"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          Pesquisar
+        }
       </button>
     </div>
   </form>

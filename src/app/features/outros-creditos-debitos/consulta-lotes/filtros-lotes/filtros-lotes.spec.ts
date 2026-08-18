@@ -113,6 +113,17 @@ describe('FiltrosLotes', () => {
     expect(emitidos[0].valor).toEqual({ de: 900, ate: 9000 });
   });
 
+  it('bloqueia o envio enquanto a consulta está em andamento', async () => {
+    fixture.componentRef.setInput('carregando', true);
+    await fixture.whenStable();
+
+    const enviarBotao: HTMLButtonElement =
+      fixture.nativeElement.querySelector('button[type="submit"]');
+
+    expect(enviarBotao.disabled).toBe(true);
+    expect(enviarBotao.textContent).toContain('Buscando');
+  });
+
   describe('resumo dos critérios no painel recolhido', () => {
     async function recolher(): Promise<void> {
       fixture.nativeElement.querySelector('button[aria-controls]').click();

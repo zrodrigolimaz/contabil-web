@@ -16,8 +16,8 @@ let sequencia = 0;
   selector: 'app-campo-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col">
-      <label [attr.for]="paraId()" class="mb-1.5 text-[11.5px] font-semibold text-petrol-800">
+    <div class="flex flex-col gap-1.5">
+      <label [attr.for]="paraId()" class="text-[13px] font-medium text-petrol-800">
         {{ rotulo() }}
         @if (obrigatorio()) {
           <span class="text-danger" aria-hidden="true">*</span>
@@ -27,9 +27,7 @@ let sequencia = 0;
       <ng-content />
 
       @if (estado.mensagem(); as texto) {
-        <p [id]="idErro" role="alert" class="mt-1 text-[11px] font-medium text-danger">
-          {{ texto }}
-        </p>
+        <p [id]="idErro" role="alert" class="text-[12px] font-medium text-danger">{{ texto }}</p>
       }
     </div>
   `,

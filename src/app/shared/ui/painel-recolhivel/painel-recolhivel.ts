@@ -14,7 +14,9 @@ let sequencia = 0;
   selector: 'app-painel-recolhivel',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="rounded-lg border border-petrol-900/[0.18] bg-white">
+    <section
+      class="overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white shadow-[0_1px_1px_rgba(11,46,51,0.04)]"
+    >
       <div class="flex items-center gap-4 px-6 py-4">
         <h2 class="shrink-0 text-[13px] font-bold text-petrol-900">{{ titulo() }}</h2>
 

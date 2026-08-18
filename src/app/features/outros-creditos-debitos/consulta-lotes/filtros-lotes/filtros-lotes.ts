@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  input,
   output,
   signal,
 } from '@angular/core';
@@ -34,6 +35,9 @@ import { faixaValidator } from '../../../../shared/validators/faixa.validator';
 })
 export class FiltrosLotes {
   private readonly fb = inject(FormBuilder);
+
+  /** Enquanto a consulta corre, o botão vira "Buscando…" e não aceita novo envio. */
+  readonly carregando = input(false);
 
   readonly pesquisar = output<FiltrosPesquisaLote>();
 
