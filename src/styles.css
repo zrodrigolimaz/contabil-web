@@ -56,6 +56,12 @@ body {
     @apply text-petrol-700 hover:bg-petrol-900/[0.05] hover:text-petrol-900;
   }
 
+  /* Cartão de conteúdo sobre o fundo surface: filtros, tabela e futuras seções */
+  .cartao {
+    @apply overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white
+      shadow-[0_1px_1px_rgba(11,46,51,0.04)];
+  }
+
   /* Rótulo de seção: sempre acompanhado do filete turquesa, nunca sozinho */
   .eyebrow {
     @apply text-[10px] font-bold uppercase tracking-[0.14em] text-primary-700;

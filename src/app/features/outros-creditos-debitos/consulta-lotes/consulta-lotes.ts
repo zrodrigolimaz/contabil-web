@@ -17,10 +17,11 @@ import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
   imports: [FiltrosLotes],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-4">
       <app-filtros-lotes [carregando]="carregando()" (pesquisar)="pesquisar($event)" />
 
-      <div class="flex flex-col items-center gap-2 py-14 text-center">
+      <!-- Cartão de resultados: a tabela de lotes ocupa este espaço na próxima entrega. -->
+      <div class="cartao flex flex-col items-center gap-2 px-6 py-16 text-center">
         @if (carregando()) {
           <p class="flex items-center gap-2 text-[13px] text-petrol-700/80" role="status">
             <svg

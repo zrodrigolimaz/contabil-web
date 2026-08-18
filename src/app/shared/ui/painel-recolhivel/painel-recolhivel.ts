@@ -14,9 +14,7 @@ let sequencia = 0;
   selector: 'app-painel-recolhivel',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section
-      class="overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white shadow-[0_1px_1px_rgba(11,46,51,0.04)]"
-    >
+    <section class="cartao">
       <div
         class="flex items-center gap-4 px-6 py-4"
         [class]="aberto() ? 'border-b border-petrol-900/[0.12] bg-surface/60' : ''"
