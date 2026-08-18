@@ -22,7 +22,7 @@
   --color-surface: #f4f6f6;
   --color-danger: #c0392b;
 
-  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
 }
 
 body {
