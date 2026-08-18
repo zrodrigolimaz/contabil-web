@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -7,4 +7,7 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './shell.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Shell {}
+export class Shell {
+  protected readonly menuRecolhido = signal(false);
+  protected readonly grupoContabilAberto = signal(true);
+}

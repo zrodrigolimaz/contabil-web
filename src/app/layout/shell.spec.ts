@@ -36,4 +36,51 @@ describe('Shell', () => {
     const sidebar = el.querySelector('nav[aria-label="Menu principal"]');
     expect(sidebar?.textContent).toContain('Contábil');
   });
+
+  it('marca "Outros Créditos/Débitos" como item atual do menu', async () => {
+    const el = await renderizar();
+    const sidebar = el.querySelector('nav[aria-label="Menu principal"]');
+    const atual = sidebar?.querySelector('[aria-current="page"]');
+    expect(atual?.textContent).toContain('Outros Créditos/Débitos');
+  });
+
+  it('fecha e reabre o submenu do grupo Contábil ao clicar no grupo', async () => {
+    const fixture = TestBed.createComponent(Shell);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const sidebar = () => el.querySelector('nav[aria-label="Menu principal"]')!;
+    const grupo = sidebar().querySelector('button[aria-controls="submenu-contabil"]') as HTMLButtonElement;
+
+    expect(sidebar().textContent).toContain('Outros Créditos/Débitos');
+    expect(grupo.getAttribute('aria-expanded')).toBe('true');
+
+    grupo.click();
+    await fixture.whenStable();
+    expect(sidebar().textContent).not.toContain('Outros Créditos/Débitos');
+    expect(grupo.getAttribute('aria-expanded')).toBe('false');
+
+    grupo.click();
+    await fixture.whenStable();
+    expect(sidebar().textContent).toContain('Outros Créditos/Débitos');
+  });
+
+  it('recolhe o menu lateral para modo compacto e expande de volta', async () => {
+    const fixture = TestBed.createComponent(Shell);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const sidebar = () => el.querySelector('nav[aria-label="Menu principal"]')!;
+    const alternar = sidebar().querySelector('button[aria-label="Alternar menu"]') as HTMLButtonElement;
+
+    expect(sidebar().textContent).toContain('Início');
+    expect(alternar.getAttribute('aria-expanded')).toBe('true');
+
+    alternar.click();
+    await fixture.whenStable();
+    expect(sidebar().textContent).not.toContain('Início');
+    expect(alternar.getAttribute('aria-expanded')).toBe('false');
+
+    alternar.click();
+    await fixture.whenStable();
+    expect(sidebar().textContent).toContain('Início');
+  });
 });
