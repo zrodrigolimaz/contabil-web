@@ -113,6 +113,50 @@ describe('FiltrosLotes', () => {
     expect(emitidos[0].valor).toEqual({ de: 900, ate: 9000 });
   });
 
+  describe('resumo dos critérios no painel recolhido', () => {
+    async function recolher(): Promise<void> {
+      fixture.nativeElement.querySelector('button[aria-controls]').click();
+      await fixture.whenStable();
+    }
+
+    function chips(): string[] {
+      const encontrados: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.chip'),
+      );
+      return encontrados.map((chip) => chip.textContent?.trim() ?? '');
+    }
+
+    it('não mostra pastilhas antes da primeira pesquisa', async () => {
+      await recolher();
+
+      expect(chips()).toHaveLength(0);
+    });
+
+    it('descreve cada critério informado', async () => {
+      const [idDe, idAte] = faixa(0);
+      preencher(idDe, '1005');
+      preencher(idAte, '1008');
+
+      const [, valorAte] = faixa(1);
+      preencher(valorAte, '5000');
+
+      const situacao: HTMLSelectElement = fixture.nativeElement.querySelector('#filtro-situacao');
+      preencher(situacao, situacao.options[1].value);
+
+      await enviar();
+      await recolher();
+
+      expect(chips()).toEqual(['Situação: Aberto', 'ID Lote: 1005 a 1008', 'Valor: até 5.000,00']);
+    });
+
+    it('avisa quando a pesquisa não tem critérios', async () => {
+      await enviar();
+      await recolher();
+
+      expect(chips()).toEqual(['Todos os lotes']);
+    });
+  });
+
   it('limpa os campos e refaz a pesquisa sem critérios', async () => {
     const [de] = faixa(0);
     preencher(de, '1005');

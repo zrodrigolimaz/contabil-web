@@ -1,15 +1,22 @@
 <app-painel-recolhivel titulo="Filtros">
-  <p class="mb-5 text-[11px] font-bold uppercase tracking-wide text-primary-700">
-    Pesquisar lote outros créditos/débitos
-  </p>
+  <div resumo>
+    @for (chip of chips(); track chip) {
+      <span class="chip">{{ chip }}</span>
+    }
+  </div>
+
+  <div class="mb-5 flex items-center gap-2">
+    <span class="h-3.5 w-[3px] rounded-full bg-primary-500" aria-hidden="true"></span>
+    <p class="eyebrow">Pesquisar lote outros créditos/débitos</p>
+  </div>
 
   <form [formGroup]="form" (ngSubmit)="aoEnviar()">
-    <div class="grid gap-x-12 gap-y-4 xl:grid-cols-2">
-      <div class="flex flex-col gap-4">
+    <div class="grid gap-x-10 gap-y-5 lg:grid-cols-12">
+      <div class="flex flex-col gap-4 lg:col-span-5">
         <app-campo-form rotulo="Instituição Resp." paraId="filtro-instituicao-responsavel">
           <select
             id="filtro-instituicao-responsavel"
-            class="campo"
+            class="campo campo-select"
             formControlName="instituicaoResponsavel"
           >
             <option [ngValue]="null">Todas</option>
@@ -20,7 +27,7 @@
         </app-campo-form>
 
         <app-campo-form rotulo="Instituição" paraId="filtro-instituicao">
-          <select id="filtro-instituicao" class="campo" formControlName="instituicao">
+          <select id="filtro-instituicao" class="campo campo-select" formControlName="instituicao">
             <option [ngValue]="null">Todas</option>
             @for (opcao of instituicoes; track opcao) {
               <option [ngValue]="opcao">{{ opcao }}</option>
@@ -29,7 +36,7 @@
         </app-campo-form>
 
         <app-campo-form rotulo="Situação Lote" paraId="filtro-situacao">
-          <select id="filtro-situacao" class="campo" formControlName="situacao">
+          <select id="filtro-situacao" class="campo campo-select" formControlName="situacao">
             @for (opcao of situacoes; track opcao) {
               <option [ngValue]="opcao">{{ opcao }}</option>
             }
@@ -37,14 +44,14 @@
         </app-campo-form>
       </div>
 
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4 lg:col-span-7">
         <app-campo-faixa rotulo="ID Lote" tipo="inteiro" [grupo]="form.controls.idLote" />
         <app-campo-faixa rotulo="Valor Lote" tipo="decimal" [grupo]="form.controls.valor" />
         <app-campo-faixa rotulo="Data Entrada" tipo="data" [grupo]="form.controls.dataEntrada" />
       </div>
     </div>
 
-    <div class="mt-6 flex justify-end gap-2">
+    <div class="mt-6 flex justify-end gap-2 border-t border-petrol-900/8 pt-4">
       <button type="button" class="btn btn-contorno" (click)="limpar()">Limpar</button>
       <button type="submit" class="btn btn-primario">Pesquisar</button>
     </div>

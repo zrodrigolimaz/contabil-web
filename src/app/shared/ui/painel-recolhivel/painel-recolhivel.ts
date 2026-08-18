@@ -14,9 +14,17 @@ let sequencia = 0;
   selector: 'app-painel-recolhivel',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="rounded-lg border border-petrol-900/10 bg-white">
-      <div class="flex items-center justify-between gap-4 px-5 py-3.5">
-        <h2 class="text-[13px] font-bold text-petrol-900">{{ titulo() }}</h2>
+    <section class="rounded-lg border border-petrol-900/10 bg-panel">
+      <div class="flex items-center gap-4 px-5 py-3">
+        <h2 class="shrink-0 text-[13px] font-bold text-petrol-900">{{ titulo() }}</h2>
+
+        @if (!aberto()) {
+          <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+            <ng-content select="[resumo]" />
+          </div>
+        } @else {
+          <span class="flex-1"></span>
+        }
 
         <button
           type="button"
@@ -47,7 +55,7 @@ let sequencia = 0;
         [class]="aberto() ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
       >
         <div [id]="idConteudo" class="overflow-hidden" [attr.inert]="aberto() ? null : ''">
-          <div class="px-5 pb-5">
+          <div class="border-t border-petrol-900/8 px-5 pb-5 pt-4">
             <ng-content />
           </div>
         </div>
