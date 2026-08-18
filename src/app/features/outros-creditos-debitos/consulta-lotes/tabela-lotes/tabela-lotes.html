@@ -1,0 +1,103 @@
+<!--
+  A responsividade fina fica para depois; o contêiner rolável já impede que a grade
+  estoure a largura do cartão em telas estreitas.
+-->
+<div class="overflow-x-auto">
+  <table class="w-full border-collapse text-left text-[12.5px] text-petrol-900">
+    <caption class="sr-only">
+      Lotes de outros créditos/débitos encontrados
+    </caption>
+
+    <thead class="bg-petrol-900 text-[11px] font-semibold uppercase tracking-wide text-white">
+      <tr>
+        <th scope="col" class="w-10 px-3 py-3">
+          <input
+            type="checkbox"
+            class="size-4 cursor-pointer accent-primary-500"
+            aria-label="Selecionar todos os lotes da página"
+            [checked]="todosMarcados()"
+            [indeterminate]="parteMarcada()"
+            [disabled]="lotes().length === 0"
+            (change)="aoAlternarTodos($event)"
+          />
+        </th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3">ID Lote</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3">Data Entrada</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3 text-right">Valor</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3 text-right">Quant. Lançamentos</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3">Usuário Registro</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3">Usuário Aprovação</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3">Situação Lote</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-3">Data/Hora Situação Lote</th>
+      </tr>
+    </thead>
+
+    @if (carregando()) {
+      <tbody aria-busy="true">
+        @for (linha of linhasEsqueleto; track $index) {
+          <tr class="border-b border-petrol-900/[0.07]">
+            @for (celula of celulasEsqueleto; track $index) {
+              <td class="px-3 py-3.5">
+                <span
+                  class="block h-3 animate-pulse rounded bg-petrol-900/[0.09] motion-reduce:animate-none"
+                ></span>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    } @else {
+      <tbody>
+        @for (lote of lotes(); track lote.id) {
+          @let marcado = selecionados().has(lote.id);
+
+          <tr
+            class="border-b border-petrol-900/[0.07] transition-colors"
+            [class]="
+              marcado
+                ? 'bg-primary-50'
+                : 'odd:bg-petrol-900/[0.02] hover:bg-petrol-900/[0.045] odd:hover:bg-petrol-900/[0.045]'
+            "
+          >
+            <td class="px-3 py-3">
+              <input
+                type="checkbox"
+                class="size-4 cursor-pointer accent-primary-600"
+                [attr.aria-label]="'Selecionar lote ' + lote.id"
+                [checked]="marcado"
+                (change)="alternarSelecao.emit(lote.id)"
+              />
+            </td>
+            <td class="whitespace-nowrap px-3 py-3 font-semibold tabular-nums">{{ lote.id }}</td>
+            <td class="whitespace-nowrap px-3 py-3 tabular-nums">
+              {{ lote.dataEntrada | date: 'dd/MM/yyyy' }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">
+              {{ lote.valor | number: '1.2-2' }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">
+              {{ lote.quantidadeLancamentos }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-3">{{ lote.usuarioRegistro }}</td>
+            <td class="whitespace-nowrap px-3 py-3">
+              {{ lote.usuarioAprovacao ?? semValor }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-3">
+              <span class="chip chip-neutro">{{ lote.situacao }}</span>
+            </td>
+            <td class="whitespace-nowrap px-3 py-3 tabular-nums">
+              {{ lote.dataHoraSituacao | date: 'dd/MM/yyyy, HH:mm:ss' }}
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <!-- Mesma frase do sistema legado. -->
+            <td colspan="9" class="px-3 py-14 text-center text-[13px] text-petrol-700/80">
+              Nenhum registro encontrado.
+            </td>
+          </tr>
+        }
+      </tbody>
+    }
+  </table>
+</div>

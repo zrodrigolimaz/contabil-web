@@ -73,6 +73,12 @@ body {
       px-2.5 py-[3px] text-[11px] font-semibold text-primary-700;
   }
 
+  /* Mesma pastilha em cinza: a situação do lote se repete linha a linha na grade e
+     em turquesa disputaria atenção com os chips de filtro */
+  .chip-neutro {
+    @apply border-petrol-900/[0.14] bg-petrol-900/[0.04] text-petrol-700;
+  }
+
   .campo {
     @apply h-10 w-full rounded-lg border border-petrol-900/[0.18] bg-white px-3 text-[13px]
       font-medium tabular-nums text-petrol-900
