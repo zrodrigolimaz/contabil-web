@@ -29,12 +29,7 @@ let sequencia = 0;
 
       <div class="grid grid-cols-2 gap-2.5">
         <div class="flex flex-col gap-1">
-          <label
-            [for]="idDe"
-            class="text-[10px] font-bold uppercase tracking-[0.08em] text-primary-700"
-          >
-            De
-          </label>
+          <label [for]="idDe" class="text-[11px] text-petrol-700/60">De</label>
           <div class="relative">
             @if (prefixo(); as simbolo) {
               <span
@@ -75,12 +70,7 @@ let sequencia = 0;
         </div>
 
         <div class="flex flex-col gap-1">
-          <label
-            [for]="idAte"
-            class="text-[10px] font-bold uppercase tracking-[0.08em] text-primary-700"
-          >
-            Até
-          </label>
+          <label [for]="idAte" class="text-[11px] text-petrol-700/60">Até</label>
           <div class="relative">
             @if (prefixo(); as simbolo) {
               <span
