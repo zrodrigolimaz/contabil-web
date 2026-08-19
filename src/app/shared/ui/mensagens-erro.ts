@@ -9,6 +9,7 @@ const MENSAGENS: Record<string, string> = {
   faixaInvertida: 'O valor inicial deve ser menor ou igual ao final.',
   maiorQueZero: 'Informe um valor maior que zero.',
   contaInexistente: 'Conta corrente não encontrada.',
+  eventoInexistente: 'Evento não encontrado.',
 };
 
 /** Mensagem do primeiro erro reconhecido; `null` quando não há erro a exibir. */
