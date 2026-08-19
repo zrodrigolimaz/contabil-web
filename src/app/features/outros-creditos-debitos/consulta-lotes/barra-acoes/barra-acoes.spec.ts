@@ -53,8 +53,12 @@ describe('BarraAcoes', () => {
 
   function habilitados(): string[] {
     return acoes()
-      .filter((elemento) => !elemento.disabled)
+      .filter((elemento) => elemento.getAttribute('aria-disabled') === null)
       .map((elemento) => elemento.textContent?.trim() ?? '');
+  }
+
+  function bloqueado(rotulo: string): boolean {
+    return botao(rotulo).getAttribute('aria-disabled') === 'true';
   }
 
   function dica(): string | null {
@@ -133,30 +137,30 @@ describe('BarraAcoes', () => {
   it('desliga Enviar quando nenhum selecionado está aberto', async () => {
     await montar([loteCom(1006, 'Enviado'), loteCom(1002, 'Enviado')]);
 
-    expect(botao('Enviar').disabled).toBe(true);
-    expect(botao('Confirmar').disabled).toBe(false);
+    expect(bloqueado('Enviar')).toBe(true);
+    expect(bloqueado('Confirmar')).toBe(false);
   });
 
   it('desliga Confirmar e Enviar quando tudo já está confirmado', async () => {
     await montar([loteCom(1001, 'Confirmado'), loteCom(1003, 'Confirmado')]);
 
-    expect(botao('Confirmar').disabled).toBe(true);
-    expect(botao('Enviar').disabled).toBe(true);
+    expect(bloqueado('Confirmar')).toBe(true);
+    expect(bloqueado('Enviar')).toBe(true);
   });
 
   it('liga Confirmar se ao menos um da seleção se aplica', async () => {
     await montar([loteCom(1001, 'Confirmado'), loteCom(1004, 'Aberto')]);
 
-    expect(botao('Confirmar').disabled).toBe(false);
-    expect(botao('Enviar').disabled).toBe(false);
+    expect(bloqueado('Confirmar')).toBe(false);
+    expect(bloqueado('Enviar')).toBe(false);
   });
 
   it('só oferece a justificativa quando o lote tem uma', async () => {
     await montar([loteCom(1002, 'Enviado', 'Reenviado após ajuste.')]);
-    expect(botao('Visualizar Justificativa').disabled).toBe(false);
+    expect(bloqueado('Visualizar Justificativa')).toBe(false);
 
     await montar([loteCom(1004, 'Aberto')]);
-    expect(botao('Visualizar Justificativa').disabled).toBe(true);
+    expect(bloqueado('Visualizar Justificativa')).toBe(true);
   });
 
   it('descreve no title o que cada ação faz', async () => {
@@ -195,13 +199,13 @@ describe('BarraAcoes', () => {
 
   it('só exclui lote aberto', async () => {
     await montar([loteCom(1004, 'Aberto')]);
-    expect(botao('Excluir').disabled).toBe(false);
+    expect(bloqueado('Excluir')).toBe(false);
 
     await montar([loteCom(1002, 'Enviado')]);
-    expect(botao('Excluir').disabled).toBe(true);
+    expect(bloqueado('Excluir')).toBe(true);
 
     await montar([loteCom(1001, 'Confirmado')]);
-    expect(botao('Excluir').disabled).toBe(true);
+    expect(bloqueado('Excluir')).toBe(true);
   });
 
   it('cala a dica quando um lote aberto deixa tudo disponível', async () => {
@@ -248,6 +252,27 @@ describe('BarraAcoes', () => {
     botao('Incluir').click();
 
     expect(acionadas).toEqual(['confirmar', 'justificativa', 'incluir']);
+  });
+
+  it('não aciona o que está bloqueado, mesmo clicado', async () => {
+    await montar([]);
+
+    botao('Excluir').click();
+    await fixture.whenStable();
+
+    expect(acionadas).toEqual([]);
+  });
+
+  it('deixa o botão bloqueado alcançável e apontando para a dica', async () => {
+    await montar([]);
+
+    const excluir = botao('Excluir');
+    const dicaVisivel: HTMLElement = fixture.nativeElement.querySelector(
+      `#${excluir.getAttribute('aria-describedby')}`,
+    );
+
+    expect(excluir.disabled).toBe(false);
+    expect(dicaVisivel.textContent?.trim()).toBe('Selecione um lote para agir sobre ele.');
   });
 
   it('trava a barra inteira enquanto uma ação corre', async () => {

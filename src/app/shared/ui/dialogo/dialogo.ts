@@ -39,7 +39,7 @@ let sequencia = 0;
 
           <button
             type="button"
-            class="rounded-md p-1 text-petrol-700/70 transition-colors hover:bg-petrol-900/[0.06]
+            class="rounded-md p-1 text-petrol-700/80 transition-colors hover:bg-petrol-900/[0.06]
               hover:text-petrol-900 focus-visible:outline-2 focus-visible:outline-offset-1
               focus-visible:outline-primary-500"
             aria-label="Fechar"

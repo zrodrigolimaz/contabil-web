@@ -4,14 +4,15 @@ import {
   computed,
   DestroyRef,
   inject,
+  InjectionToken,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { catchError, debounceTime, map, Observable, of, Subject, switchMap } from 'rxjs';
 
 import { FiltrosPesquisaLote } from '../../../core/models/filtros';
 import { Lote } from '../../../core/models/lote';
-import { TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
+import { ResultadoPaginado, TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
 import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
 import {
@@ -29,7 +30,21 @@ import { DialogoJustificativa } from './dialogo-justificativa/dialogo-justificat
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 import { TabelaLotes } from './tabela-lotes/tabela-lotes';
 
+/** Espera antes de disparar a consulta; zero nos testes, que controlam o tempo. */
+export const ESPERA_CONSULTA_MS = new InjectionToken<number>('espera da consulta de lotes', {
+  factory: () => 250,
+});
+
 type AcaoDeSituacao = 'confirmar' | 'enviar';
+
+interface PedidoConsulta {
+  readonly filtros: FiltrosPesquisaLote;
+  readonly pagina: number;
+}
+
+type RespostaConsulta =
+  | { readonly ok: true; readonly resultado: ResultadoPaginado<Lote> }
+  | { readonly ok: false; readonly mensagem: string };
 
 /** O que o "sim" do diálogo dispara. */
 type AcaoConfirmavel =
@@ -112,6 +127,7 @@ export class ConsultaLotes {
   private readonly loteService = inject(LoteService);
   private readonly lancamentoService = inject(LancamentoService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly espera = inject(ESPERA_CONSULTA_MS);
 
   protected readonly carregando = signal(false);
   protected readonly erro = signal<string | null>(null);
@@ -144,7 +160,26 @@ export class ConsultaLotes {
   /** Critérios da última pesquisa, para paginar sem depender do formulário. */
   private filtrosAtuais: FiltrosPesquisaLote | null = null;
 
+  /** Guardado para o "Tentar novamente" repetir a consulta que falhou. */
+  private ultimoPedido: PedidoConsulta | null = null;
+
+  private readonly consultas = new Subject<PedidoConsulta>();
+
   protected readonly pesquisou = computed(() => this.total() !== null);
+
+  constructor() {
+    /* switchMap: quem paginar depressa não corre o risco de a resposta antiga chegar
+       por último e sobrescrever a nova. */
+    const pedidos =
+      this.espera > 0 ? this.consultas.pipe(debounceTime(this.espera)) : this.consultas;
+
+    pedidos
+      .pipe(
+        switchMap((pedido) => this.buscar(pedido)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((resposta) => this.aplicar(resposta));
+  }
 
   protected pesquisar(filtros: FiltrosPesquisaLote): void {
     this.filtrosAtuais = filtros;
@@ -154,6 +189,13 @@ export class ConsultaLotes {
 
   protected irPara(pagina: number): void {
     this.consultar(pagina);
+  }
+
+  protected tentarNovamente(): void {
+    const pedido = this.ultimoPedido;
+    if (pedido) {
+      this.consultar(pedido.pagina);
+    }
   }
 
   protected alternarSelecao(id: number): void {
@@ -323,26 +365,35 @@ export class ConsultaLotes {
     this.carregando.set(true);
     this.erro.set(null);
 
-    this.loteService
-      .pesquisar(filtros, pagina)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (resultado) => {
-          this.lotes.set(resultado.itens);
-          this.total.set(resultado.total);
-          /* A página vem da resposta: o serviço limita o pedido ao intervalo válido. */
-          this.pagina.set(resultado.pagina);
-          this.totalPaginas.set(resultado.totalPaginas);
-          this.tamanhoPagina.set(resultado.tamanhoPagina);
-          this.carregando.set(false);
-        },
-        error: (falha: Error) => {
-          this.erro.set(falha.message);
-          this.lotes.set([]);
-          this.total.set(null);
-          this.carregando.set(false);
-        },
-      });
+    this.ultimoPedido = { filtros, pagina };
+    this.consultas.next(this.ultimoPedido);
+  }
+
+  /** A falha vira resposta: um `error` encerraria o fluxo e a tela pararia de consultar. */
+  private buscar(pedido: PedidoConsulta): Observable<RespostaConsulta> {
+    return this.loteService.pesquisar(pedido.filtros, pedido.pagina).pipe(
+      map((resultado) => ({ ok: true, resultado }) as const),
+      catchError((falha: Error) => of({ ok: false, mensagem: falha.message } as const)),
+    );
+  }
+
+  private aplicar(resposta: RespostaConsulta): void {
+    this.carregando.set(false);
+
+    if (!resposta.ok) {
+      this.erro.set(resposta.mensagem);
+      this.lotes.set([]);
+      this.total.set(null);
+      return;
+    }
+
+    const { resultado } = resposta;
+    this.lotes.set(resultado.itens);
+    this.total.set(resultado.total);
+    /* A página vem da resposta: o serviço limita o pedido ao intervalo válido. */
+    this.pagina.set(resultado.pagina);
+    this.totalPaginas.set(resultado.totalPaginas);
+    this.tamanhoPagina.set(resultado.tamanhoPagina);
   }
 }
 

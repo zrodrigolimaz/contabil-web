@@ -63,7 +63,7 @@
         <tbody [attr.aria-busy]="carregando() ? 'true' : null">
           @if (carregando()) {
             <tr>
-              <td colspan="6" class="px-3 py-10 text-center text-[13px] text-petrol-700/70">
+              <td colspan="6" class="px-3 py-10 text-center text-[13px] text-petrol-700/80">
                 Consultando eventos…
               </td>
             </tr>
@@ -90,13 +90,13 @@
                 <td class="whitespace-nowrap px-3 py-2.5 tabular-nums">
                   {{ evento.dataInicio | date: 'dd/MM/yyyy' }}
                 </td>
-                <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-petrol-700/70">
+                <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-petrol-700/80">
                   {{ (evento.dataFim | date: 'dd/MM/yyyy') ?? '—' }}
                 </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="px-3 py-10 text-center text-[13px] text-petrol-700/70">
+                <td colspan="6" class="px-3 py-10 text-center text-[13px] text-petrol-700/80">
                   Nenhum registro encontrado.
                 </td>
               </tr>

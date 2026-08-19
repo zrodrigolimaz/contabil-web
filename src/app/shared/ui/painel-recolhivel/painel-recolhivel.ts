@@ -22,7 +22,7 @@ let sequencia = 0;
         <div class="shrink-0">
           <h2 class="text-[14px] font-semibold text-petrol-900">{{ titulo() }}</h2>
           @if (subtitulo(); as descricao) {
-            <p class="mt-0.5 text-[12px] text-petrol-700/70">{{ descricao }}</p>
+            <p class="mt-0.5 text-[12px] text-petrol-700/80">{{ descricao }}</p>
           }
         </div>
 
