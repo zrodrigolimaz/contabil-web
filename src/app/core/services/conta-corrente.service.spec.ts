@@ -34,4 +34,23 @@ describe('ContaCorrenteService', () => {
   it('devolve null para busca em branco', () => {
     expect(valorDe(service.buscarPorNumero('   '))).toBeNull();
   });
+
+  it('responde na hora quando o número já foi consultado', () => {
+    valorDe(service.buscarPorNumero('44444'));
+
+    let repetida: unknown;
+    service.buscarPorNumero('44444').subscribe((conta) => (repetida = conta));
+
+    /* Sem avançar o relógio: a segunda consulta não paga a latência de novo. */
+    expect(repetida).toEqual({ numero: '44444', titular: 'Ana Paula Costa', agencia: '0101' });
+  });
+
+  it('memoriza também a conta que não existe', () => {
+    valorDe(service.buscarPorNumero('00000'));
+
+    let repetida: unknown = 'não respondeu';
+    service.buscarPorNumero('00000').subscribe((conta) => (repetida = conta));
+
+    expect(repetida).toBeNull();
+  });
 });

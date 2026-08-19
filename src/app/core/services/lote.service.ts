@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { LOTES } from '../mocks/lotes.mock';
+import { INSTITUICAO, INSTITUICAO_RESPONSAVEL } from '../mocks/opcoes.mock';
 import { FaixaData, FaixaNumerica, FiltrosPesquisaLote, SITUACAO_TODAS } from '../models/filtros';
 import { Lote, SituacaoLote } from '../models/lote';
 import { ResultadoPaginado } from '../models/paginacao';
@@ -23,6 +24,7 @@ const USUARIO_LOGADO = 'ana.costa';
 export class LoteService {
   /** Fonte de verdade em memória: `confirmar` e `enviar` alteram esta lista. */
   private lotes: readonly Lote[] = LOTES;
+  private proximoId = Math.max(0, ...LOTES.map((lote) => lote.id)) + 1;
 
   /** Aplica os filtros do painel e devolve a página pedida. */
   pesquisar(filtros: FiltrosPesquisaLote, pagina = 1): Observable<ResultadoPaginado<Lote>> {
@@ -32,6 +34,41 @@ export class LoteService {
 
     const encontrados = this.lotes.filter((lote) => atendeAosFiltros(lote, filtros));
     return respostaMock(paginar(encontrados, pagina));
+  }
+
+  /** Criado no primeiro lançamento, não na abertura do modal: fechar sem incluir
+      nada não deixa lote vazio na consulta. */
+  criar(): Observable<Lote> {
+    const agora = new Date();
+    const criado: Lote = {
+      id: this.proximoId++,
+      instituicaoResponsavel: INSTITUICAO_RESPONSAVEL.banco,
+      instituicao: INSTITUICAO.alfa,
+      dataEntrada: agora,
+      valor: 0,
+      quantidadeLancamentos: 0,
+      usuarioRegistro: USUARIO_LOGADO,
+      usuarioAprovacao: null,
+      situacao: 'Aberto',
+      dataHoraSituacao: agora,
+      justificativa: null,
+    };
+
+    this.lotes = [...this.lotes, criado];
+    return respostaMock(criado);
+  }
+
+  /** Reflete na consulta o que o modal de lançamentos mudou dentro do lote. */
+  atualizarTotais(id: number, valor: number, quantidadeLancamentos: number): Observable<Lote> {
+    const atual = this.lotes.find((lote) => lote.id === id);
+    if (!atual) {
+      return erroMock(`Lote ${id} não encontrado.`);
+    }
+
+    const atualizado: Lote = { ...atual, valor, quantidadeLancamentos };
+    this.lotes = this.lotes.map((lote) => (lote.id === id ? atualizado : lote));
+
+    return respostaMock(atualizado);
   }
 
   /** Confirma os lotes ainda não confirmados e registra o usuário de aprovação. */
