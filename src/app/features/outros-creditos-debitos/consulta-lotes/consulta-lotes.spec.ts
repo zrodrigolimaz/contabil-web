@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Observable, of, Subject } from 'rxjs';
+import { merge, Observable, of, Subject } from 'rxjs';
 
 import { provideLocalePtBr } from '../../../app.config';
 import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../../../core/models/filtros';
@@ -10,7 +10,7 @@ import { ResultadoPaginado } from '../../../core/models/paginacao';
 import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
 import { aparelharDialogos } from '../../../core/testing/dialogo-jsdom';
-import { ConsultaLotes } from './consulta-lotes';
+import { ConsultaLotes, ESPERA_CONSULTA_MS } from './consulta-lotes';
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 
 interface Consulta {
@@ -33,9 +33,16 @@ class LoteServiceFalso {
   readonly exclusao = new Subject<void>();
   readonly excluidos: number[] = [];
 
+  /** Cada consulta ganha também um canal próprio, para o teste responder só a ela. */
+  readonly pendentes: Subject<ResultadoPaginado<Lote>>[] = [];
+
   pesquisar(filtros: FiltrosPesquisaLote, pagina = 1): Observable<ResultadoPaginado<Lote>> {
     this.recebidos.push({ filtros, pagina });
-    return this.resposta.asObservable();
+
+    const propria = new Subject<ResultadoPaginado<Lote>>();
+    this.pendentes.push(propria);
+
+    return merge(this.resposta, propria);
   }
 
   confirmar(ids: readonly number[]): Observable<readonly Lote[]> {
@@ -108,6 +115,8 @@ describe('ConsultaLotes', () => {
       providers: [
         { provide: LoteService, useValue: servico },
         { provide: LancamentoService, useValue: lancamentos },
+        /* Sem espera: o teste controla quando cada resposta chega. */
+        { provide: ESPERA_CONSULTA_MS, useValue: 0 },
         provideLocalePtBr(),
       ],
     });
@@ -151,6 +160,18 @@ describe('ConsultaLotes', () => {
     ) as HTMLButtonElement | undefined;
     if (!botao) {
       throw new Error(`Botão "${rotulo}" não está na barra`);
+    }
+
+    botao.click();
+    await fixture.whenStable();
+  }
+
+  async function clicarNoBotao(rotulo: string): Promise<void> {
+    const botao = [...fixture.nativeElement.querySelectorAll('button')].find(
+      (elemento: HTMLButtonElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLButtonElement | undefined;
+    if (!botao) {
+      throw new Error(`Botão "${rotulo}" não está na tela`);
     }
 
     botao.click();
@@ -230,6 +251,37 @@ describe('ConsultaLotes', () => {
 
     const alerta = fixture.nativeElement.querySelector('[role="alert"]');
     expect(alerta.textContent).toContain('Não foi possível consultar os lotes.');
+  });
+
+  it('ignora a resposta da consulta que ficou para trás', async () => {
+    await pesquisarCom();
+    await pesquisarCom({ ...FILTROS_VAZIOS, situacao: 'Aberto' });
+
+    servico.pendentes[0].next(paginaUnica([loteCom(1001)]));
+    await fixture.whenStable();
+
+    expect(texto()).toContain('Consultando lotes…');
+
+    servico.pendentes[1].next(paginaUnica([loteCom(1002)]));
+    await fixture.whenStable();
+
+    expect(texto()).toContain('1002');
+    expect(texto()).not.toContain('1001');
+  });
+
+  it('repete pelo Tentar novamente a consulta que falhou', async () => {
+    await pesquisarCom();
+    servico.pendentes[0].error(new Error('Não foi possível consultar os lotes.'));
+    await fixture.whenStable();
+
+    await clicarNoBotao('Tentar novamente');
+
+    expect(servico.recebidos).toHaveLength(2);
+
+    servico.pendentes[1].next(paginaUnica([loteCom(1001)]));
+    await fixture.whenStable();
+
+    expect(texto()).toContain('1001');
   });
 
   it('repete a consulta com os mesmos filtros ao mudar de página', async () => {
