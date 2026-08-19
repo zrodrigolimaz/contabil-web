@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 
+import { CONTAS_CORRENTES } from '../mocks/contas-correntes.mock';
 import { valorDe } from '../testing/resposta-mock';
-import { ContaCorrenteService } from './conta-corrente.service';
+import { ContaCorrenteService, TAMANHO_PAGINA_CONTAS } from './conta-corrente.service';
 
 describe('ContaCorrenteService', () => {
   let service: ContaCorrenteService;
@@ -52,5 +53,40 @@ describe('ContaCorrenteService', () => {
     service.buscarPorNumero('00000').subscribe((conta) => (repetida = conta));
 
     expect(repetida).toBeNull();
+  });
+
+  it('pesquisa pelo número informado', () => {
+    const resultado = valorDe(service.pesquisar('numero', '44444'));
+
+    expect(resultado.itens.map((conta) => conta.numero)).toEqual(['44444']);
+  });
+
+  it('pesquisa por trecho do titular, sem diferenciar maiúsculas', () => {
+    const resultado = valorDe(service.pesquisar('titular', 'souza'));
+
+    expect(resultado.itens.map((conta) => conta.titular)).toEqual(['Carla Souza Ferreira']);
+  });
+
+  it('pesquisa pela agência', () => {
+    const resultado = valorDe(service.pesquisar('agencia', '0104'));
+
+    expect(resultado.itens.every((conta) => conta.agencia === '0104')).toBe(true);
+    expect(resultado.total).toBe(
+      CONTAS_CORRENTES.filter((conta) => conta.agencia === '0104').length,
+    );
+  });
+
+  it('lista todas as contas quando o valor vem em branco', () => {
+    const resultado = valorDe(service.pesquisar('numero', '  '));
+
+    expect(resultado.total).toBe(CONTAS_CORRENTES.length);
+    expect(resultado.itens).toHaveLength(TAMANHO_PAGINA_CONTAS);
+  });
+
+  it('devolve a página pedida', () => {
+    const segunda = valorDe(service.pesquisar('numero', '', 2));
+
+    expect(segunda.pagina).toBe(2);
+    expect(segunda.itens[0]).toEqual(CONTAS_CORRENTES[TAMANHO_PAGINA_CONTAS]);
   });
 });

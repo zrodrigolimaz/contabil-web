@@ -4,3 +4,6 @@ export interface ContaCorrente {
   readonly titular: string;
   readonly agencia: string;
 }
+
+/** Campo pelo qual o sub-modal pesquisa contas. */
+export type CampoBuscaConta = 'numero' | 'titular' | 'agencia';
