@@ -8,6 +8,7 @@ import {
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
@@ -20,6 +21,7 @@ import { Dialogo } from '../../../shared/ui/dialogo/dialogo';
 import {
   DadosFormularioLancamento,
   FormularioLancamento,
+  ID_FORM_LANCAMENTO,
 } from './formulario-lancamento/formulario-lancamento';
 import { GradeLancamentos } from './grade-lancamentos/grade-lancamentos';
 
@@ -52,6 +54,11 @@ export class LancamentosLote {
   protected readonly emEdicao = signal<Lancamento | null>(null);
   protected readonly executando = signal(false);
   protected readonly erro = signal<string | null>(null);
+  protected readonly manterDados = signal(false);
+
+  protected readonly idForm = ID_FORM_LANCAMENTO;
+
+  private readonly formulario = viewChild(FormularioLancamento);
 
   private readonly loteDestino = signal<Lote | null>(null);
   private houveMutacao = false;
@@ -140,6 +147,10 @@ export class LancamentosLote {
     this.emEdicao.set(null);
   }
 
+  protected limparFormulario(): void {
+    this.formulario()?.limpar();
+  }
+
   protected excluirMarcado(): void {
     const marcado = this.marcado();
     if (!marcado) {
@@ -186,13 +197,8 @@ export class LancamentosLote {
     );
   }
 
-  /* Anexos ainda não têm tela; em alteração, preserva os que já existem. */
   private montar(idLote: number, dados: DadosFormularioLancamento): NovoLancamento {
-    return {
-      idLote,
-      ...dados,
-      anexos: this.emEdicao()?.anexos ?? [],
-    };
+    return { idLote, ...dados };
   }
 
   private carregar(idLote: number): void {

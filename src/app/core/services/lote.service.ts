@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 
 import { LOTES } from '../mocks/lotes.mock';
 import { INSTITUICAO, INSTITUICAO_RESPONSAVEL } from '../mocks/opcoes.mock';
+import { USUARIO_LOGADO } from '../mocks/usuario.mock';
 import { FaixaData, FaixaNumerica, FiltrosPesquisaLote, SITUACAO_TODAS } from '../models/filtros';
 import { Lote, SituacaoLote } from '../models/lote';
 import { ResultadoPaginado } from '../models/paginacao';
@@ -16,9 +17,6 @@ import { erroMock, respostaMock } from './api-mock';
  * fora da faixa dos lotes de demonstração (1001..1024), sem aleatoriedade.
  */
 export const ID_LOTE_ERRO_SIMULADO = 999;
-
-/** Usuário autenticado simulado; preenche "Usuário Aprovação" na confirmação. */
-const USUARIO_LOGADO = 'ana.costa';
 
 /** A mesma frase serve à dica da barra e à recusa do serviço. */
 export const SO_LOTE_ABERTO_SE_EXCLUI = 'Só é possível excluir lote em situação Aberto.';

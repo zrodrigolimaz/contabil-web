@@ -1,0 +1,57 @@
+<app-dialogo
+  [aberto]="aberto()"
+  titulo="Incluir anexo"
+  larguraMaxima="30rem"
+  (fechar)="fechar.emit()"
+>
+  <!-- Recriar o campo a cada abertura é o que faz o mesmo arquivo, escolhido de novo,
+       ainda disparar o change. -->
+  @if (aberto()) {
+    <form [formGroup]="form" (ngSubmit)="aoEnviar()" class="flex flex-col gap-4">
+      <app-campo-form
+        rotulo="Arquivo"
+        paraId="anexo-arquivo"
+        [controle]="form.controls.nomeReduzido"
+        [obrigatorio]="true"
+      >
+        <!-- O botão nativo do input de arquivo vem em inglês e não é estilizável. -->
+        <div class="flex flex-wrap items-center gap-3">
+          <input
+            #arquivo
+            id="anexo-arquivo"
+            type="file"
+            class="sr-only"
+            (change)="aoEscolher($event)"
+          />
+
+          <button type="button" class="btn btn-contorno" (click)="arquivo.click()">
+            Escolher arquivo
+          </button>
+
+          <span class="text-[12.5px] text-petrol-700/70">
+            {{ form.controls.nomeReduzido.value || 'Nenhum arquivo escolhido' }}
+          </span>
+        </div>
+      </app-campo-form>
+
+      <app-campo-form
+        rotulo="Descrição"
+        paraId="anexo-descricao"
+        [controle]="form.controls.descricao"
+        [obrigatorio]="true"
+      >
+        <input id="anexo-descricao" type="text" class="campo" formControlName="descricao" />
+      </app-campo-form>
+
+      <p class="text-[12px] text-petrol-700/70">
+        O envio é simulado: o lançamento guarda apenas os dados do arquivo escolhido.
+      </p>
+    </form>
+  }
+
+  <div rodape class="flex items-center justify-end gap-2">
+    <button type="button" class="btn btn-contorno" (click)="fechar.emit()">Fechar</button>
+
+    <button type="button" class="btn btn-primario" (click)="aoEnviar()">Incluir</button>
+  </div>
+</app-dialogo>

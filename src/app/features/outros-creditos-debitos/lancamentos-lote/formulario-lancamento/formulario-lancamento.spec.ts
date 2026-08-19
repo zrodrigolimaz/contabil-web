@@ -1,14 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, of, Subject } from 'rxjs';
 
+import { provideLocalePtBr } from '../../../../app.config';
 import { CONTAS_CORRENTES } from '../../../../core/mocks/contas-correntes.mock';
 import { EVENTOS_CSC } from '../../../../core/mocks/eventos-csc.mock';
 import { HISTORICO, PA } from '../../../../core/mocks/opcoes.mock';
+import { Anexo, NovoAnexo } from '../../../../core/models/anexo';
 import { ContaCorrente } from '../../../../core/models/conta-corrente';
 import { EventoCsc } from '../../../../core/models/evento';
 import { Lancamento } from '../../../../core/models/lancamento';
+import { ResultadoPaginado } from '../../../../core/models/paginacao';
+import { AnexoService } from '../../../../core/services/anexo.service';
 import { ContaCorrenteService } from '../../../../core/services/conta-corrente.service';
-import { EventoService } from '../../../../core/services/evento.service';
+import { EventoService, TAMANHO_PAGINA_EVENTOS } from '../../../../core/services/evento.service';
+import { aparelharDialogos } from '../../../../core/testing/dialogo-jsdom';
+import { paginar } from '../../../../core/utils/paginar';
 import { DadosFormularioLancamento, FormularioLancamento } from './formulario-lancamento';
 
 /* Zoneless: sem fakeAsync, e fake timers travam o whenStable. A latência da busca
@@ -39,6 +45,23 @@ class ContaCorrenteFalso {
 class EventoFalso {
   buscarPorId(idEvento: string): Observable<EventoCsc | null> {
     return of(EVENTOS_CSC.find((evento) => evento.idEvento === idEvento.trim()) ?? null);
+  }
+
+  pesquisar(): Observable<ResultadoPaginado<EventoCsc>> {
+    return of(paginar(EVENTOS_CSC, 1, TAMANHO_PAGINA_EVENTOS));
+  }
+}
+
+class AnexoFalso {
+  private proximoId = 50;
+
+  enviar(dados: NovoAnexo): Observable<Anexo> {
+    return of({
+      ...dados,
+      id: this.proximoId++,
+      dataInclusao: new Date(2026, 7, 19, 10, 30),
+      idUsuario: 'ana.costa',
+    });
   }
 }
 
@@ -76,6 +99,8 @@ describe('FormularioLancamento', () => {
       providers: [
         { provide: ContaCorrenteService, useValue: contas },
         { provide: EventoService, useValue: new EventoFalso() },
+        { provide: AnexoService, useValue: new AnexoFalso() },
+        provideLocalePtBr(),
       ],
     });
 
@@ -83,6 +108,7 @@ describe('FormularioLancamento', () => {
     salvos = [];
     fixture.componentInstance.salvar.subscribe((dados) => salvos.push(dados));
     await fixture.whenStable();
+    aparelharDialogos(fixture.nativeElement);
   });
 
   function campo(id: string): HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
@@ -117,6 +143,24 @@ describe('FormularioLancamento', () => {
   async function enviar(): Promise<void> {
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     await fixture.whenStable();
+  }
+
+  async function clicar(seletor: string): Promise<void> {
+    fixture.nativeElement.querySelector(seletor).click();
+    await fixture.whenStable();
+    aparelharDialogos(fixture.nativeElement);
+    await fixture.whenStable();
+  }
+
+  async function anexar(nome: string): Promise<void> {
+    await clicar('button[title="Anexa um arquivo ao lançamento"]');
+
+    const arquivo = campo('anexo-arquivo') as HTMLInputElement;
+    Object.defineProperty(arquivo, 'files', { value: [{ name: nome }], configurable: true });
+    arquivo.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    await clicar('app-inclusao-anexo [rodape] .btn-primario');
   }
 
   function erroDe(id: string): string | null {
@@ -213,9 +257,49 @@ describe('FormularioLancamento', () => {
         idEvento: null,
         descricaoEvento: null,
         complementoHistorico: 'Ajuste da competência 08/2026.',
+        anexos: [],
       },
     ]);
     expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('');
+  });
+
+  it('mantém o que foi digitado quando o usuário pede para manter os dados', async () => {
+    fixture.componentRef.setInput('manterDados', true);
+    await preencherValido();
+    await enviar();
+
+    expect(salvos).toHaveLength(1);
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('2026080001');
+  });
+
+  it('leva no lançamento o anexo enviado pela seção Anexo', async () => {
+    await preencherValido();
+    await anexar('contrato.pdf');
+    await enviar();
+
+    expect(salvos[0].anexos).toEqual([
+      expect.objectContaining({ nomeReduzido: 'contrato.pdf', descricao: 'contrato.pdf' }),
+    ]);
+  });
+
+  it('limpa os anexos junto com os campos', async () => {
+    await preencherValido();
+    await anexar('contrato.pdf');
+    await enviar();
+
+    await preencherValido();
+    await enviar();
+
+    expect(salvos[1].anexos).toEqual([]);
+  });
+
+  it('listar no sub-modal de evento não envia o lançamento', async () => {
+    await preencherValido();
+
+    await clicar('button[aria-label="Pesquisar evento"]');
+    await clicar('app-pesquisa-evento .btn-primario');
+
+    expect(salvos).toEqual([]);
   });
 
   it('leva o evento digitado e a descrição encontrada', async () => {

@@ -27,7 +27,11 @@ export interface PedidoConfirmacao {
         @if (atual.detalhe; as detalhe) {
           <p class="mt-2 text-[12.5px] leading-relaxed text-petrol-700/75">{{ detalhe }}</p>
         }
+      }
 
+      <!-- Bloco só do rodapé: com mais de um nó na raiz do @if, o conteúdo não chega
+           ao slot e os botões caem no corpo do diálogo. -->
+      @if (pedido(); as atual) {
         <div rodape class="flex justify-end gap-2">
           <button type="button" class="btn btn-contorno" (click)="cancelar.emit()">Cancelar</button>
 

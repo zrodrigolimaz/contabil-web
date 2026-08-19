@@ -59,7 +59,10 @@ let sequencia = 0;
           </button>
         </header>
 
-        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <!-- relative: sem um bloco de contenção aqui, o que estiver absoluto no
+             conteúdo (as legendas sr-only das tabelas) escapa da área rolável e faz
+             o próprio dialog rolar, levando o cabeçalho junto. -->
+        <div class="relative min-h-0 flex-1 overflow-y-auto px-6 py-5">
           <ng-content />
         </div>
 

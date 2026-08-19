@@ -7,5 +7,5 @@ export interface Anexo {
   readonly idUsuario: string;
 }
 
-/** Dados informados na inclusão de um anexo; `id` e `dataInclusao` vêm do serviço. */
-export type NovoAnexo = Omit<Anexo, 'id' | 'dataInclusao'>;
+/** Dados informados na inclusão; id, data e usuário são atribuídos pelo serviço. */
+export type NovoAnexo = Omit<Anexo, 'id' | 'dataInclusao' | 'idUsuario'>;

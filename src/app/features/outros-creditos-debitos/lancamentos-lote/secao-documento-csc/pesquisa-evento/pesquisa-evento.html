@@ -5,7 +5,9 @@
   (fechar)="fechar.emit()"
 >
   <div class="flex flex-col gap-4">
-    <form class="flex flex-wrap items-end gap-3" (submit)="$event.preventDefault(); listar()">
+    <!-- Div, e não form: este diálogo vive dentro do formulário do lançamento, e um
+         submit daqui chegaria lá como pedido de inclusão. -->
+    <div class="flex flex-wrap items-end gap-3">
       <label class="flex flex-col gap-1.5">
         <span class="eyebrow">Campo de busca</span>
         <select
@@ -28,11 +30,14 @@
           autocomplete="off"
           [value]="valor()"
           (input)="trocarValor($event)"
+          (keydown.enter)="$event.preventDefault(); listar()"
         />
       </label>
 
-      <button type="submit" class="btn btn-primario" [disabled]="carregando()">Listar</button>
-    </form>
+      <button type="button" class="btn btn-primario" [disabled]="carregando()" (click)="listar()">
+        Listar
+      </button>
+    </div>
 
     <div class="overflow-x-auto rounded-lg border border-petrol-900/[0.12]">
       <table class="w-full border-collapse text-left text-[12.5px] text-petrol-900">

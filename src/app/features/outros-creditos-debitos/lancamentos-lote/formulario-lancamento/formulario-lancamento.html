@@ -1,154 +1,151 @@
-<form [formGroup]="form" (ngSubmit)="aoEnviar()" class="flex flex-col gap-5">
-  <fieldset class="flex flex-col gap-4 rounded-lg border border-petrol-900/[0.12] px-4 pb-4 pt-3">
-    <legend class="eyebrow px-1">Conta Corrente</legend>
+<div class="flex flex-col gap-5">
+  <form [id]="idForm" [formGroup]="form" (ngSubmit)="aoEnviar()" class="flex flex-col gap-5">
+    <fieldset class="flex flex-col gap-4 rounded-lg border border-petrol-900/[0.12] px-4 pb-4 pt-3">
+      <legend class="eyebrow px-1">Conta Corrente</legend>
 
-    <div class="grid gap-4 sm:grid-cols-2">
-      <app-campo-form
-        rotulo="Conta Corrente"
-        paraId="lancamento-conta"
-        [controle]="form.controls.conta"
-        [obrigatorio]="true"
-      >
-        <div class="flex items-center gap-2">
-          <input
-            id="lancamento-conta"
-            type="text"
-            class="campo"
-            formControlName="conta"
-            inputmode="numeric"
-            autocomplete="off"
-          />
+      <div class="grid gap-4 sm:grid-cols-2">
+        <app-campo-form
+          rotulo="Conta Corrente"
+          paraId="lancamento-conta"
+          [controle]="form.controls.conta"
+          [obrigatorio]="true"
+        >
+          <div class="flex items-center gap-2">
+            <input
+              id="lancamento-conta"
+              type="text"
+              class="campo"
+              formControlName="conta"
+              inputmode="numeric"
+              autocomplete="off"
+            />
 
-          <button
-            type="button"
-            class="btn btn-contorno shrink-0 px-2.5 py-2"
-            aria-label="Buscar conta corrente"
-            [disabled]="form.disabled"
-            (click)="buscarConta()"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              class="size-4"
-              aria-hidden="true"
+            <button
+              type="button"
+              class="btn btn-contorno shrink-0 px-2.5 py-2"
+              aria-label="Buscar conta corrente"
+              [disabled]="form.disabled"
+              (click)="buscarConta()"
             >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
-          </button>
-        </div>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                class="size-4"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+            </button>
+          </div>
 
-        @if (titular(); as nome) {
-          <p class="text-[12px] font-medium text-primary-700">{{ nome }}</p>
-        }
-      </app-campo-form>
-
-      <app-campo-form
-        rotulo="Valor"
-        paraId="lancamento-valor"
-        [controle]="form.controls.valor"
-        [obrigatorio]="true"
-      >
-        <div class="relative">
-          <span
-            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-medium text-petrol-700/70"
-          >
-            R$
-          </span>
-          <input
-            id="lancamento-valor"
-            type="number"
-            step="0.01"
-            min="0"
-            class="campo pl-9"
-            formControlName="valor"
-            placeholder="0,00"
-          />
-        </div>
-      </app-campo-form>
-    </div>
-
-    <div class="grid gap-4 sm:grid-cols-2">
-      <app-campo-form
-        rotulo="Histórico"
-        paraId="lancamento-historico"
-        [controle]="form.controls.historico"
-        [obrigatorio]="true"
-      >
-        <select id="lancamento-historico" class="campo campo-select" formControlName="historico">
-          <option value="">Selecione</option>
-          @for (opcao of historicos; track opcao) {
-            <option [value]="opcao">{{ opcao }}</option>
+          @if (titular(); as nome) {
+            <p class="text-[12px] font-medium text-primary-700">{{ nome }}</p>
           }
-        </select>
-      </app-campo-form>
+        </app-campo-form>
+
+        <app-campo-form
+          rotulo="Valor"
+          paraId="lancamento-valor"
+          [controle]="form.controls.valor"
+          [obrigatorio]="true"
+        >
+          <div class="relative">
+            <span
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-medium text-petrol-700/70"
+            >
+              R$
+            </span>
+            <input
+              id="lancamento-valor"
+              type="number"
+              step="0.01"
+              min="0"
+              class="campo pl-9"
+              formControlName="valor"
+              placeholder="0,00"
+            />
+          </div>
+        </app-campo-form>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <app-campo-form
+          rotulo="Histórico"
+          paraId="lancamento-historico"
+          [controle]="form.controls.historico"
+          [obrigatorio]="true"
+        >
+          <select id="lancamento-historico" class="campo campo-select" formControlName="historico">
+            <option value="">Selecione</option>
+            @for (opcao of historicos; track opcao) {
+              <option [value]="opcao">{{ opcao }}</option>
+            }
+          </select>
+        </app-campo-form>
+
+        <app-campo-form
+          rotulo="Documento"
+          paraId="lancamento-documento"
+          [controle]="form.controls.documento"
+          [obrigatorio]="true"
+        >
+          <input id="lancamento-documento" type="text" class="campo" formControlName="documento" />
+        </app-campo-form>
+      </div>
+
+      <label class="flex w-fit items-center gap-2 text-[13px] font-medium text-petrol-800">
+        <input
+          type="checkbox"
+          formControlName="estorno"
+          class="size-4 accent-primary-600 disabled:opacity-45"
+        />
+        Estorno
+      </label>
 
       <app-campo-form
-        rotulo="Documento"
-        paraId="lancamento-documento"
-        [controle]="form.controls.documento"
-        [obrigatorio]="true"
+        rotulo="Descrição"
+        paraId="lancamento-descricao"
+        [controle]="form.controls.descricao"
       >
-        <input id="lancamento-documento" type="text" class="campo" formControlName="documento" />
+        <textarea
+          id="lancamento-descricao"
+          rows="2"
+          class="campo h-auto py-2"
+          formControlName="descricao"
+        ></textarea>
       </app-campo-form>
-    </div>
 
-    <label class="flex w-fit items-center gap-2 text-[13px] font-medium text-petrol-800">
-      <input
-        type="checkbox"
-        formControlName="estorno"
-        class="size-4 accent-primary-600 disabled:opacity-45"
-      />
-      Estorno
-    </label>
+      <app-campo-form rotulo="Situação" paraId="lancamento-situacao">
+        <input
+          id="lancamento-situacao"
+          type="text"
+          class="campo w-56 bg-surface text-petrol-700/70"
+          [value]="situacao()"
+          readonly
+          tabindex="-1"
+        />
+      </app-campo-form>
+    </fieldset>
 
-    <app-campo-form
-      rotulo="Descrição"
-      paraId="lancamento-descricao"
-      [controle]="form.controls.descricao"
-    >
-      <textarea
-        id="lancamento-descricao"
-        rows="2"
-        class="campo h-auto py-2"
-        formControlName="descricao"
-      ></textarea>
-    </app-campo-form>
+    <app-secao-documento-csc
+      [grupo]="form.controls.csc"
+      [descricaoEvento]="descricaoEvento()"
+      [situacao]="situacaoCsc()"
+      [idDocumentoCsc]="idDocumentoCsc()"
+      [desabilitado]="desabilitado()"
+    />
+  </form>
 
-    <app-campo-form rotulo="Situação" paraId="lancamento-situacao">
-      <input
-        id="lancamento-situacao"
-        type="text"
-        class="campo w-56 bg-surface text-petrol-700/70"
-        [value]="situacao()"
-        readonly
-        tabindex="-1"
-      />
-    </app-campo-form>
-  </fieldset>
-
-  <app-secao-documento-csc
-    [grupo]="form.controls.csc"
-    [descricaoEvento]="descricaoEvento()"
-    [situacao]="situacaoCsc()"
-    [idDocumentoCsc]="idDocumentoCsc()"
+  <!-- Fora do <form>: o sub-modal de inclusão tem formulário próprio, e formulário
+       dentro de formulário não é HTML válido. -->
+  <app-secao-anexos
+    [anexos]="anexos()"
     [desabilitado]="desabilitado()"
+    (incluir)="incluirAnexo($event)"
+    (excluir)="excluirAnexo($event)"
   />
-
-  @if (!desabilitado()) {
-    <div class="flex justify-end gap-2">
-      @if (emEdicao()) {
-        <button type="button" class="btn btn-texto" (click)="cancelarEdicao.emit()">
-          Cancelar edição
-        </button>
-      } @else {
-        <button type="button" class="btn btn-texto" (click)="limpar()">Limpar</button>
-      }
-
-      <button type="submit" class="btn btn-primario">{{ rotuloEnviar() }}</button>
-    </div>
-  }
-</form>
+</div>
