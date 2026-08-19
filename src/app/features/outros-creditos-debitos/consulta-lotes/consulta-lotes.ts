@@ -7,11 +7,17 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 
 import { FiltrosPesquisaLote } from '../../../core/models/filtros';
 import { Lote } from '../../../core/models/lote';
 import { TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
+import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
+import {
+  DialogoConfirmacao,
+  PedidoConfirmacao,
+} from '../../../shared/ui/dialogo-confirmacao/dialogo-confirmacao';
 import { Paginacao } from '../../../shared/ui/paginacao/paginacao';
 import {
   LancamentosLote,
@@ -25,13 +31,37 @@ import { TabelaLotes } from './tabela-lotes/tabela-lotes';
 
 type AcaoDeSituacao = 'confirmar' | 'enviar';
 
+/** O que o "sim" do diálogo dispara. */
+type AcaoConfirmavel =
+  { readonly tipo: AcaoDeSituacao } | { readonly tipo: 'excluir'; readonly lote: Lote };
+
 interface Aviso {
   readonly texto: string;
   readonly tom: 'sucesso' | 'informacao';
 }
 
-/** Única ação da barra ainda sem destino; a exclusão de lote é tarefa própria. */
-const EXCLUSAO_DE_LOTE_PENDENTE = 'A exclusão de lote chega em uma próxima entrega.';
+/** O que a ação alcança e como ela se apresenta no diálogo que a antecede. */
+const PEDIDO: Record<
+  AcaoDeSituacao,
+  { verbo: string; alcanca: (lote: Lote) => boolean; ignorados: (quantidade: number) => string }
+> = {
+  confirmar: {
+    verbo: 'Confirmar',
+    alcanca: (lote) => lote.situacao !== 'Confirmado',
+    ignorados: (quantidade) =>
+      quantidade === 1
+        ? '1 já está confirmado e será ignorado.'
+        : `${quantidade} já estão confirmados e serão ignorados.`,
+  },
+  enviar: {
+    verbo: 'Enviar',
+    alcanca: (lote) => lote.situacao === 'Aberto',
+    ignorados: (quantidade) =>
+      quantidade === 1
+        ? '1 não está aberto e será ignorado.'
+        : `${quantidade} não estão abertos e serão ignorados.`,
+  },
+};
 
 /** Escritas por extenso porque cada ação tem seu próprio motivo de ignorar um lote. */
 const RESULTADO: Record<
@@ -72,6 +102,7 @@ const RESULTADO: Record<
     TabelaLotes,
     Paginacao,
     DialogoJustificativa,
+    DialogoConfirmacao,
     LancamentosLote,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,6 +110,7 @@ const RESULTADO: Record<
 })
 export class ConsultaLotes {
   private readonly loteService = inject(LoteService);
+  private readonly lancamentoService = inject(LancamentoService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly carregando = signal(false);
@@ -95,6 +127,9 @@ export class ConsultaLotes {
 
   protected readonly modoLancamentos = signal<ModoLancamentos | null>(null);
   protected readonly loteDosLancamentos = signal<Lote | null>(null);
+
+  protected readonly pedido = signal<PedidoConfirmacao | null>(null);
+  private acaoPendente: AcaoConfirmavel | null = null;
 
   /**
    * Seleção por id, e não por índice: sobrevive à troca de página. Guarda o lote
@@ -166,7 +201,7 @@ export class ConsultaLotes {
     switch (acao) {
       case 'confirmar':
       case 'enviar':
-        this.mudarSituacao(acao);
+        this.pedirConfirmacao({ tipo: acao }, pedidoDeSituacao(acao, this.lotesSelecionados()));
         break;
       case 'justificativa':
         this.justificativaAberta.set(this.lotesSelecionados()[0] ?? null);
@@ -180,10 +215,34 @@ export class ConsultaLotes {
       case 'visualizar':
         this.abrirLancamentos('leitura', this.lotesSelecionados()[0] ?? null);
         break;
-      case 'excluir':
-        this.aviso.set({ texto: EXCLUSAO_DE_LOTE_PENDENTE, tom: 'informacao' });
+      case 'excluir': {
+        const lote = this.lotesSelecionados()[0];
+        if (lote) {
+          this.pedirConfirmacao({ tipo: 'excluir', lote }, pedidoDeExclusao(lote));
+        }
         break;
+      }
     }
+  }
+
+  protected confirmarPedido(): void {
+    const acao = this.acaoPendente;
+    this.cancelarPedido();
+
+    if (!acao) {
+      return;
+    }
+
+    if (acao.tipo === 'excluir') {
+      this.excluir(acao.lote);
+    } else {
+      this.mudarSituacao(acao.tipo);
+    }
+  }
+
+  protected cancelarPedido(): void {
+    this.pedido.set(null);
+    this.acaoPendente = null;
   }
 
   private abrirLancamentos(modo: ModoLancamentos, lote: Lote | null): void {
@@ -199,6 +258,34 @@ export class ConsultaLotes {
       this.selecionados.set(new Map());
       this.consultar(this.pagina());
     }
+  }
+
+  private pedirConfirmacao(acao: AcaoConfirmavel, pedido: PedidoConfirmacao): void {
+    this.acaoPendente = acao;
+    this.pedido.set(pedido);
+  }
+
+  private excluir(lote: Lote): void {
+    this.executando.set(true);
+
+    this.loteService
+      .excluir(lote.id)
+      .pipe(
+        switchMap(() => this.lancamentoService.excluirPorLote(lote.id)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.aviso.set({ texto: `Lote ${lote.id} excluído.`, tom: 'sucesso' });
+          this.selecionados.set(new Map());
+          this.executando.set(false);
+          this.consultar(this.pagina());
+        },
+        error: (falha: Error) => {
+          this.erro.set(falha.message);
+          this.executando.set(false);
+        },
+      });
   }
 
   private mudarSituacao(acao: AcaoDeSituacao): void {
@@ -257,6 +344,41 @@ export class ConsultaLotes {
         },
       });
   }
+}
+
+function pedidoDeExclusao(lote: Lote): PedidoConfirmacao {
+  const lancamentos = lote.quantidadeLancamentos;
+
+  return {
+    titulo: 'Excluir lote',
+    mensagem: `Excluir o lote ${lote.id}?`,
+    detalhe:
+      lancamentos === 0
+        ? undefined
+        : lancamentos === 1
+          ? 'O lançamento dele sai junto.'
+          : `Os ${lancamentos} lançamentos dele saem junto.`,
+    rotuloConfirmar: 'Excluir',
+    perigo: true,
+  };
+}
+
+function pedidoDeSituacao(acao: AcaoDeSituacao, selecionados: readonly Lote[]): PedidoConfirmacao {
+  const alcancados = selecionados.filter((lote) => PEDIDO[acao].alcanca(lote)).length;
+  const total = selecionados.length;
+  const ignorados = total - alcancados;
+
+  return {
+    titulo: total === 1 ? `${PEDIDO[acao].verbo} lote` : `${PEDIDO[acao].verbo} lotes`,
+    mensagem:
+      total === 1
+        ? `${PEDIDO[acao].verbo} o lote ${selecionados[0].id}?`
+        : ignorados === 0
+          ? `${PEDIDO[acao].verbo} os ${total} lotes selecionados?`
+          : `${PEDIDO[acao].verbo} ${alcancados} dos ${total} lotes selecionados?`,
+    detalhe: ignorados === 0 ? undefined : PEDIDO[acao].ignorados(ignorados),
+    rotuloConfirmar: PEDIDO[acao].verbo,
+  };
 }
 
 function descrever(acao: AcaoDeSituacao, alterados: number, ignorados: number): string {

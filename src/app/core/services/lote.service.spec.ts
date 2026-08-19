@@ -5,7 +5,7 @@ import { INSTITUICAO_RESPONSAVEL } from '../mocks/opcoes.mock';
 import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../models/filtros';
 import { TAMANHO_PAGINA_PADRAO } from '../models/paginacao';
 import { erroDe, valorDe } from '../testing/resposta-mock';
-import { ID_LOTE_ERRO_SIMULADO, LoteService } from './lote.service';
+import { ID_LOTE_ERRO_SIMULADO, LoteService, SO_LOTE_ABERTO_SE_EXCLUI } from './lote.service';
 
 function comFiltros(parcial: Partial<FiltrosPesquisaLote>): FiltrosPesquisaLote {
   return { ...FILTROS_VAZIOS, ...parcial };
@@ -184,6 +184,35 @@ describe('LoteService', () => {
 
     it('não altera os demais lotes', () => {
       valorDe(service.confirmar([1004]));
+
+      const resultado = valorDe(service.pesquisar(comFiltros({ situacao: 'Aberto' })));
+      expect(resultado.total).toBe(6);
+    });
+  });
+
+  describe('excluir', () => {
+    it('tira o lote aberto da consulta', () => {
+      valorDe(service.excluir(1004));
+
+      const resultado = valorDe(service.pesquisar(FILTROS_VAZIOS));
+      expect(resultado.total).toBe(LOTES.length - 1);
+      expect(resultado.itens.some((lote) => lote.id === 1004)).toBe(false);
+    });
+
+    it('recusa lote enviado', () => {
+      expect(erroDe(service.excluir(1002)).message).toBe(SO_LOTE_ABERTO_SE_EXCLUI);
+    });
+
+    it('recusa lote confirmado', () => {
+      expect(erroDe(service.excluir(1001)).message).toBe(SO_LOTE_ABERTO_SE_EXCLUI);
+    });
+
+    it('recusa lote inexistente', () => {
+      expect(erroDe(service.excluir(9999)).message).toBe('Lote 9999 não encontrado.');
+    });
+
+    it('não mexe nos demais lotes', () => {
+      valorDe(service.excluir(1004));
 
       const resultado = valorDe(service.pesquisar(comFiltros({ situacao: 'Aberto' })));
       expect(resultado.total).toBe(6);

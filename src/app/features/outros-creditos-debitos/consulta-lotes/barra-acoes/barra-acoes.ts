@@ -106,8 +106,8 @@ export class BarraAcoes {
         {
           acao: 'excluir',
           rotulo: 'Excluir',
-          habilitado: unico !== null,
-          descricao: 'Exclui o lote selecionado',
+          habilitado: unico?.situacao === 'Aberto',
+          descricao: 'Exclui o lote selecionado, que precisa estar aberto',
           caminho: ICONE.excluir,
           perigo: true,
         },
@@ -146,10 +146,10 @@ export class BarraAcoes {
       return 'Alterar, excluir e visualizar exigem exatamente um lote selecionado.';
     }
     if (!this.temPendente()) {
-      return 'Este lote já está confirmado: não há o que confirmar nem enviar.';
+      return 'Este lote já está confirmado: não há o que confirmar, enviar nem excluir.';
     }
     if (!this.temAberto()) {
-      return 'Este lote já foi enviado: só a confirmação continua disponível.';
+      return 'Este lote já foi enviado: dá para confirmar, mas não para excluir.';
     }
 
     return null;

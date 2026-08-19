@@ -20,6 +20,9 @@ export const ID_LOTE_ERRO_SIMULADO = 999;
 /** Usuário autenticado simulado; preenche "Usuário Aprovação" na confirmação. */
 const USUARIO_LOGADO = 'ana.costa';
 
+/** A mesma frase serve à dica da barra e à recusa do serviço. */
+export const SO_LOTE_ABERTO_SE_EXCLUI = 'Só é possível excluir lote em situação Aberto.';
+
 @Injectable({ providedIn: 'root' })
 export class LoteService {
   /** Fonte de verdade em memória: `confirmar` e `enviar` alteram esta lista. */
@@ -69,6 +72,20 @@ export class LoteService {
     this.lotes = this.lotes.map((lote) => (lote.id === id ? atualizado : lote));
 
     return respostaMock(atualizado);
+  }
+
+  excluir(id: number): Observable<void> {
+    const atual = this.lotes.find((lote) => lote.id === id);
+    if (!atual) {
+      return erroMock(`Lote ${id} não encontrado.`);
+    }
+
+    if (atual.situacao !== 'Aberto') {
+      return erroMock(SO_LOTE_ABERTO_SE_EXCLUI);
+    }
+
+    this.lotes = this.lotes.filter((lote) => lote.id !== id);
+    return respostaMock<void>(undefined);
   }
 
   /** Confirma os lotes ainda não confirmados e registra o usuário de aprovação. */

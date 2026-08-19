@@ -182,13 +182,26 @@ describe('BarraAcoes', () => {
   it('explica que um lote confirmado não tem mais o que avançar', async () => {
     await montar([loteCom(1001, 'Confirmado')]);
 
-    expect(dica()).toBe('Este lote já está confirmado: não há o que confirmar nem enviar.');
+    expect(dica()).toBe(
+      'Este lote já está confirmado: não há o que confirmar, enviar nem excluir.',
+    );
   });
 
   it('explica que um lote enviado só aceita confirmação', async () => {
     await montar([loteCom(1002, 'Enviado')]);
 
-    expect(dica()).toBe('Este lote já foi enviado: só a confirmação continua disponível.');
+    expect(dica()).toBe('Este lote já foi enviado: dá para confirmar, mas não para excluir.');
+  });
+
+  it('só exclui lote aberto', async () => {
+    await montar([loteCom(1004, 'Aberto')]);
+    expect(botao('Excluir').disabled).toBe(false);
+
+    await montar([loteCom(1002, 'Enviado')]);
+    expect(botao('Excluir').disabled).toBe(true);
+
+    await montar([loteCom(1001, 'Confirmado')]);
+    expect(botao('Excluir').disabled).toBe(true);
   });
 
   it('cala a dica quando um lote aberto deixa tudo disponível', async () => {
