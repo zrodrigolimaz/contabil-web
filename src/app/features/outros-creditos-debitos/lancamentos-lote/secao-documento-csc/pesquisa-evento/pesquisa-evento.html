@@ -1,7 +1,7 @@
 <app-dialogo
   [aberto]="aberto()"
   titulo="Pesquisa Evento"
-  larguraMaxima="44rem"
+  larguraMaxima="40rem"
   (fechar)="fechar.emit()"
 >
   <div class="flex flex-col gap-4">
@@ -9,7 +9,7 @@
          submit daqui chegaria lá como pedido de inclusão. -->
     <div class="flex flex-wrap items-end gap-3">
       <label class="flex flex-col gap-1.5">
-        <span class="eyebrow">Campo de busca</span>
+        <span class="rotulo">Campo de busca</span>
         <select
           class="campo campo-select w-44"
           [value]="campo()"
@@ -23,7 +23,7 @@
       </label>
 
       <label class="flex min-w-52 flex-1 flex-col gap-1.5">
-        <span class="eyebrow">Valor</span>
+        <span class="rotulo">Valor</span>
         <input
           type="text"
           class="campo"
@@ -39,42 +39,42 @@
       </button>
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-petrol-900/[0.12]">
-      <table class="w-full border-collapse text-left text-[12.5px] text-petrol-900">
+    <div class="overflow-x-auto rounded-[10px] border border-petrol-900/10">
+      <table class="w-full border-collapse text-left text-[13px] text-petrol-800">
         <caption class="sr-only">
           Eventos CSC encontrados
         </caption>
 
         <thead
-          class="bg-petrol-900 text-[10.5px] font-semibold uppercase tracking-[0.04em] text-white/95"
+          class="bg-[#f2f6f5] text-[11px] font-semibold uppercase tracking-[0.06em] text-petrol-700"
         >
-          <tr>
-            <th scope="col" class="w-10 px-3 py-2.5">
+          <tr class="h-9">
+            <th scope="col" class="w-9 pl-3.5">
               <span class="sr-only">Selecionar</span>
             </th>
-            <th scope="col" class="whitespace-nowrap px-3 py-2.5">ID Evento</th>
-            <th scope="col" class="whitespace-nowrap px-3 py-2.5">Cod. Evento</th>
-            <th scope="col" class="px-3 py-2.5">Descrição</th>
-            <th scope="col" class="whitespace-nowrap px-3 py-2.5">Dt. Início</th>
-            <th scope="col" class="whitespace-nowrap px-3 py-2.5">Dt. Fim</th>
+            <th scope="col" class="whitespace-nowrap px-3.5">ID Evento</th>
+            <th scope="col" class="whitespace-nowrap px-3.5">Cod. Evento</th>
+            <th scope="col" class="px-3.5">Descrição</th>
+            <th scope="col" class="whitespace-nowrap px-3.5">Dt. Início</th>
+            <th scope="col" class="whitespace-nowrap px-3.5">Dt. Fim</th>
           </tr>
         </thead>
 
         <tbody [attr.aria-busy]="carregando() ? 'true' : null">
           @if (carregando()) {
             <tr>
-              <td colspan="6" class="px-3 py-10 text-center text-[13px] text-petrol-700/80">
+              <td colspan="6" class="px-3.5 py-10 text-center text-[13px] text-muted">
                 Consultando eventos…
               </td>
             </tr>
           } @else {
             @for (evento of resultado().itens; track evento.idEvento) {
               <tr
-                class="cursor-pointer border-b border-petrol-900/[0.07] transition-colors last:border-b-0 odd:bg-petrol-900/[0.015] hover:bg-primary-50/40"
+                class="h-10 cursor-pointer border-b border-petrol-900/[0.06] transition-colors last:border-b-0 hover:bg-[#f0faf9] motion-reduce:transition-none"
                 [class.bg-primary-50]="marcado()?.idEvento === evento.idEvento"
                 (click)="alternar(evento)"
               >
-                <td class="px-3 py-2.5">
+                <td class="pl-3.5">
                   <input
                     type="radio"
                     name="evento-marcado"
@@ -84,19 +84,21 @@
                     (click)="$event.stopPropagation(); alternar(evento)"
                   />
                 </td>
-                <td class="px-3 py-2.5 font-semibold tabular-nums">{{ evento.idEvento }}</td>
-                <td class="px-3 py-2.5 tabular-nums">{{ evento.codEvento }}</td>
-                <td class="px-3 py-2.5">{{ evento.descricao }}</td>
-                <td class="whitespace-nowrap px-3 py-2.5 tabular-nums">
+                <td class="px-3.5 font-semibold tabular-nums text-petrol-900">
+                  {{ evento.idEvento }}
+                </td>
+                <td class="px-3.5 tabular-nums">{{ evento.codEvento }}</td>
+                <td class="px-3.5">{{ evento.descricao }}</td>
+                <td class="whitespace-nowrap px-3.5 tabular-nums">
                   {{ evento.dataInicio | date: 'dd/MM/yyyy' }}
                 </td>
-                <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-petrol-700/80">
+                <td class="whitespace-nowrap px-3.5 tabular-nums text-muted">
                   {{ (evento.dataFim | date: 'dd/MM/yyyy') ?? '—' }}
                 </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="px-3 py-10 text-center text-[13px] text-petrol-700/80">
+                <td colspan="6" class="px-3.5 py-10 text-center text-[13px] text-muted">
                   Nenhum registro encontrado.
                 </td>
               </tr>

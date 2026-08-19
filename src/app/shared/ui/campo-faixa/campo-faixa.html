@@ -4,15 +4,15 @@
   [formGroup]="grupo()"
   class="flex flex-col gap-1.5"
 >
-  <span [id]="idRotulo" class="text-[13px] font-medium text-petrol-800">{{ rotulo() }}</span>
+  <span [id]="idRotulo" class="rotulo">{{ rotulo() }}</span>
 
-  <div class="grid grid-cols-2 gap-2.5">
+  <div class="grid grid-cols-2 gap-2.5 sm:gap-[10px]">
     <div class="flex flex-col gap-1">
-      <label [for]="idDe" class="text-[11px] text-petrol-700/80">De</label>
+      <label [for]="idDe" class="text-[11px] text-muted">De</label>
       <div class="relative">
         @if (prefixo(); as simbolo) {
           <span
-            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-petrol-700/80"
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-medium text-petrol-700"
             aria-hidden="true"
           >
             {{ simbolo }}
@@ -49,11 +49,11 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <label [for]="idAte" class="text-[11px] text-petrol-700/80">Até</label>
+      <label [for]="idAte" class="text-[11px] text-muted">Até</label>
       <div class="relative">
         @if (prefixo(); as simbolo) {
           <span
-            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-petrol-700/80"
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-medium text-petrol-700"
             aria-hidden="true"
           >
             {{ simbolo }}
@@ -86,6 +86,24 @@
   </div>
 
   @if (estado.mensagem(); as texto) {
-    <p [id]="idErro" role="alert" class="text-[12px] font-medium text-danger">{{ texto }}</p>
+    <p
+      [id]="idErro"
+      role="alert"
+      class="flex items-center gap-1.5 text-[12.5px] font-medium text-danger"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        class="size-[13px] shrink-0"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v4m0 4h.01" />
+      </svg>
+      {{ texto }}
+    </p>
   }
 </div>

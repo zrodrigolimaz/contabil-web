@@ -17,7 +17,7 @@ let sequencia = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-1.5">
-      <label [attr.for]="paraId()" class="text-[13px] font-medium text-petrol-800">
+      <label [attr.for]="paraId()" class="rotulo">
         {{ rotulo() }}
         @if (obrigatorio()) {
           <span class="text-danger" aria-hidden="true">*</span>
@@ -27,7 +27,25 @@ let sequencia = 0;
       <ng-content />
 
       @if (estado.mensagem(); as texto) {
-        <p [id]="idErro" role="alert" class="text-[12px] font-medium text-danger">{{ texto }}</p>
+        <p
+          [id]="idErro"
+          role="alert"
+          class="flex items-center gap-1.5 text-[12.5px] font-medium text-danger"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            class="size-[13px] shrink-0"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v4m0 4h.01" />
+          </svg>
+          {{ texto }}
+        </p>
       }
     </div>
   `,
