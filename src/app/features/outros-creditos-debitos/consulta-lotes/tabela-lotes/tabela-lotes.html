@@ -3,19 +3,19 @@
   estoure a largura do cartão em telas estreitas.
 -->
 <div class="overflow-x-auto">
-  <table class="w-full border-collapse text-left text-[13px] text-petrol-900">
+  <table class="w-full border-collapse text-left text-[13px] text-petrol-800">
     <caption class="sr-only">
       Lotes de outros créditos/débitos encontrados
     </caption>
 
     <thead
-      class="bg-petrol-900 text-[11px] font-semibold uppercase tracking-[0.04em] text-white/95"
+      class="bg-petrol-900 text-[11px] font-semibold uppercase tracking-[0.07em] text-white/[0.92]"
     >
-      <tr>
-        <th scope="col" class="w-10 px-4 py-3">
+      <tr class="h-[42px]">
+        <th scope="col" class="w-9 pl-4">
           <input
             type="checkbox"
-            class="size-4 cursor-pointer accent-primary-500"
+            class="caixa caixa-clara"
             aria-label="Selecionar todos os lotes da página"
             [checked]="todosMarcados()"
             [indeterminate]="parteMarcada()"
@@ -23,27 +23,24 @@
             (change)="aoAlternarTodos($event)"
           />
         </th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3">ID Lote</th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3">Data Entrada</th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3 text-right">Valor</th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3 text-right">Quant. Lançamentos</th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3">Usuário Registro</th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3">Usuário Aprovação</th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3">Situação Lote</th>
-        <th scope="col" class="whitespace-nowrap px-4 py-3">Data/Hora Situação Lote</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">ID Lote</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Data Entrada</th>
+        <th scope="col" class="whitespace-nowrap px-3.5 text-right">Valor</th>
+        <th scope="col" class="whitespace-nowrap px-3.5 text-right">Quant. Lançamentos</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Usuário Registro</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Usuário Aprovação</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Situação Lote</th>
+        <th scope="col" class="whitespace-nowrap py-0 pl-3.5 pr-4">Data/Hora Situação Lote</th>
       </tr>
     </thead>
 
     @if (carregando()) {
       <tbody aria-busy="true">
         @for (linha of linhasEsqueleto; track $index) {
-          <tr class="border-b border-petrol-900/[0.07] last:border-b-0">
+          <tr class="h-11 border-b border-petrol-900/[0.06] last:border-b-0">
             @for (largura of largurasEsqueleto; track $index) {
-              <td class="px-4 py-3.5">
-                <span
-                  class="block h-3 animate-pulse rounded bg-petrol-900/[0.09] motion-reduce:animate-none"
-                  [style.width]="largura"
-                ></span>
+              <td class="px-3.5">
+                <span class="esqueleto block h-3" [style.width]="largura"></span>
               </td>
             }
           </tr>
@@ -55,51 +52,79 @@
           @let marcado = selecionados().has(lote.id);
 
           <tr
-            class="border-b border-petrol-900/[0.07] transition-colors last:border-b-0"
+            class="h-11 border-b border-petrol-900/[0.06] transition-colors last:border-b-0 motion-reduce:transition-none"
             [class]="
               marcado
-                ? 'bg-primary-50'
-                : 'odd:bg-petrol-900/[0.02] hover:bg-petrol-900/[0.045] odd:hover:bg-petrol-900/[0.045]'
+                ? 'bg-primary-50 shadow-[inset_3px_0_0_var(--color-primary-500)]'
+                : 'even:bg-zebra hover:bg-[#f0faf9] even:hover:bg-[#f0faf9]'
             "
           >
-            <td class="px-4 py-3.5">
+            <td class="pl-4">
               <input
                 type="checkbox"
-                class="size-4 cursor-pointer accent-primary-600"
+                class="caixa"
                 [attr.aria-label]="'Selecionar lote ' + lote.id"
                 [checked]="marcado"
                 (change)="alternarSelecao.emit(lote.id)"
               />
             </td>
-            <td class="whitespace-nowrap px-4 py-3.5 font-semibold tabular-nums">{{ lote.id }}</td>
-            <td class="whitespace-nowrap px-4 py-3.5 tabular-nums">
+            <td class="whitespace-nowrap px-3.5 font-semibold tabular-nums text-petrol-900">
+              {{ lote.id }}
+            </td>
+            <td class="whitespace-nowrap px-3.5 tabular-nums">
               {{ lote.dataEntrada | date: 'dd/MM/yyyy' }}
             </td>
-            <td class="whitespace-nowrap px-4 py-3.5 text-right tabular-nums">
+            <td
+              class="whitespace-nowrap px-3.5 text-right font-medium tabular-nums text-petrol-900"
+            >
               {{ lote.valor | currency: 'BRL' }}
             </td>
-            <td class="whitespace-nowrap px-4 py-3.5 text-right tabular-nums">
+            <td class="whitespace-nowrap px-3.5 text-right tabular-nums">
               {{ lote.quantidadeLancamentos }}
             </td>
-            <td class="whitespace-nowrap px-4 py-3.5">{{ lote.usuarioRegistro }}</td>
-            <td
-              class="whitespace-nowrap px-4 py-3.5"
-              [class.text-petrol-700]="!lote.usuarioAprovacao"
-            >
+            <td class="whitespace-nowrap px-3.5">{{ lote.usuarioRegistro }}</td>
+            <td class="whitespace-nowrap px-3.5" [class.text-muted]="!lote.usuarioAprovacao">
               {{ lote.usuarioAprovacao ?? semValor }}
             </td>
-            <td class="whitespace-nowrap px-4 py-3.5">
+            <td class="whitespace-nowrap px-3.5">
               <span [class]="classeDaSituacao[lote.situacao]">{{ lote.situacao }}</span>
             </td>
-            <td class="whitespace-nowrap px-4 py-3.5 tabular-nums text-petrol-700">
+            <td class="whitespace-nowrap py-0 pl-3.5 pr-4 text-[12.5px] tabular-nums text-muted">
               {{ lote.dataHoraSituacao | date: 'dd/MM/yyyy, HH:mm:ss' }}
             </td>
           </tr>
         } @empty {
           <tr>
-            <!-- Mesma frase do sistema legado. -->
-            <td colspan="9" class="px-4 py-16 text-center text-[13px] text-petrol-700/80">
-              Nenhum registro encontrado.
+            <td colspan="9" class="px-4 py-14">
+              <div class="flex flex-col items-center gap-2 text-center">
+                <div
+                  class="mb-1 grid size-11 place-items-center rounded-full bg-surface text-petrol-700"
+                  aria-hidden="true"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="size-5"
+                  >
+                    <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+                    <path
+                      d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1Z"
+                    />
+                  </svg>
+                </div>
+
+                <!-- Mesma frase do sistema legado. -->
+                <p class="font-display text-[15px] font-semibold text-petrol-900">
+                  Nenhum registro encontrado.
+                </p>
+                <p class="max-w-sm text-[13px] leading-relaxed text-muted">
+                  Nenhum lote corresponde aos critérios informados.
+                </p>
+              </div>
             </td>
           </tr>
         }

@@ -34,14 +34,14 @@ const MAXIMO_SEM_RETICENCIAS = 7;
          quando não há o que paginar. -->
     @if (total() > 0) {
       <div
-        class="flex flex-wrap items-center justify-between gap-3 border-t border-petrol-900/[0.08] px-6 py-3.5"
+        class="grid items-center gap-2 border-t border-petrol-900/[0.08] px-6 py-3.5 sm:grid-cols-[1fr_auto_1fr]"
       >
-        <p class="text-[12px] tabular-nums text-petrol-700/80" role="status">
+        <p class="text-[12.5px] tabular-nums text-muted" role="status">
           Mostrando {{ primeiro() }}–{{ ultimo() }} de {{ total() }}
         </p>
 
         @if (totalPaginas() > 1) {
-          <nav class="flex items-center gap-1" aria-label="Paginação">
+          <nav class="flex items-center justify-center gap-2" aria-label="Paginação">
             @for (passo of anteriores(); track passo.rotulo) {
               <button
                 type="button"
@@ -56,7 +56,7 @@ const MAXIMO_SEM_RETICENCIAS = 7;
 
             @for (item of numeros(); track $index) {
               @if (item === reticencias) {
-                <span class="px-0.5 text-[12px] text-petrol-700/45" aria-hidden="true">{{
+                <span class="px-0.5 text-[12.5px] text-hint" aria-hidden="true">{{
                   reticencias
                 }}</span>
               } @else if (item === pagina()) {
@@ -140,16 +140,16 @@ export class Paginacao {
   protected readonly numeros = computed(() => reguaDePaginas(this.pagina(), this.totalPaginas()));
 
   protected readonly classePasso =
-    'grid size-8 place-items-center rounded-full border border-petrol-900/[0.14] bg-white ' +
-    'text-[12.5px] leading-none tabular-nums text-petrol-700 transition-colors ' +
-    'hover:border-petrol-900/25 hover:bg-petrol-900/[0.04] focus-visible:outline-2 ' +
+    'grid size-8 place-items-center rounded-full border border-petrol-900/[0.15] bg-white ' +
+    'text-[13px] leading-none tabular-nums text-petrol-800 transition-colors ' +
+    'hover:border-petrol-900/[0.28] hover:bg-zebra focus-visible:outline-2 ' +
     'focus-visible:outline-offset-2 focus-visible:outline-primary-500 ' +
-    'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-petrol-900/[0.14] ' +
-    'disabled:hover:bg-white';
+    'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-petrol-900/[0.15] ' +
+    'disabled:hover:bg-white motion-reduce:transition-none';
 
   protected readonly classeAtual =
-    'grid size-8 place-items-center rounded-full bg-primary-600 text-[12.5px] font-semibold ' +
-    'leading-none tabular-nums text-white';
+    'grid size-8 place-items-center rounded-full border border-primary-200 bg-primary-50 ' +
+    'text-[13px] font-semibold leading-none tabular-nums text-primary-700';
 }
 
 /**
