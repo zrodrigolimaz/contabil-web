@@ -3,12 +3,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": [
-      "vitest/globals"
-    ]
+    "esModuleInterop": true,
+    "types": ["jest"]
   },
-  "include": [
-    "src/**/*.d.ts",
-    "src/**/*.spec.ts"
-  ]
+  "include": ["src/**/*.d.ts", "src/**/*.spec.ts", "src/**/testing/**/*.ts", "setup-jest.ts"]
 }
