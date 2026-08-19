@@ -193,7 +193,7 @@ export class LancamentosLote {
     return {
       idLote,
       ...dados,
-      codigoEvento: anterior?.codigoEvento ?? null,
+      idEvento: anterior?.idEvento ?? null,
       descricaoEvento: anterior?.descricaoEvento ?? null,
       complementoHistorico: anterior?.complementoHistorico ?? '',
       anexos: anterior?.anexos ?? [],

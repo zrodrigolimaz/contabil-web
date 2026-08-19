@@ -18,7 +18,7 @@ function lancamentoCom(id: number, parcial: Partial<Lancamento> = {}): Lancament
     descricao: '',
     situacao: 'Pendente',
     pa: PA.cooperativa,
-    codigoEvento: null,
+    idEvento: null,
     descricaoEvento: null,
     complementoHistorico: '',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',

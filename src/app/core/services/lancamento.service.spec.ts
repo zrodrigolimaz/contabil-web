@@ -15,7 +15,7 @@ const NOVO: NovoLancamento = {
   documento: '2026080001',
   descricao: 'Crédito de ajuste.',
   pa: PA.cooperativa,
-  codigoEvento: '102/300',
+  idEvento: '102',
   descricaoEvento: 'Centralização Título CSC Crédito',
   complementoHistorico: 'Ajuste solicitado pela contabilidade.',
   anexos: [],

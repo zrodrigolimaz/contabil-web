@@ -104,7 +104,7 @@ function lancamentoCom(id: number, idLote: number, parcial: Partial<Lancamento> 
     descricao: '',
     situacao: 'Pendente',
     pa: PA.cooperativa,
-    codigoEvento: null,
+    idEvento: null,
     descricaoEvento: null,
     complementoHistorico: '',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
