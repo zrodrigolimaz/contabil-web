@@ -32,25 +32,28 @@
       @if (!menuRecolhido()) {
         <p class="min-w-0 flex-1 truncate text-sm font-bold text-petrol-900">Contábil Web</p>
       }
-      <button
-        type="button"
-        aria-label="Alternar menu"
-        [attr.aria-expanded]="!menuRecolhido()"
-        (click)="menuRecolhido.set(!menuRecolhido())"
-        class="grid size-8 shrink-0 place-items-center rounded-lg text-petrol-700 transition-colors hover:bg-petrol-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          class="size-5"
-          aria-hidden="true"
+      <!-- Em tela estreita a lateral já fica compacta por conta própria. -->
+      @if (!telaEstreita()) {
+        <button
+          type="button"
+          aria-label="Alternar menu"
+          [attr.aria-expanded]="!menuRecolhido()"
+          (click)="alternarMenu()"
+          class="grid size-8 shrink-0 place-items-center rounded-lg text-petrol-700 transition-colors hover:bg-petrol-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
         >
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            class="size-5"
+            aria-hidden="true"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      }
     </div>
 
     <ul class="flex flex-col gap-1 p-3">
@@ -111,7 +114,7 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="size-4 text-petrol-700/70 transition-transform motion-reduce:transition-none"
+              class="size-4 text-petrol-700/80 transition-transform motion-reduce:transition-none"
               [class.-rotate-90]="!grupoContabilAberto()"
               aria-hidden="true"
             >
@@ -157,9 +160,11 @@
 
   <div class="flex min-w-0 flex-1 flex-col">
     <header
-      class="flex h-[72px] flex-col justify-center border-b border-petrol-900/10 bg-white px-7 shadow-[0_1px_2px_rgba(11,46,51,0.04)]"
+      class="flex h-[72px] flex-col justify-center border-b border-petrol-900/10 bg-white px-5 shadow-[0_1px_2px_rgba(11,46,51,0.04)] sm:px-7"
     >
-      <h1 class="text-lg font-semibold tracking-tight text-petrol-900">Outros Créditos/Débitos</h1>
+      <h1 class="text-base font-semibold tracking-tight text-petrol-900 sm:text-lg">
+        Outros Créditos/Débitos
+      </h1>
       <nav aria-label="Trilha de navegação" class="mt-0.5">
         <ol class="flex items-center gap-1.5 text-[11px]">
           <li>
