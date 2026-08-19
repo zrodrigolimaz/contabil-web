@@ -236,6 +236,23 @@ describe('ConsultaLotes', () => {
     expect(caixaDoLote(1001).checked).toBe(true);
   });
 
+  it('limpa de uma vez a seleção espalhada por várias páginas', async () => {
+    await pesquisarCom();
+    await responder(paginaCom(1001, 1));
+    await marcar(1001);
+    await clicar('button[aria-label="Próxima página"]');
+    await responder(paginaCom(1002, 2));
+    await marcar(1002);
+
+    await clicar('button[aria-label="Limpar seleção de 2 lotes"]');
+    expect(caixaDoLote(1002).checked).toBe(false);
+
+    await clicar('button[aria-label="Página anterior"]');
+    await responder(paginaCom(1001, 1));
+
+    expect(caixaDoLote(1001).checked).toBe(false);
+  });
+
   it('só mostra a barra de ações depois da primeira pesquisa', async () => {
     expect(fixture.nativeElement.querySelector('[role="toolbar"]')).toBeNull();
 

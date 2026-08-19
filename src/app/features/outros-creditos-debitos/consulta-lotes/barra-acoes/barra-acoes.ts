@@ -87,12 +87,46 @@ const ICONE = {
       </div>
 
       <!--
-        A dica é visível, e não um title: o navegador não dispara evento de mouse em
-        botão desabilitado, então o tooltip nunca chegaria a quem olha o botão apagado.
+        A faixa fica sempre presente para a tabela não pular quando a primeira linha é
+        marcada. A dica é visível, e não um title: o navegador não dispara evento de
+        mouse em botão desabilitado, então o tooltip nunca chegaria a quem olha o botão
+        apagado.
       -->
-      @if (dica(); as texto) {
-        <p class="text-[11.5px] text-petrol-700/70">{{ texto }}</p>
-      }
+      <div class="flex min-h-6 flex-wrap items-center gap-2">
+        @if (quantidade(); as total) {
+          <span class="chip gap-1 pr-1">
+            {{ total }} {{ total === 1 ? 'selecionado' : 'selecionados' }}
+
+            <!-- A seleção atravessa páginas: sem isto não há como desfazer de uma vez. -->
+            <button
+              type="button"
+              class="rounded-full p-0.5 text-primary-700/60 transition-colors
+                hover:bg-primary-600/15 hover:text-primary-700 focus-visible:outline-2
+                focus-visible:outline-offset-1 focus-visible:outline-primary-500
+                disabled:cursor-not-allowed disabled:opacity-40"
+              [attr.aria-label]="rotuloLimpar()"
+              [disabled]="executando()"
+              (click)="limparSelecao.emit()"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                class="size-[11px]"
+                aria-hidden="true"
+              >
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+        }
+
+        @if (dica(); as texto) {
+          <p class="text-[11px] text-petrol-700/70">{{ texto }}</p>
+        }
+      </div>
     </div>
   `,
 })
@@ -102,6 +136,9 @@ export class BarraAcoes {
   readonly executando = input(false);
 
   readonly acionar = output<AcaoLote>();
+  readonly limparSelecao = output<void>();
+
+  protected readonly quantidade = computed(() => this.selecionados().length);
 
   private readonly unico = computed(() => {
     const selecionados = this.selecionados();
@@ -181,8 +218,13 @@ export class BarraAcoes {
     ];
   });
 
+  protected readonly rotuloLimpar = computed(() => {
+    const quantidade = this.quantidade();
+    return quantidade === 1 ? 'Limpar seleção de 1 lote' : `Limpar seleção de ${quantidade} lotes`;
+  });
+
   protected readonly dica = computed(() => {
-    const quantidade = this.selecionados().length;
+    const quantidade = this.quantidade();
 
     if (quantidade === 0) {
       return 'Selecione um lote para agir sobre ele.';
