@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, output } fro
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { NovoAnexo } from '../../../../../core/models/anexo';
-import { CampoForm } from '../../../../../shared/ui/campo-form/campo-form';
+import { CAMPO_FORM } from '../../../../../shared/ui/campo-form/campo-form';
 import { Dialogo } from '../../../../../shared/ui/dialogo/dialogo';
 
 @Component({
   selector: 'app-inclusao-anexo',
-  imports: [ReactiveFormsModule, CampoForm, Dialogo],
+  imports: [ReactiveFormsModule, CAMPO_FORM, Dialogo],
   templateUrl: './inclusao-anexo.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -4,7 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { OPCOES_PA } from '../../../../core/mocks/opcoes.mock';
 import { EventoCsc } from '../../../../core/models/evento';
 import { SituacaoDocumentoCsc } from '../../../../core/models/lancamento';
-import { CampoForm } from '../../../../shared/ui/campo-form/campo-form';
+import { CAMPO_FORM } from '../../../../shared/ui/campo-form/campo-form';
 import { PesquisaEvento } from './pesquisa-evento/pesquisa-evento';
 
 export type GrupoDocumentoCsc = FormGroup<{
@@ -15,7 +15,7 @@ export type GrupoDocumentoCsc = FormGroup<{
 
 @Component({
   selector: 'app-secao-documento-csc',
-  imports: [ReactiveFormsModule, CampoForm, PesquisaEvento],
+  imports: [ReactiveFormsModule, CAMPO_FORM, PesquisaEvento],
   templateUrl: './secao-documento-csc.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
