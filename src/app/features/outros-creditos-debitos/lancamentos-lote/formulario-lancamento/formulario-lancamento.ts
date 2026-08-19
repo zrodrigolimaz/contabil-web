@@ -13,17 +13,16 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { filter, first, map, of, switchMap } from 'rxjs';
 
-import { HISTORICOS } from '../../../../core/mocks/opcoes.mock';
 import { Anexo, NovoAnexo } from '../../../../core/models/anexo';
 import { Lancamento } from '../../../../core/models/lancamento';
 import { AnexoService } from '../../../../core/services/anexo.service';
 import { ContaCorrenteService } from '../../../../core/services/conta-corrente.service';
 import { EventoService } from '../../../../core/services/evento.service';
-import { CampoForm } from '../../../../shared/ui/campo-form/campo-form';
 import { contaExistenteValidator } from '../../../../shared/validators/conta-existente.validator';
 import { eventoExistenteValidator } from '../../../../shared/validators/evento-existente.validator';
 import { maiorQueZero } from '../../../../shared/validators/maior-que-zero.validator';
 import { SecaoAnexos } from '../secao-anexos/secao-anexos';
+import { SecaoContaCorrente } from '../secao-conta-corrente/secao-conta-corrente';
 import { SecaoDocumentoCsc } from '../secao-documento-csc/secao-documento-csc';
 
 /** O container completa o resto do lançamento. */
@@ -47,7 +46,7 @@ export const ID_FORM_LANCAMENTO = 'form-lancamento';
 
 @Component({
   selector: 'app-formulario-lancamento',
-  imports: [ReactiveFormsModule, CampoForm, SecaoAnexos, SecaoDocumentoCsc],
+  imports: [ReactiveFormsModule, SecaoAnexos, SecaoContaCorrente, SecaoDocumentoCsc],
   templateUrl: './formulario-lancamento.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -66,21 +65,22 @@ export class FormularioLancamento {
   readonly salvar = output<DadosFormularioLancamento>();
 
   protected readonly idForm = ID_FORM_LANCAMENTO;
-  protected readonly historicos = HISTORICOS;
   protected readonly anexos = signal<readonly Anexo[]>([]);
 
   /* Conta e evento validam no blur: a cada tecla, o erro apareceria no meio de um
      número ainda incompleto. */
   protected readonly form = this.fb.nonNullable.group({
-    conta: [
-      '',
-      { validators: Validators.required, asyncValidators: this.validarConta(), updateOn: 'blur' },
-    ],
-    valor: this.fb.control<number | null>(null, [Validators.required, maiorQueZero]),
-    historico: ['', Validators.required],
-    estorno: [false],
-    documento: ['', Validators.required],
-    descricao: [''],
+    contaCorrente: this.fb.nonNullable.group({
+      conta: [
+        '',
+        { validators: Validators.required, asyncValidators: this.validarConta(), updateOn: 'blur' },
+      ],
+      valor: this.fb.control<number | null>(null, [Validators.required, maiorQueZero]),
+      historico: ['', Validators.required],
+      estorno: [false],
+      documento: ['', Validators.required],
+      descricao: [''],
+    }),
     csc: this.fb.nonNullable.group({
       pa: ['', Validators.required],
       idEvento: ['', { asyncValidators: this.validarEvento(), updateOn: 'blur' }],
@@ -89,7 +89,7 @@ export class FormularioLancamento {
   });
 
   protected readonly titular = toSignal(
-    this.form.controls.conta.valueChanges.pipe(
+    this.form.controls.contaCorrente.controls.conta.valueChanges.pipe(
       switchMap((numero) => (numero ? this.contas.buscarPorNumero(numero) : of(null))),
       map((conta) => conta?.titular ?? null),
     ),
@@ -120,12 +120,14 @@ export class FormularioLancamento {
 
       if (lancamento) {
         this.form.setValue({
-          conta: lancamento.conta,
-          valor: lancamento.valor,
-          historico: lancamento.historico,
-          estorno: lancamento.estorno,
-          documento: lancamento.documento,
-          descricao: lancamento.descricao,
+          contaCorrente: {
+            conta: lancamento.conta,
+            valor: lancamento.valor,
+            historico: lancamento.historico,
+            estorno: lancamento.estorno,
+            documento: lancamento.documento,
+            descricao: lancamento.descricao,
+          },
           csc: {
             pa: lancamento.pa,
             idEvento: lancamento.idEvento ?? '',
@@ -164,16 +166,12 @@ export class FormularioLancamento {
       return;
     }
 
-    const { conta, valor, historico, estorno, documento, descricao, csc } = this.form.getRawValue();
+    const { contaCorrente, csc } = this.form.getRawValue();
 
     this.salvar.emit({
-      conta,
+      ...contaCorrente,
       titular: this.titular() ?? '',
-      valor: valor ?? 0,
-      historico,
-      estorno,
-      documento,
-      descricao,
+      valor: contaCorrente.valor ?? 0,
       pa: csc.pa,
       idEvento: csc.idEvento || null,
       descricaoEvento: this.descricaoEvento(),
@@ -200,12 +198,6 @@ export class FormularioLancamento {
 
   protected excluirAnexo(id: number): void {
     this.anexos.update((atuais) => atuais.filter((anexo) => anexo.id !== id));
-  }
-
-  /** A lupa refaz a validação do blur, não uma busca à parte. */
-  protected buscarConta(): void {
-    this.form.controls.conta.markAsTouched();
-    this.form.controls.conta.updateValueAndValidity();
   }
 
   private validarConta() {
