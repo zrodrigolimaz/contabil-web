@@ -1,8 +1,8 @@
-<app-dialogo [aberto]="aberto()" [titulo]="titulo()" larguraMaxima="52rem" (fechar)="aoFechar()">
-  <div class="flex flex-col gap-6">
+<app-dialogo [aberto]="aberto()" [titulo]="titulo()" larguraMaxima="70rem" (fechar)="aoFechar()">
+  <div class="flex flex-col gap-[26px]">
     @if (erro(); as mensagem) {
       <p
-        class="rounded-md border border-danger/25 bg-danger/5 px-4 py-2.5 text-[12.5px] font-medium text-danger"
+        class="rounded-lg border border-danger/25 bg-danger-50 px-4 py-2.5 text-[12.5px] font-medium text-danger"
         role="alert"
       >
         {{ mensagem }}
@@ -17,48 +17,85 @@
       (salvar)="aoSalvar($event)"
     />
 
-    <section class="flex flex-col gap-3">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-baseline gap-2">
-          <h3 class="eyebrow">Lançamentos</h3>
+    <section class="flex flex-col gap-3.5">
+      <div class="flex flex-wrap items-center gap-3">
+        <h3 class="eyebrow">Lançamentos</h3>
 
-          <p class="text-[12px] text-petrol-700/80">
-            {{ lancamentos().length }}
-            {{ lancamentos().length === 1 ? 'lançamento no lote' : 'lançamentos no lote' }}
-          </p>
-        </div>
+        <span class="chip h-[22px] whitespace-nowrap px-2.5">
+          {{ lancamentos().length }}
+          {{ lancamentos().length === 1 ? 'lançamento no lote' : 'lançamentos no lote' }}
+        </span>
+
+        <span class="regua"></span>
 
         @if (!somenteLeitura()) {
-          <div
-            class="inline-flex gap-0.5 rounded-[9px] border border-petrol-900/[0.08] bg-surface p-[3px]"
-          >
+          <div class="flex items-center gap-0.5">
             <button
               type="button"
-              class="btn btn-fantasma gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+              class="btn btn-fantasma h-[30px] gap-1.5 px-[11px] text-[12.5px]"
               [disabled]="marcado() === null || executando()"
               title="Carrega o lançamento no formulário para edição"
               (click)="editarMarcado()"
             >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-[13px] shrink-0"
+                aria-hidden="true"
+              >
+                <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              </svg>
               Alterar
             </button>
 
             <button
               type="button"
-              class="btn btn-fantasma gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+              class="btn btn-fantasma h-[30px] gap-1.5 px-[11px] text-[12.5px]"
               [disabled]="marcado() === null || executando()"
               title="Cria uma cópia pendente do lançamento marcado"
               (click)="duplicarMarcado()"
             >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-[13px] shrink-0"
+                aria-hidden="true"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
               Duplicar
             </button>
 
             <button
               type="button"
-              class="btn btn-perigo gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+              class="btn btn-perigo h-[30px] gap-1.5 px-[11px] text-[12.5px]"
               [disabled]="marcado() === null || executando()"
               title="Exclui o lançamento marcado"
               (click)="excluirMarcado()"
             >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-[13px] shrink-0"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                />
+              </svg>
               Excluir
             </button>
           </div>
@@ -73,7 +110,7 @@
 
       <div class="min-h-5">
         @if (dica(); as texto) {
-          <p class="text-[11px] text-petrol-700/80">{{ texto }}</p>
+          <p class="text-[12.5px] text-muted">{{ texto }}</p>
         }
       </div>
     </section>
@@ -81,11 +118,11 @@
 
   <div rodape class="flex flex-wrap items-center justify-between gap-3">
     @if (!somenteLeitura()) {
-      <label class="flex items-center gap-2 text-[13px] font-medium text-petrol-800">
+      <label class="flex items-center gap-2.5 text-sm text-petrol-900">
         <input
           #manter
           type="checkbox"
-          class="size-4 accent-primary-600"
+          class="caixa"
           [checked]="manterDados()"
           (change)="manterDados.set(manter.checked)"
         />

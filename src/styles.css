@@ -8,10 +8,12 @@
   /* Turquesa institucional — botões de ação primária, links, foco */
   --color-primary-50: #e6f7f5;
   --color-primary-100: #c0ebe6;
+  --color-primary-200: #b5e6df;
   --color-primary-300: #5cccbf;
   --color-primary-500: #00ae9d;
   --color-primary-600: #009486;
   --color-primary-700: #007a6f;
+  --color-primary-800: #00695c;
 
   /* Verde-petróleo escuro — cabeçalhos de tabela, sidebar, títulos */
   --color-petrol-700: #1b555c;
@@ -19,10 +21,15 @@
   --color-petrol-900: #0b2e33;
 
   /* Superfícies e feedback */
-  --color-surface: #f4f6f6;
+  --color-surface: #eef2f1;
+  --color-zebra: #f7fafa;
+  --color-muted: #5c7477;
+  --color-hint: #8aa2a5;
   --color-danger: #c0392b;
+  --color-danger-50: #fdf0ee;
 
-  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
 }
 
 body {
@@ -35,85 +42,116 @@ body {
  */
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[12.5px]
-      font-semibold transition-[background-color,border-color,box-shadow,color]
-      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
-      disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none;
+    @apply inline-flex h-[38px] items-center justify-center gap-2 rounded-lg px-4 font-display
+      text-sm font-semibold transition-[background-color,border-color,box-shadow,color,opacity]
+      duration-150 focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-40
+      disabled:shadow-none motion-reduce:transition-none;
   }
 
   .btn-primario {
-    @apply bg-primary-600 text-white shadow-[0_1px_2px_rgba(11,46,51,0.16)] hover:bg-primary-700
-      active:translate-y-px active:shadow-none;
+    @apply bg-primary-600 px-5 text-white shadow-[0_1px_2px_rgba(11,46,51,0.18)]
+      hover:bg-primary-700 active:translate-y-px active:shadow-none;
   }
 
   .btn-contorno {
-    @apply border border-petrol-900/15 bg-white text-petrol-800 hover:border-petrol-900/25
-      hover:bg-petrol-900/[0.04] active:translate-y-px;
+    @apply border border-petrol-900/[0.18] bg-white px-[18px] text-petrol-800
+      hover:border-petrol-900/[0.28] hover:bg-zebra active:translate-y-px;
   }
 
   /* Ação secundária ao lado da principal: sem contorno, para não disputar atenção */
   .btn-texto {
-    @apply text-petrol-700 hover:bg-petrol-900/[0.05] hover:text-petrol-900;
+    @apply text-petrol-800 hover:bg-primary-50 hover:text-primary-800;
   }
 
-  /*
-   * Botão de barra: sem contorno próprio, ganha fundo só no hover. Quem separa as
-   * ações é a ilha que as agrupa, não o contorno de cada uma.
-   */
   .btn-fantasma {
-    @apply bg-transparent text-petrol-800 hover:bg-petrol-900/[0.05];
+    @apply border border-petrol-900/[0.16] bg-white text-petrol-800
+      hover:border-petrol-900/[0.28] hover:bg-zebra aria-disabled:border-transparent
+      aria-disabled:bg-transparent aria-disabled:hover:bg-transparent
+      disabled:border-transparent disabled:bg-transparent;
   }
 
   /* Ação destrutiva: sai do cinza dos irmãos para o clique não ser por engano */
   .btn-perigo {
-    @apply bg-transparent text-danger hover:bg-danger/5;
+    @apply border border-danger/25 bg-danger-50 text-danger hover:border-danger hover:bg-danger
+      hover:text-white focus-visible:outline-danger aria-disabled:border-transparent
+      aria-disabled:bg-transparent aria-disabled:text-danger aria-disabled:hover:bg-transparent
+      disabled:border-transparent disabled:bg-transparent;
   }
 
   /* A mesma ação destrutiva quando é a principal do diálogo que a confirma */
   .btn-perigo-solido {
-    @apply bg-danger text-white shadow-[0_1px_2px_rgba(11,46,51,0.16)] hover:bg-danger/90
-      focus-visible:outline-danger active:translate-y-px active:shadow-none;
+    @apply border border-danger bg-danger px-5 text-white
+      shadow-[0_1px_2px_rgba(11,46,51,0.18)] hover:bg-danger/90 focus-visible:outline-danger
+      active:translate-y-px active:shadow-none;
+  }
+
+  .grupo-acoes {
+    @apply flex items-center gap-0.5;
+  }
+
+  .grupo-acoes + .grupo-acoes::before {
+    @apply mx-2.5 hidden h-[22px] w-px shrink-0 bg-petrol-900/[0.12] content-[''] @[56rem]:block;
   }
 
   /* Cartão de conteúdo sobre o fundo surface: filtros, tabela e futuras seções */
   .cartao {
-    @apply overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white
-      shadow-[0_1px_1px_rgba(11,46,51,0.04)];
+    @apply overflow-hidden rounded-xl border border-petrol-900/10 bg-white
+      shadow-[0_1px_2px_rgba(11,46,51,0.05)];
   }
 
-  /* Rótulo de seção: sempre acompanhado do filete turquesa, nunca sozinho */
   .eyebrow {
-    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-primary-700;
+    @apply font-display text-[11px] font-bold uppercase tracking-[0.12em] text-primary-700;
+  }
+
+  .regua {
+    @apply h-px flex-1 bg-petrol-900/10;
+  }
+
+  .rotulo {
+    @apply font-display text-xs font-semibold tracking-[0.02em] text-petrol-700;
   }
 
   /* Critério de pesquisa em vigor, exibido quando o painel está recolhido */
   .chip {
-    @apply inline-flex items-center rounded-full border border-primary-500/25 bg-primary-50
-      px-2.5 py-[3px] text-[11px] font-semibold text-primary-700;
+    @apply inline-flex h-6 items-center gap-1.5 rounded-full border border-primary-200
+      bg-primary-50 px-[11px] text-xs font-semibold text-primary-800;
   }
 
   /*
    * Variantes da pastilha para a situação do lote. O tom acompanha o avanço no fluxo
-   * Aberto → Enviado → Confirmado, de modo que a coluna se leia de relance: cinza para
-   * o que ainda não saiu do lugar, turquesa claro para o que está em trânsito e
+   * Aberto → Enviado → Confirmado, de modo que a coluna se leia de relance: contorno
+   * para o que ainda não saiu do lugar, turquesa claro para o que está em trânsito e
    * turquesa sólido para o que foi concluído.
    */
   .chip-neutro {
-    @apply border-petrol-900/[0.14] bg-petrol-900/[0.04] text-petrol-700;
+    @apply border-petrol-900/[0.28] bg-white text-petrol-800;
   }
 
   .chip-solido {
-    @apply border-primary-600 bg-primary-600 text-white;
+    @apply border-primary-700 bg-primary-700 text-white;
   }
 
   .campo {
-    @apply h-10 w-full rounded-lg border border-petrol-900/[0.18] bg-white px-3 text-[13px]
-      font-medium tabular-nums text-petrol-900
-      transition-[border-color,box-shadow,background-color] placeholder:font-normal
-      placeholder:text-petrol-700/45 hover:border-petrol-900/35 hover:bg-petrol-900/[0.01]
-      focus:border-primary-500 focus:outline-none focus:ring-[3px] focus:ring-primary-500/20
-      disabled:bg-surface disabled:text-petrol-700/60 aria-[invalid=true]:border-danger
-      aria-[invalid=true]:focus:ring-danger/20;
+    @apply h-[38px] w-full rounded-lg border border-petrol-900/[0.18] bg-white px-3 text-sm
+      tabular-nums text-petrol-900 transition-[border-color,box-shadow,background-color]
+      duration-150 placeholder:text-hint hover:border-petrol-900/[0.28]
+      focus:border-primary-500 focus:outline-none focus:ring-[3px] focus:ring-primary-500/25
+      disabled:bg-surface disabled:text-petrol-700 aria-[invalid=true]:border-danger
+      aria-[invalid=true]:ring-[3px] aria-[invalid=true]:ring-danger/10
+      aria-[invalid=true]:focus:ring-danger/10 motion-reduce:transition-none;
+  }
+
+  .campo.ng-invalid.ng-touched {
+    @apply border-danger ring-[3px] ring-danger/10;
+  }
+
+  .campo.ng-invalid.ng-touched:focus {
+    @apply border-danger ring-danger/10;
+  }
+
+  .campo-leitura {
+    @apply border-petrol-900/[0.12] bg-[#eef2f2] pl-9 text-petrol-700 hover:border-petrol-900/[0.12];
   }
 
   /*
@@ -163,9 +201,56 @@ body {
   .campo-select {
     appearance: none;
     padding-right: 2.25rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b555c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c7477' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.7rem center;
-    background-size: 1rem;
+    background-size: 0.9375rem;
+  }
+
+  .caixa {
+    @apply size-[17px] shrink-0 cursor-pointer appearance-none rounded-[4px] border-[1.5px]
+      border-petrol-900/[0.32] bg-white bg-center bg-no-repeat transition-[background-color,border-color]
+      duration-150 checked:border-primary-600 checked:bg-primary-600
+      indeterminate:border-primary-600 indeterminate:bg-primary-600
+      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+      disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-50
+      motion-reduce:transition-none;
+  }
+
+  .caixa:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    background-size: 0.75rem;
+  }
+
+  .caixa:indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='11' width='12' height='2.6' rx='1.3' fill='%23fff'/%3E%3C/svg%3E");
+    background-size: 0.75rem;
+  }
+
+  .caixa-clara {
+    @apply border-white/50 bg-transparent;
+  }
+
+  .esqueleto {
+    @apply rounded-md bg-[#e8eeee];
+    background-image: linear-gradient(90deg, #e8eeee 25%, #f5f8f8 37%, #e8eeee 63%);
+    background-size: 400px 100%;
+    animation: esqueleto-brilho 1.4s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .esqueleto {
+      background-image: none;
+      animation: none;
+    }
+  }
+}
+
+@keyframes esqueleto-brilho {
+  from {
+    background-position: -400px 0;
+  }
+  to {
+    background-position: 400px 0;
   }
 }

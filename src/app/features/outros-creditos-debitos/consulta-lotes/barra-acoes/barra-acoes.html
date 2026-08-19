@@ -1,22 +1,22 @@
-<div class="flex flex-col gap-2">
-  <!--
-    Cada família ganha sua própria ilha: mesmo com quase tudo apagado, o olho lê
-    três grupos de ação, e não sete botões quebrados.
-  -->
-  <div class="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Ações sobre os lotes">
+<div class="@container flex flex-col gap-[9px]">
+  <div class="flex flex-wrap items-center gap-y-2" role="toolbar" aria-label="Ações sobre os lotes">
     @for (grupo of grupos(); track $index) {
-      <div
-        class="inline-flex gap-0.5 rounded-[9px] border border-petrol-900/[0.08] bg-surface p-[3px]"
-      >
+      <div class="grupo-acoes">
         @for (botao of grupo; track botao.acao) {
           <!--
             aria-disabled, e não disabled: o botão continua no caminho do teclado e o
-            leitor de tela chega ao motivo do bloqueio, que a faixa abaixo explica.
+            leitor de tela chega ao motivo do bloqueio, que a dica ao lado explica.
           -->
           <button
             type="button"
-            class="btn gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] aria-disabled:opacity-35"
-            [class]="botao.destaque ? 'btn-primario' : botao.perigo ? 'btn-perigo' : 'btn-fantasma'"
+            class="btn h-[34px] gap-[7px] text-[13.5px] aria-disabled:opacity-40"
+            [class]="
+              botao.destaque
+                ? 'btn-primario px-4'
+                : botao.perigo
+                  ? 'btn-perigo px-[13px]'
+                  : 'btn-fantasma px-[13px]'
+            "
             [attr.aria-disabled]="bloqueado(botao) ? 'true' : null"
             [attr.aria-describedby]="bloqueado(botao) ? idDica : null"
             [title]="botao.descricao"
@@ -26,10 +26,10 @@
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
+              stroke-width="1.8"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="size-[13px] shrink-0"
+              class="size-[15px] shrink-0"
               aria-hidden="true"
             >
               <path [attr.d]="botao.caminho" />
@@ -39,22 +39,21 @@
         }
       </div>
     }
+
+    @if (quantidade() === 0 && dica(); as texto) {
+      <p [id]="idDica" class="ml-auto pl-4 pr-1.5 text-[12.5px] text-hint">{{ texto }}</p>
+    }
   </div>
 
-  <!--
-    A faixa fica sempre presente para a tabela não pular quando a primeira linha é
-    marcada. A dica é visível, e não um title: quem olha o botão apagado precisa ler
-    o motivo sem depender de passar o mouse por cima.
-  -->
-  <div class="flex min-h-6 flex-wrap items-center gap-2">
-    @if (quantidade(); as total) {
-      <span class="chip gap-1 pr-1">
+  @if (quantidade(); as total) {
+    <div class="flex flex-wrap items-center gap-2.5 px-1">
+      <span class="chip gap-1.5 pr-1.5">
         {{ total }} {{ total === 1 ? 'selecionado' : 'selecionados' }}
 
         <!-- A seleção atravessa páginas: sem isto não há como desfazer de uma vez. -->
         <button
           type="button"
-          class="rounded-full p-0.5 text-primary-700/60 transition-colors hover:bg-primary-600/15 hover:text-primary-700 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
+          class="grid size-4 place-items-center rounded-full text-primary-800/70 transition-colors hover:bg-primary-700/15 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
           [attr.aria-label]="rotuloLimpar()"
           [disabled]="executando()"
           (click)="limparSelecao.emit()"
@@ -63,19 +62,19 @@
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2.5"
+            stroke-width="2.4"
             stroke-linecap="round"
-            class="size-[11px]"
+            class="size-2.5"
             aria-hidden="true"
           >
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
       </span>
-    }
 
-    @if (dica(); as texto) {
-      <p [id]="idDica" class="text-[11px] text-petrol-700/80">{{ texto }}</p>
-    }
-  </div>
+      @if (dica(); as texto) {
+        <p [id]="idDica" class="text-[12.5px] text-muted">{{ texto }}</p>
+      }
+    </div>
+  }
 </div>

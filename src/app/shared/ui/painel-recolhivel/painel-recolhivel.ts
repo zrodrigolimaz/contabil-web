@@ -16,18 +16,18 @@ let sequencia = 0;
   template: `
     <section class="cartao">
       <div
-        class="flex items-center gap-4 px-6 py-4"
-        [class]="aberto() ? 'border-b border-petrol-900/[0.12] bg-surface/60' : ''"
+        class="flex items-center gap-3.5 px-6"
+        [class]="aberto() ? 'border-b border-petrol-900/[0.08] py-[18px]' : 'py-4'"
       >
         <div class="shrink-0">
-          <h2 class="text-[14px] font-semibold text-petrol-900">{{ titulo() }}</h2>
-          @if (subtitulo(); as descricao) {
-            <p class="mt-0.5 text-[12px] text-petrol-700/80">{{ descricao }}</p>
+          <h2 class="font-display text-[15px] font-semibold text-petrol-900">{{ titulo() }}</h2>
+          @if (aberto() && subtitulo(); as descricao) {
+            <p class="mt-0.5 text-[13px] text-muted">{{ descricao }}</p>
           }
         </div>
 
         @if (!aberto()) {
-          <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+          <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             <ng-content select="[resumo]" />
           </div>
         } @else {
@@ -40,13 +40,14 @@ let sequencia = 0;
           [attr.aria-controls]="idConteudo"
           [attr.aria-label]="(aberto() ? 'Recolher ' : 'Expandir ') + titulo()"
           (click)="aberto.set(!aberto())"
-          class="grid size-7 shrink-0 place-items-center rounded-md text-petrol-700 transition-colors hover:bg-petrol-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          class="grid size-8 shrink-0 place-items-center rounded-full text-petrol-700 transition-colors hover:bg-petrol-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          [class]="aberto() ? '' : 'border border-petrol-900/[0.12]'"
         >
           <svg
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            stroke-width="1.8"
             stroke-linecap="round"
             stroke-linejoin="round"
             class="size-4 transition-transform motion-reduce:transition-none"
@@ -63,7 +64,7 @@ let sequencia = 0;
         [class]="aberto() ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
       >
         <div [id]="idConteudo" class="overflow-hidden" [attr.inert]="aberto() ? null : ''">
-          <div class="px-6 pb-6 pt-6">
+          <div class="px-6 pb-5 pt-5">
             <ng-content />
           </div>
         </div>

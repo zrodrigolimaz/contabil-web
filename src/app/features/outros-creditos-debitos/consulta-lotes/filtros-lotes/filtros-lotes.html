@@ -1,12 +1,22 @@
 <app-painel-recolhivel titulo="Filtros" subtitulo="Pesquisar lote outros créditos/débitos">
-  <div resumo>
+  <div resumo class="contents">
     @for (chip of chips(); track chip.chave) {
-      <span class="chip">{{ chip.texto }}</span>
+      <span class="chip h-7 px-3 text-[12.5px] font-medium">{{ chip.texto }}</span>
+    }
+
+    @if (chips().length > 0) {
+      <button
+        type="button"
+        class="rounded px-1 text-[12.5px] font-medium text-primary-700 transition-colors hover:text-primary-800 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+        (click)="limpar()"
+      >
+        Limpar tudo
+      </button>
     }
   </div>
 
   <form [formGroup]="form" (ngSubmit)="aoEnviar()">
-    <div class="grid items-end gap-x-5 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid items-start gap-x-7 gap-y-[18px] md:grid-cols-2 xl:grid-cols-3">
       <app-campo-form rotulo="Instituição Resp." paraId="filtro-instituicao-responsavel">
         <select
           id="filtro-instituicao-responsavel"
@@ -55,7 +65,7 @@
       <app-campo-faixa rotulo="Data Entrada" tipo="data" [grupo]="form.controls.dataEntrada" />
     </div>
 
-    <div class="mt-4 flex justify-end gap-1">
+    <div class="mt-5 flex items-center justify-end gap-2">
       <button type="button" class="btn btn-texto" (click)="limpar()">
         <svg
           viewBox="0 0 24 24"
