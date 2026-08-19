@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Directive,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 
 import { estadoDoControle } from '../estado-controle';
@@ -60,5 +67,22 @@ export class CampoForm {
   /** Id da mensagem, para o consumidor apontar `aria-describedby` quando quiser. */
   readonly idErro = `erro-campo-${sequencia++}`;
 
-  protected readonly estado = estadoDoControle(this.controle);
+  readonly estado = estadoDoControle(this.controle);
 }
+
+@Directive({
+  // eslint-disable-next-line @angular-eslint/directive-selector
+  selector: '[formControlName], [formControl]',
+  host: {
+    '[attr.aria-invalid]': 'comErro() || null',
+    '[attr.aria-describedby]': 'idDoErro()',
+  },
+})
+export class CampoInvalido {
+  private readonly campo = inject(CampoForm, { optional: true });
+
+  readonly comErro = computed(() => this.campo?.estado.comErro() ?? false);
+  readonly idDoErro = computed(() => (this.comErro() ? this.campo?.idErro : null));
+}
+
+export const CAMPO_FORM = [CampoForm, CampoInvalido];

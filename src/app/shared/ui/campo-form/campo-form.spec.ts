@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { CampoForm } from './campo-form';
+import { CAMPO_FORM } from './campo-form';
 
 @Component({
-  imports: [CampoForm, ReactiveFormsModule],
+  imports: [CAMPO_FORM, ReactiveFormsModule],
   template: `
     <app-campo-form rotulo="Documento" paraId="doc" [controle]="controle" [obrigatorio]="true">
       <input id="doc" class="campo" [formControl]="controle" />
@@ -26,6 +26,10 @@ describe('CampoForm', () => {
 
   function alerta(): HTMLElement | null {
     return fixture.nativeElement.querySelector('[role="alert"]');
+  }
+
+  function campo(): HTMLInputElement {
+    return fixture.nativeElement.querySelector('input');
   }
 
   it('liga o rótulo ao campo projetado', () => {
@@ -56,6 +60,29 @@ describe('CampoForm', () => {
     await fixture.whenStable();
 
     expect(alerta()).toBeNull();
+  });
+
+  it('anuncia o campo como inválido e o liga à mensagem', async () => {
+    expect(campo().getAttribute('aria-invalid')).toBeNull();
+    expect(campo().getAttribute('aria-describedby')).toBeNull();
+
+    fixture.componentInstance.controle.markAsTouched();
+    await fixture.whenStable();
+
+    expect(campo().getAttribute('aria-invalid')).toBe('true');
+    expect(campo().getAttribute('aria-describedby')).toBe(alerta()?.id);
+  });
+
+  it('tira os atributos de erro quando o campo passa a ser válido', async () => {
+    const { controle } = fixture.componentInstance;
+    controle.markAsTouched();
+    await fixture.whenStable();
+
+    controle.setValue('123');
+    await fixture.whenStable();
+
+    expect(campo().getAttribute('aria-invalid')).toBeNull();
+    expect(campo().getAttribute('aria-describedby')).toBeNull();
   });
 
   /* Regressão: com o campo seguindo inválido por outro motivo, o texto ficava no

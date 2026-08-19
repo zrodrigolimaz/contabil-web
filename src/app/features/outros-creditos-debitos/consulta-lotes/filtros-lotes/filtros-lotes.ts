@@ -17,7 +17,7 @@ import {
 } from '../../../../core/models/filtros';
 import { dataDeIso } from '../../../../core/utils/data';
 import { CampoFaixa } from '../../../../shared/ui/campo-faixa/campo-faixa';
-import { CampoForm } from '../../../../shared/ui/campo-form/campo-form';
+import { CAMPO_FORM } from '../../../../shared/ui/campo-form/campo-form';
 import { PainelRecolhivel } from '../../../../shared/ui/painel-recolhivel/painel-recolhivel';
 import { faixaValidator } from '../../../../shared/validators/faixa.validator';
 
@@ -35,7 +35,7 @@ interface ChipFiltro {
  */
 @Component({
   selector: 'app-filtros-lotes',
-  imports: [ReactiveFormsModule, PainelRecolhivel, CampoForm, CampoFaixa],
+  imports: [ReactiveFormsModule, PainelRecolhivel, CAMPO_FORM, CampoFaixa],
   templateUrl: './filtros-lotes.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -4,7 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HISTORICOS } from '../../../../core/mocks/opcoes.mock';
 import { ContaCorrente } from '../../../../core/models/conta-corrente';
 import { SituacaoLancamento } from '../../../../core/models/lancamento';
-import { CampoForm } from '../../../../shared/ui/campo-form/campo-form';
+import { CAMPO_FORM } from '../../../../shared/ui/campo-form/campo-form';
 import { PesquisaConta } from './pesquisa-conta/pesquisa-conta';
 
 export type GrupoContaCorrente = FormGroup<{
@@ -18,7 +18,7 @@ export type GrupoContaCorrente = FormGroup<{
 
 @Component({
   selector: 'app-secao-conta-corrente',
-  imports: [ReactiveFormsModule, CampoForm, PesquisaConta],
+  imports: [ReactiveFormsModule, CAMPO_FORM, PesquisaConta],
   templateUrl: './secao-conta-corrente.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
