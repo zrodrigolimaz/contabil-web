@@ -13,6 +13,11 @@ import { Lote } from '../../../core/models/lote';
 import { TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
 import { LoteService } from '../../../core/services/lote.service';
 import { Paginacao } from '../../../shared/ui/paginacao/paginacao';
+import {
+  LancamentosLote,
+  ModoLancamentos,
+  ResultadoLancamentos,
+} from '../lancamentos-lote/lancamentos-lote';
 import { AcaoLote, BarraAcoes } from './barra-acoes/barra-acoes';
 import { DialogoJustificativa } from './dialogo-justificativa/dialogo-justificativa';
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
@@ -25,16 +30,8 @@ interface Aviso {
   readonly tom: 'sucesso' | 'informacao';
 }
 
-/**
- * Respostas das ações que dependem da tela de lançamentos: botão que aceita o clique e
- * não dá sinal nenhum é indistinguível de aplicação quebrada.
- */
-const AINDA_SEM_TELA: Record<'incluir' | 'alterar' | 'excluir' | 'visualizar', string> = {
-  incluir: 'Incluir abre a tela de lançamentos de um lote novo, ainda não implementada.',
-  alterar: 'Alterar abre os lançamentos do lote para edição, tela ainda não implementada.',
-  excluir: 'A exclusão de lote chega junto com a tela de lançamentos.',
-  visualizar: 'Visualizar abre os lançamentos do lote em leitura, tela ainda não implementada.',
-};
+/** Única ação da barra ainda sem destino; a exclusão de lote é tarefa própria. */
+const EXCLUSAO_DE_LOTE_PENDENTE = 'A exclusão de lote chega em uma próxima entrega.';
 
 /** Escritas por extenso porque cada ação tem seu próprio motivo de ignorar um lote. */
 const RESULTADO: Record<
@@ -69,7 +66,14 @@ const RESULTADO: Record<
 
 @Component({
   selector: 'app-consulta-lotes',
-  imports: [FiltrosLotes, BarraAcoes, TabelaLotes, Paginacao, DialogoJustificativa],
+  imports: [
+    FiltrosLotes,
+    BarraAcoes,
+    TabelaLotes,
+    Paginacao,
+    DialogoJustificativa,
+    LancamentosLote,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './consulta-lotes.html',
 })
@@ -88,6 +92,9 @@ export class ConsultaLotes {
   protected readonly executando = signal(false);
   protected readonly aviso = signal<Aviso | null>(null);
   protected readonly justificativaAberta = signal<Lote | null>(null);
+
+  protected readonly modoLancamentos = signal<ModoLancamentos | null>(null);
+  protected readonly loteDosLancamentos = signal<Lote | null>(null);
 
   /**
    * Seleção por id, e não por índice: sobrevive à troca de página. Guarda o lote
@@ -164,9 +171,33 @@ export class ConsultaLotes {
       case 'justificativa':
         this.justificativaAberta.set(this.lotesSelecionados()[0] ?? null);
         break;
-      default:
-        this.aviso.set({ texto: AINDA_SEM_TELA[acao], tom: 'informacao' });
+      case 'incluir':
+        this.abrirLancamentos('novo', null);
         break;
+      case 'alterar':
+        this.abrirLancamentos('edicao', this.lotesSelecionados()[0] ?? null);
+        break;
+      case 'visualizar':
+        this.abrirLancamentos('leitura', this.lotesSelecionados()[0] ?? null);
+        break;
+      case 'excluir':
+        this.aviso.set({ texto: EXCLUSAO_DE_LOTE_PENDENTE, tom: 'informacao' });
+        break;
+    }
+  }
+
+  private abrirLancamentos(modo: ModoLancamentos, lote: Lote | null): void {
+    this.loteDosLancamentos.set(lote);
+    this.modoLancamentos.set(modo);
+  }
+
+  protected fecharLancamentos(resultado: ResultadoLancamentos): void {
+    this.modoLancamentos.set(null);
+    this.loteDosLancamentos.set(null);
+
+    if (resultado.houveMutacao) {
+      this.selecionados.set(new Map());
+      this.consultar(this.pagina());
     }
   }
 
