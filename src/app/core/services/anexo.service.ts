@@ -9,8 +9,10 @@ import { respostaMock } from './api-mock';
 @Injectable({ providedIn: 'root' })
 export class AnexoService {
   private proximoId =
-    Math.max(0, ...LANCAMENTOS.flatMap((lancamento) => lancamento.anexos.map((anexo) => anexo.id))) +
-    1;
+    Math.max(
+      0,
+      ...LANCAMENTOS.flatMap((lancamento) => lancamento.anexos.map((anexo) => anexo.id)),
+    ) + 1;
 
   /** Simula o upload: nenhum byte do arquivo é lido, só os metadados são guardados. */
   enviar(dados: NovoAnexo): Observable<Anexo> {

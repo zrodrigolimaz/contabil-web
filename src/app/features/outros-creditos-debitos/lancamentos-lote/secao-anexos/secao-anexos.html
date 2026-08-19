@@ -1,0 +1,132 @@
+<fieldset class="flex flex-col gap-3 rounded-lg border border-petrol-900/[0.12] px-4 pb-4 pt-3">
+  <legend class="eyebrow px-1">Anexo</legend>
+
+  <div class="overflow-x-auto rounded-lg border border-petrol-900/[0.12]">
+    <table class="w-full border-collapse text-left text-[12.5px] text-petrol-900">
+      <caption class="sr-only">
+        Anexos do lançamento
+      </caption>
+
+      <thead
+        class="bg-petrol-900 text-[10.5px] font-semibold uppercase tracking-[0.04em] text-white/95"
+      >
+        <tr>
+          <th scope="col" class="w-10 px-3 py-2.5">
+            <span class="sr-only">Selecionar</span>
+          </th>
+          <th scope="col" class="whitespace-nowrap px-3 py-2.5">Nome Reduzido do Arquivo</th>
+          <th scope="col" class="px-3 py-2.5">Descrição</th>
+          <th scope="col" class="whitespace-nowrap px-3 py-2.5">Data Inclusão</th>
+          <th scope="col" class="whitespace-nowrap px-3 py-2.5">ID Usuário</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (anexo of anexos(); track anexo.id) {
+          <tr
+            class="cursor-pointer border-b border-petrol-900/[0.07] transition-colors last:border-b-0 odd:bg-petrol-900/[0.015] hover:bg-primary-50/40"
+            [class.bg-primary-50]="idMarcado() === anexo.id"
+            (click)="alternar(anexo.id)"
+          >
+            <td class="px-3 py-2.5">
+              <input
+                type="radio"
+                name="anexo-selecionado"
+                class="size-4 cursor-pointer accent-primary-600"
+                [attr.aria-label]="'Selecionar anexo ' + anexo.nomeReduzido"
+                [checked]="idMarcado() === anexo.id"
+                (click)="$event.stopPropagation(); alternar(anexo.id)"
+              />
+            </td>
+            <td class="whitespace-nowrap px-3 py-2.5 font-medium">{{ anexo.nomeReduzido }}</td>
+            <td class="px-3 py-2.5">{{ anexo.descricao }}</td>
+            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums">
+              {{ anexo.dataInclusao | date: 'dd/MM/yyyy HH:mm' }}
+            </td>
+            <td class="whitespace-nowrap px-3 py-2.5">{{ anexo.idUsuario }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="px-3 py-8 text-center text-[13px] text-petrol-700/70">
+              Nenhum registro encontrado.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex justify-end">
+    <div
+      class="inline-flex gap-0.5 rounded-[9px] border border-petrol-900/[0.08] bg-surface p-[3px]"
+    >
+      <button
+        type="button"
+        class="btn btn-fantasma gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+        [disabled]="marcado() === null"
+        title="Mostra os dados do anexo marcado"
+        (click)="visualizado.set(marcado())"
+      >
+        Visualizar
+      </button>
+
+      @if (!desabilitado()) {
+        <button
+          type="button"
+          class="btn btn-fantasma gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px]"
+          title="Anexa um arquivo ao lançamento"
+          (click)="inclusaoAberta.set(true)"
+        >
+          Incluir
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-perigo gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+          [disabled]="marcado() === null"
+          title="Remove o anexo marcado do lançamento"
+          (click)="excluirMarcado()"
+        >
+          Excluir
+        </button>
+      }
+    </div>
+  </div>
+</fieldset>
+
+<app-inclusao-anexo
+  [aberto]="inclusaoAberta()"
+  (incluir)="aoIncluir($event)"
+  (fechar)="inclusaoAberta.set(false)"
+/>
+
+<app-dialogo
+  [aberto]="visualizado() !== null"
+  titulo="Anexo do lançamento"
+  larguraMaxima="30rem"
+  (fechar)="visualizado.set(null)"
+>
+  @if (visualizado(); as anexo) {
+    <dl class="grid grid-cols-[9rem_1fr] gap-x-4 gap-y-2.5 text-[13px]">
+      <dt class="font-medium text-petrol-800">Nome do arquivo</dt>
+      <dd>{{ anexo.nomeReduzido }}</dd>
+
+      <dt class="font-medium text-petrol-800">Descrição</dt>
+      <dd>{{ anexo.descricao }}</dd>
+
+      <dt class="font-medium text-petrol-800">Data de inclusão</dt>
+      <dd class="tabular-nums">{{ anexo.dataInclusao | date: 'dd/MM/yyyy HH:mm' }}</dd>
+
+      <dt class="font-medium text-petrol-800">ID Usuário</dt>
+      <dd>{{ anexo.idUsuario }}</dd>
+    </dl>
+
+    <p class="mt-4 text-[12px] text-petrol-700/70">
+      O conteúdo do arquivo não é armazenado nesta simulação.
+    </p>
+  }
+
+  <div rodape class="flex justify-end">
+    <button type="button" class="btn btn-contorno" (click)="visualizado.set(null)">Fechar</button>
+  </div>
+</app-dialogo>

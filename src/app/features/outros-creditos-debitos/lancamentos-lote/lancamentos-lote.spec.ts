@@ -161,15 +161,28 @@ describe('LancamentosLote', () => {
     await fixture.whenStable();
   }
 
-  async function preencherEIncluir(documento = '2026080001'): Promise<void> {
+  async function preencher(documento = '2026080001'): Promise<void> {
     await digitar('lancamento-conta', '44444');
     await digitar('lancamento-valor', '1500.25');
     await digitar('lancamento-historico', HISTORICO.manual);
     await digitar('lancamento-documento', documento);
     await digitar('lancamento-pa', PA.cooperativa);
     await digitar('lancamento-compl-historico', 'Ajuste da competência 08/2026.');
+  }
+
+  async function preencherEIncluir(documento = '2026080001'): Promise<void> {
+    await preencher(documento);
 
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+  }
+
+  async function clicarNoRodape(rotulo: string): Promise<void> {
+    const botao = [...fixture.nativeElement.querySelectorAll('footer button')].find(
+      (elemento: HTMLButtonElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLButtonElement;
+
+    botao.click();
     await fixture.whenStable();
   }
 
@@ -230,6 +243,48 @@ describe('LancamentosLote', () => {
 
     expect(texto()).toContain('1.500,25');
     expect(texto()).toContain('1 lançamento no lote');
+  });
+
+  it('limpa o formulário pelo rodapé', async () => {
+    await abrir('edicao', loteCom(1004));
+
+    await preencher();
+    await clicarNoRodape('Limpar');
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('');
+  });
+
+  it('mantém o formulário preenchido quando o usuário pede para manter os dados', async () => {
+    await abrir('edicao', loteCom(1004));
+
+    fixture.nativeElement.querySelector('footer input[type="checkbox"]').click();
+    await preencherEIncluir();
+
+    expect(lancamentos.lancamentos).toHaveLength(1);
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('2026080001');
+  });
+
+  it('devolve ao formulário os anexos do lançamento em alteração', async () => {
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004, {
+        anexos: [
+          {
+            id: 3,
+            nomeReduzido: 'contrato.pdf',
+            descricao: 'Contrato assinado',
+            dataInclusao: new Date(2026, 7, 19, 10, 30),
+            idUsuario: 'ana.costa',
+          },
+        ],
+      }),
+    ];
+    await abrir('edicao', loteCom(1004));
+
+    await marcar(1);
+    await clicarNaGrade('Alterar');
+
+    expect(texto()).toContain('contrato.pdf');
+    expect(texto()).toContain('Contrato assinado');
   });
 
   it('leva ao lote o valor somado e a quantidade de lançamentos', async () => {

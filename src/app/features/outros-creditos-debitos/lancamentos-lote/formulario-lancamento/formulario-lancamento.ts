@@ -7,19 +7,23 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { filter, first, map, of, switchMap } from 'rxjs';
 
 import { HISTORICOS } from '../../../../core/mocks/opcoes.mock';
+import { Anexo, NovoAnexo } from '../../../../core/models/anexo';
 import { Lancamento } from '../../../../core/models/lancamento';
+import { AnexoService } from '../../../../core/services/anexo.service';
 import { ContaCorrenteService } from '../../../../core/services/conta-corrente.service';
 import { EventoService } from '../../../../core/services/evento.service';
 import { CampoForm } from '../../../../shared/ui/campo-form/campo-form';
 import { contaExistenteValidator } from '../../../../shared/validators/conta-existente.validator';
 import { eventoExistenteValidator } from '../../../../shared/validators/evento-existente.validator';
 import { maiorQueZero } from '../../../../shared/validators/maior-que-zero.validator';
+import { SecaoAnexos } from '../secao-anexos/secao-anexos';
 import { SecaoDocumentoCsc } from '../secao-documento-csc/secao-documento-csc';
 
 /** O container completa o resto do lançamento. */
@@ -35,11 +39,15 @@ export interface DadosFormularioLancamento {
   readonly idEvento: string | null;
   readonly descricaoEvento: string | null;
   readonly complementoHistorico: string;
+  readonly anexos: readonly Anexo[];
 }
+
+/** O botão de enviar mora no rodapé do modal e se liga ao formulário por este id. */
+export const ID_FORM_LANCAMENTO = 'form-lancamento';
 
 @Component({
   selector: 'app-formulario-lancamento',
-  imports: [ReactiveFormsModule, CampoForm, SecaoDocumentoCsc],
+  imports: [ReactiveFormsModule, CampoForm, SecaoAnexos, SecaoDocumentoCsc],
   templateUrl: './formulario-lancamento.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -47,17 +55,19 @@ export class FormularioLancamento {
   private readonly fb = inject(FormBuilder);
   private readonly contas = inject(ContaCorrenteService);
   private readonly eventos = inject(EventoService);
+  private readonly anexoService = inject(AnexoService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly lancamento = input<Lancamento | null>(null);
   readonly desabilitado = input(false);
-  readonly rotuloEnviar = input('Incluir');
   readonly emEdicao = input(false);
+  readonly manterDados = input(false);
 
   readonly salvar = output<DadosFormularioLancamento>();
-  readonly cancelarEdicao = output<void>();
 
+  protected readonly idForm = ID_FORM_LANCAMENTO;
   protected readonly historicos = HISTORICOS;
+  protected readonly anexos = signal<readonly Anexo[]>([]);
 
   /* Conta e evento validam no blur: a cada tecla, o erro apareceria no meio de um
      número ainda incompleto. */
@@ -105,6 +115,8 @@ export class FormularioLancamento {
   constructor() {
     effect(() => {
       const lancamento = this.lancamento();
+
+      this.anexos.set(lancamento?.anexos ?? []);
 
       if (lancamento) {
         this.form.setValue({
@@ -166,15 +178,28 @@ export class FormularioLancamento {
       idEvento: csc.idEvento || null,
       descricaoEvento: this.descricaoEvento(),
       complementoHistorico: csc.complementoHistorico,
+      anexos: this.anexos(),
     });
 
-    if (!this.emEdicao()) {
+    if (!this.emEdicao() && !this.manterDados()) {
       this.limpar();
     }
   }
 
-  protected limpar(): void {
+  limpar(): void {
     this.form.reset();
+    this.anexos.set([]);
+  }
+
+  protected incluirAnexo(dados: NovoAnexo): void {
+    this.anexoService
+      .enviar(dados)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((anexo) => this.anexos.update((atuais) => [...atuais, anexo]));
+  }
+
+  protected excluirAnexo(id: number): void {
+    this.anexos.update((atuais) => atuais.filter((anexo) => anexo.id !== id));
   }
 
   /** A lupa refaz a validação do blur, não uma busca à parte. */
