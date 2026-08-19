@@ -23,7 +23,7 @@ export interface Lancamento {
 
   // Seção Documento CSC
   readonly pa: string;
-  readonly codigoEvento: string | null;
+  readonly idEvento: string | null;
   readonly descricaoEvento: string | null;
   readonly complementoHistorico: string;
   readonly situacaoDocumentoCsc: SituacaoDocumentoCsc;

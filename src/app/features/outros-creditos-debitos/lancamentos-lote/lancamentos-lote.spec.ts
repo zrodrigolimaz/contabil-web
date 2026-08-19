@@ -104,9 +104,9 @@ function lancamentoCom(id: number, idLote: number, parcial: Partial<Lancamento> 
     descricao: '',
     situacao: 'Pendente',
     pa: PA.cooperativa,
-    codigoEvento: null,
+    idEvento: null,
     descricaoEvento: null,
-    complementoHistorico: '',
+    complementoHistorico: 'Ajuste solicitado pela contabilidade.',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
     idDocumentoCsc: null,
     anexos: [],
@@ -167,6 +167,7 @@ describe('LancamentosLote', () => {
     await digitar('lancamento-historico', HISTORICO.manual);
     await digitar('lancamento-documento', documento);
     await digitar('lancamento-pa', PA.cooperativa);
+    await digitar('lancamento-compl-historico', 'Ajuste da competência 08/2026.');
 
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     await fixture.whenStable();

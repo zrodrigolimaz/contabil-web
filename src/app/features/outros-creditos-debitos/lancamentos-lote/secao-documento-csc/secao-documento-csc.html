@@ -1,0 +1,106 @@
+<fieldset
+  class="flex flex-col gap-4 rounded-lg border border-petrol-900/[0.12] px-4 pb-4 pt-3"
+  [formGroup]="grupo()"
+>
+  <legend class="eyebrow px-1">Documento CSC</legend>
+
+  <app-campo-form
+    rotulo="PA"
+    paraId="lancamento-pa"
+    [controle]="grupo().controls.pa"
+    [obrigatorio]="true"
+  >
+    <select id="lancamento-pa" class="campo campo-select sm:w-72" formControlName="pa">
+      <option value="">Selecione</option>
+      @for (opcao of opcoesPa; track opcao) {
+        <option [value]="opcao">{{ opcao }}</option>
+      }
+    </select>
+  </app-campo-form>
+
+  <app-campo-form
+    rotulo="ID Evento"
+    paraId="lancamento-evento"
+    [controle]="grupo().controls.idEvento"
+  >
+    <div class="flex flex-wrap items-center gap-2">
+      <input
+        id="lancamento-evento"
+        type="text"
+        class="campo w-32"
+        formControlName="idEvento"
+        inputmode="numeric"
+        autocomplete="off"
+      />
+
+      <button
+        type="button"
+        class="btn btn-contorno shrink-0 px-2.5 py-2"
+        aria-label="Pesquisar evento"
+        [disabled]="desabilitado()"
+        (click)="pesquisaAberta.set(true)"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          class="size-4"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+      </button>
+
+      @if (descricaoEvento(); as descricao) {
+        <p class="text-[12px] font-medium text-primary-700">{{ descricao }}</p>
+      }
+    </div>
+  </app-campo-form>
+
+  <app-campo-form
+    rotulo="Compl. Histórico"
+    paraId="lancamento-compl-historico"
+    [controle]="grupo().controls.complementoHistorico"
+    [obrigatorio]="true"
+  >
+    <textarea
+      id="lancamento-compl-historico"
+      rows="2"
+      class="campo h-auto py-2"
+      formControlName="complementoHistorico"
+    ></textarea>
+  </app-campo-form>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <app-campo-form rotulo="Situação" paraId="csc-situacao">
+      <input
+        id="csc-situacao"
+        type="text"
+        class="campo bg-surface text-petrol-700/70"
+        [value]="situacao()"
+        readonly
+        tabindex="-1"
+      />
+    </app-campo-form>
+
+    <app-campo-form rotulo="ID Doc CSC" paraId="csc-id-doc">
+      <input
+        id="csc-id-doc"
+        type="text"
+        class="campo bg-surface text-petrol-700/70"
+        [value]="idDocumentoCsc() ?? ''"
+        readonly
+        tabindex="-1"
+      />
+    </app-campo-form>
+  </div>
+</fieldset>
+
+<app-pesquisa-evento
+  [aberto]="pesquisaAberta()"
+  (escolher)="escolherEvento($event)"
+  (fechar)="pesquisaAberta.set(false)"
+/>

@@ -130,23 +130,13 @@
     </app-campo-form>
   </fieldset>
 
-  <fieldset class="flex flex-col gap-4 rounded-lg border border-petrol-900/[0.12] px-4 pb-4 pt-3">
-    <legend class="eyebrow px-1">Documento CSC</legend>
-
-    <app-campo-form
-      rotulo="PA"
-      paraId="lancamento-pa"
-      [controle]="form.controls.pa"
-      [obrigatorio]="true"
-    >
-      <select id="lancamento-pa" class="campo campo-select sm:w-72" formControlName="pa">
-        <option value="">Selecione</option>
-        @for (opcao of opcoesPa; track opcao) {
-          <option [value]="opcao">{{ opcao }}</option>
-        }
-      </select>
-    </app-campo-form>
-  </fieldset>
+  <app-secao-documento-csc
+    [grupo]="form.controls.csc"
+    [descricaoEvento]="descricaoEvento()"
+    [situacao]="situacaoCsc()"
+    [idDocumentoCsc]="idDocumentoCsc()"
+    [desabilitado]="desabilitado()"
+  />
 
   @if (!desabilitado()) {
     <div class="flex justify-end gap-2">

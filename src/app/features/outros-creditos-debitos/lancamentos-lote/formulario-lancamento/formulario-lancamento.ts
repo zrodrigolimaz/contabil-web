@@ -12,12 +12,15 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { filter, first, map, of, switchMap } from 'rxjs';
 
-import { HISTORICOS, OPCOES_PA } from '../../../../core/mocks/opcoes.mock';
+import { HISTORICOS } from '../../../../core/mocks/opcoes.mock';
 import { Lancamento } from '../../../../core/models/lancamento';
 import { ContaCorrenteService } from '../../../../core/services/conta-corrente.service';
+import { EventoService } from '../../../../core/services/evento.service';
 import { CampoForm } from '../../../../shared/ui/campo-form/campo-form';
 import { contaExistenteValidator } from '../../../../shared/validators/conta-existente.validator';
+import { eventoExistenteValidator } from '../../../../shared/validators/evento-existente.validator';
 import { maiorQueZero } from '../../../../shared/validators/maior-que-zero.validator';
+import { SecaoDocumentoCsc } from '../secao-documento-csc/secao-documento-csc';
 
 /** O container completa o resto do lançamento. */
 export interface DadosFormularioLancamento {
@@ -29,17 +32,21 @@ export interface DadosFormularioLancamento {
   readonly documento: string;
   readonly descricao: string;
   readonly pa: string;
+  readonly idEvento: string | null;
+  readonly descricaoEvento: string | null;
+  readonly complementoHistorico: string;
 }
 
 @Component({
   selector: 'app-formulario-lancamento',
-  imports: [ReactiveFormsModule, CampoForm],
+  imports: [ReactiveFormsModule, CampoForm, SecaoDocumentoCsc],
   templateUrl: './formulario-lancamento.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormularioLancamento {
   private readonly fb = inject(FormBuilder);
   private readonly contas = inject(ContaCorrenteService);
+  private readonly eventos = inject(EventoService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly lancamento = input<Lancamento | null>(null);
@@ -51,10 +58,9 @@ export class FormularioLancamento {
   readonly cancelarEdicao = output<void>();
 
   protected readonly historicos = HISTORICOS;
-  protected readonly opcoesPa = OPCOES_PA;
 
-  /* A conta valida no blur: a cada tecla, o erro apareceria no meio de um número
-     ainda incompleto. */
+  /* Conta e evento validam no blur: a cada tecla, o erro apareceria no meio de um
+     número ainda incompleto. */
   protected readonly form = this.fb.nonNullable.group({
     conta: [
       '',
@@ -65,7 +71,11 @@ export class FormularioLancamento {
     estorno: [false],
     documento: ['', Validators.required],
     descricao: [''],
-    pa: ['', Validators.required],
+    csc: this.fb.nonNullable.group({
+      pa: ['', Validators.required],
+      idEvento: ['', { asyncValidators: this.validarEvento(), updateOn: 'blur' }],
+      complementoHistorico: ['', Validators.required],
+    }),
   });
 
   protected readonly titular = toSignal(
@@ -76,7 +86,21 @@ export class FormularioLancamento {
     { initialValue: null },
   );
 
+  protected readonly descricaoEvento = toSignal(
+    this.form.controls.csc.controls.idEvento.valueChanges.pipe(
+      switchMap((idEvento) => (idEvento ? this.eventos.buscarPorId(idEvento) : of(null))),
+      map((evento) => evento?.descricao ?? null),
+    ),
+    { initialValue: null },
+  );
+
   protected readonly situacao = computed(() => this.lancamento()?.situacao ?? 'Pendente');
+
+  protected readonly situacaoCsc = computed(
+    () => this.lancamento()?.situacaoDocumentoCsc ?? 'Aguardando Processamento CCO',
+  );
+
+  protected readonly idDocumentoCsc = computed(() => this.lancamento()?.idDocumentoCsc ?? null);
 
   constructor() {
     effect(() => {
@@ -90,7 +114,11 @@ export class FormularioLancamento {
           estorno: lancamento.estorno,
           documento: lancamento.documento,
           descricao: lancamento.descricao,
-          pa: lancamento.pa,
+          csc: {
+            pa: lancamento.pa,
+            idEvento: lancamento.idEvento ?? '',
+            complementoHistorico: lancamento.complementoHistorico,
+          },
         });
       } else {
         this.form.reset();
@@ -124,7 +152,7 @@ export class FormularioLancamento {
       return;
     }
 
-    const { conta, valor, historico, estorno, documento, descricao, pa } = this.form.getRawValue();
+    const { conta, valor, historico, estorno, documento, descricao, csc } = this.form.getRawValue();
 
     this.salvar.emit({
       conta,
@@ -134,7 +162,10 @@ export class FormularioLancamento {
       estorno,
       documento,
       descricao,
-      pa,
+      pa: csc.pa,
+      idEvento: csc.idEvento || null,
+      descricaoEvento: this.descricaoEvento(),
+      complementoHistorico: csc.complementoHistorico,
     });
 
     if (!this.emEdicao()) {
@@ -154,5 +185,9 @@ export class FormularioLancamento {
 
   private validarConta() {
     return contaExistenteValidator((numero) => this.contas.buscarPorNumero(numero));
+  }
+
+  private validarEvento() {
+    return eventoExistenteValidator((idEvento) => this.eventos.buscarPorId(idEvento));
   }
 }
