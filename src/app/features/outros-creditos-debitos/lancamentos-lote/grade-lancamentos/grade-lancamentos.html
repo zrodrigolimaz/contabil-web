@@ -1,0 +1,72 @@
+<div class="overflow-x-auto rounded-lg border border-petrol-900/[0.12]">
+  <table class="w-full border-collapse text-left text-[12.5px] text-petrol-900">
+    <caption class="sr-only">
+      Lançamentos do lote
+    </caption>
+
+    <thead
+      class="bg-petrol-900 text-[10.5px] font-semibold uppercase tracking-[0.04em] text-white/95"
+    >
+      <tr>
+        <th scope="col" class="w-10 px-3 py-2.5">
+          <span class="sr-only">Selecionar</span>
+        </th>
+        <th scope="col" class="whitespace-nowrap px-3 py-2.5">ID</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-2.5">PA</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-2.5">Conta Corrente</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-2.5">Histórico</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-2.5 text-right">Valor</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-2.5">Documento</th>
+        <th scope="col" class="whitespace-nowrap px-3 py-2.5">Situação</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (lancamento of lancamentos(); track lancamento.id) {
+        <tr
+          class="cursor-pointer border-b border-petrol-900/[0.07] transition-colors last:border-b-0 odd:bg-petrol-900/[0.015] hover:bg-primary-50/40"
+          [class.bg-primary-50]="selecionado() === lancamento.id"
+          (click)="alternar(lancamento.id)"
+        >
+          <td class="px-3 py-2.5">
+            <input
+              type="radio"
+              name="lancamento-selecionado"
+              class="size-4 cursor-pointer accent-primary-600"
+              [attr.aria-label]="'Selecionar lançamento ' + lancamento.id"
+              [checked]="selecionado() === lancamento.id"
+              (click)="$event.stopPropagation(); alternar(lancamento.id)"
+            />
+          </td>
+          <td class="px-3 py-2.5 font-semibold tabular-nums">{{ lancamento.id }}</td>
+          <td class="whitespace-nowrap px-3 py-2.5">{{ lancamento.pa }}</td>
+          <td class="whitespace-nowrap px-3 py-2.5">
+            <span class="tabular-nums">{{ lancamento.conta }}</span>
+            <span class="text-petrol-700/70"> · {{ lancamento.titular }}</span>
+          </td>
+          <td class="whitespace-nowrap px-3 py-2.5">
+            {{ lancamento.historico }}
+            @if (lancamento.estorno) {
+              <span class="chip chip-neutro ml-1">Estorno</span>
+            }
+          </td>
+          <td class="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
+            {{ lancamento.valor | currency: 'BRL' }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-2.5 tabular-nums">{{ lancamento.documento }}</td>
+          <td class="whitespace-nowrap px-3 py-2.5">
+            <span class="chip" [class.chip-neutro]="lancamento.situacao === 'Pendente'">
+              {{ lancamento.situacao }}
+            </span>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="8" class="px-3 py-10 text-center text-[13px] text-petrol-700/70">
+            Nenhum registro encontrado.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

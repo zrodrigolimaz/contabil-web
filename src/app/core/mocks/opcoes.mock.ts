@@ -24,6 +24,7 @@ export const INSTITUICOES: readonly string[] = Object.values(INSTITUICAO);
 
 /** Histórico do lançamento (seção Conta Corrente). */
 export const HISTORICO = {
+  manual: '090 - Lançamento Manual',
   credito: '001 - Crédito em conta corrente',
   debito: '002 - Débito em conta corrente',
   estornoTarifa: '015 - Estorno de tarifa',

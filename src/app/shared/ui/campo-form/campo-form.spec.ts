@@ -57,4 +57,21 @@ describe('CampoForm', () => {
 
     expect(alerta()).toBeNull();
   });
+
+  /* Regressão: com o campo seguindo inválido por outro motivo, o texto ficava no
+     erro anterior. */
+  it('troca o texto quando muda o motivo, sem o campo voltar a ser válido', async () => {
+    const { controle } = fixture.componentInstance;
+    controle.markAsTouched();
+    await fixture.whenStable();
+    expect(alerta()?.textContent?.trim()).toBe('Campo obrigatório.');
+
+    controle.setErrors({ maiorQueZero: true });
+    await fixture.whenStable();
+    expect(alerta()?.textContent?.trim()).toBe('Informe um valor maior que zero.');
+
+    controle.setErrors({ contaInexistente: true });
+    await fixture.whenStable();
+    expect(alerta()?.textContent?.trim()).toBe('Conta corrente não encontrada.');
+  });
 });

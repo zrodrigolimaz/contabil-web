@@ -126,6 +126,46 @@ describe('LoteService', () => {
     });
   });
 
+  describe('criar', () => {
+    it('abre um lote vazio já visível na consulta', () => {
+      const criado = valorDe(service.criar());
+
+      expect(criado.situacao).toBe('Aberto');
+      expect(criado.valor).toBe(0);
+      expect(criado.quantidadeLancamentos).toBe(0);
+      expect(criado.usuarioAprovacao).toBeNull();
+
+      const resultado = valorDe(
+        service.pesquisar(comFiltros({ idLote: { de: criado.id, ate: criado.id } })),
+      );
+      expect(resultado.total).toBe(1);
+    });
+
+    it('numera o lote novo depois do último existente', () => {
+      const primeiro = valorDe(service.criar());
+      const segundo = valorDe(service.criar());
+
+      expect(primeiro.id).toBeGreaterThan(Math.max(...LOTES.map((lote) => lote.id)));
+      expect(segundo.id).toBe(primeiro.id + 1);
+    });
+  });
+
+  describe('atualizarTotais', () => {
+    it('leva para a consulta o que mudou dentro do lote', () => {
+      const atualizado = valorDe(service.atualizarTotais(1004, 3200.5, 2));
+
+      expect(atualizado.valor).toBe(3200.5);
+      expect(atualizado.quantidadeLancamentos).toBe(2);
+
+      const resultado = valorDe(service.pesquisar(comFiltros({ idLote: { de: 1004, ate: 1004 } })));
+      expect(resultado.itens[0].valor).toBe(3200.5);
+    });
+
+    it('falha para lote que não existe', () => {
+      expect(erroDe(service.atualizarTotais(9999, 10, 1)).message).toContain('9999');
+    });
+  });
+
   describe('confirmar', () => {
     it('confirma lotes abertos e enviados registrando o usuário de aprovação', () => {
       const confirmados = valorDe(service.confirmar([1004, 1006]));

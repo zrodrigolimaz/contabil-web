@@ -114,3 +114,9 @@
   [lote]="justificativaAberta()"
   (fechar)="justificativaAberta.set(null)"
 />
+
+<app-lancamentos-lote
+  [modo]="modoLancamentos()"
+  [lote]="loteDosLancamentos()"
+  (fechar)="fecharLancamentos($event)"
+/>

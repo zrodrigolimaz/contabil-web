@@ -1,0 +1,84 @@
+<app-dialogo [aberto]="aberto()" [titulo]="titulo()" larguraMaxima="52rem" (fechar)="aoFechar()">
+  <div class="flex flex-col gap-6">
+    @if (erro(); as mensagem) {
+      <p
+        class="rounded-md border border-danger/25 bg-danger/5 px-4 py-2.5 text-[12.5px] font-medium text-danger"
+        role="alert"
+      >
+        {{ mensagem }}
+      </p>
+    }
+
+    <app-formulario-lancamento
+      [lancamento]="emEdicao()"
+      [desabilitado]="somenteLeitura() || executando()"
+      [emEdicao]="emEdicao() !== null"
+      [rotuloEnviar]="emEdicao() ? 'Salvar alteração' : 'Incluir'"
+      (salvar)="aoSalvar($event)"
+      (cancelarEdicao)="cancelarEdicao()"
+    />
+
+    <section class="flex flex-col gap-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h3 class="eyebrow">Lançamentos</h3>
+
+        @if (!somenteLeitura()) {
+          <div
+            class="inline-flex gap-0.5 rounded-[9px] border border-petrol-900/[0.08] bg-surface p-[3px]"
+          >
+            <button
+              type="button"
+              class="btn btn-fantasma gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+              [disabled]="marcado() === null || executando()"
+              title="Carrega o lançamento no formulário para edição"
+              (click)="editarMarcado()"
+            >
+              Alterar
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-fantasma gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+              [disabled]="marcado() === null || executando()"
+              title="Cria uma cópia pendente do lançamento marcado"
+              (click)="duplicarMarcado()"
+            >
+              Duplicar
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-perigo gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+              [disabled]="marcado() === null || executando()"
+              title="Exclui o lançamento marcado"
+              (click)="excluirMarcado()"
+            >
+              Excluir
+            </button>
+          </div>
+        }
+      </div>
+
+      <app-grade-lancamentos
+        [lancamentos]="lancamentos()"
+        [selecionado]="selecionado()"
+        (selecionar)="selecionado.set($event)"
+      />
+
+      <div class="min-h-5">
+        @if (dica(); as texto) {
+          <p class="text-[11px] text-petrol-700/70">{{ texto }}</p>
+        }
+      </div>
+    </section>
+  </div>
+
+  <div rodape class="flex items-center justify-between gap-3">
+    <p class="text-[12px] text-petrol-700/70">
+      {{ lancamentos().length }}
+      {{ lancamentos().length === 1 ? 'lançamento no lote' : 'lançamentos no lote' }}
+    </p>
+
+    <button type="button" class="btn btn-contorno" (click)="aoFechar()">Fechar</button>
+  </div>
+</app-dialogo>

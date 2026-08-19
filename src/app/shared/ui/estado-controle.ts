@@ -35,8 +35,15 @@ export function estadoDoControle(
     return !!atual && atual.invalid && (atual.touched || atual.dirty);
   });
 
-  return {
-    comErro,
-    mensagem: computed(() => (comErro() ? mensagemDeErro(controle()?.errors) : null)),
-  };
+  /* Lê o evento em vez de derivar de `comErro`: trocar de motivo continuando
+     inválido não muda o booleano, e o texto ficaria preso no motivo anterior. */
+  const mensagem = computed(() => {
+    evento();
+    const atual = controle();
+    const visivel = !!atual && atual.invalid && (atual.touched || atual.dirty);
+
+    return visivel ? mensagemDeErro(atual.errors) : null;
+  });
+
+  return { comErro, mensagem };
 }

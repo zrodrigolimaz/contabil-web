@@ -139,6 +139,11 @@ describe('ConsultaLotes', () => {
     return fixture.nativeElement.textContent;
   }
 
+  /* A tela tem dois diálogos; este é o dos lançamentos. */
+  function modalDeLancamentos(): HTMLDialogElement {
+    return fixture.nativeElement.querySelector('app-lancamentos-lote dialog');
+  }
+
   it('mostra a orientação inicial antes de qualquer pesquisa', () => {
     expect(texto()).toContain('Nenhuma pesquisa realizada');
   });
@@ -331,21 +336,42 @@ describe('ConsultaLotes', () => {
     expect(texto()).not.toContain('1 lote enviado.');
   });
 
-  it('responde ao clique das ações que ainda não têm tela', async () => {
+  it('abre os lançamentos do lote marcado para alteração', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Alterar');
+
+    expect(modalDeLancamentos().open).toBe(true);
+    expect(modalDeLancamentos().textContent).toContain('Lançamentos do lote 1004');
+  });
+
+  it('abre os lançamentos em leitura pelo Visualizar', async () => {
     await grade([loteCom(1004)]);
     await marcar(1004);
 
     await clicarNaAcao('Visualizar');
 
-    expect(texto()).toContain('Visualizar abre os lançamentos do lote em leitura');
+    expect(modalDeLancamentos().textContent).toContain('(leitura)');
+    expect(modalDeLancamentos().querySelector('button[type="submit"]')).toBeNull();
   });
 
-  it('avisa o que Incluir fará mesmo sem nenhuma seleção', async () => {
+  it('abre um lote novo pelo Incluir, mesmo sem nenhuma seleção', async () => {
     await grade([loteCom(1004)]);
 
     await clicarNaAcao('Incluir');
 
-    expect(texto()).toContain('Incluir abre a tela de lançamentos de um lote novo');
+    expect(modalDeLancamentos().open).toBe(true);
+    expect(modalDeLancamentos().textContent).toContain('Lançamentos de um lote novo');
+  });
+
+  it('a exclusão de lote continua avisando que ainda não chegou', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Excluir');
+
+    expect(texto()).toContain('A exclusão de lote chega em uma próxima entrega.');
   });
 
   it('abre a justificativa do lote selecionado', async () => {
