@@ -1,15 +1,15 @@
-import { Lote } from '../models/lote';
+import { Lote, SituacaoLote } from '../models/lote';
 import { INSTITUICAO, INSTITUICAO_RESPONSAVEL } from './opcoes.mock';
 
 /**
  * 24 lotes cobrindo as três situações, quatro instituições, valores de R$ 1,2 mil
- * a R$ 987 mil e datas de novembro/2025 a agosto/2026 — massa suficiente para três
- * páginas de dez linhas e para exercitar todas as faixas do painel de filtros.
+ * a R$ 987 mil e datas de novembro/2025 a agosto/2026 — os casos que os testes e o
+ * modal de lançamentos referenciam pelo id.
  *
  * Coerência mantida de propósito: lote `Aberto` não tem usuário de aprovação e sua
  * data/hora de situação é a da entrada; `Confirmado` sempre tem aprovador.
  */
-export const LOTES: readonly Lote[] = [
+const LOTES_ESCOLHIDOS: readonly Lote[] = [
   {
     id: 1001,
     instituicaoResponsavel: INSTITUICAO_RESPONSAVEL.banco,
@@ -20,7 +20,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'ana.costa',
     usuarioAprovacao: 'bruno.lima',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2025, 10, 5, 9, 14),
+    dataHoraSituacao: new Date(2025, 10, 5, 9, 14, 37),
     justificativa: null,
   },
   {
@@ -33,7 +33,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'ana.costa',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2025, 10, 13, 16, 2),
+    dataHoraSituacao: new Date(2025, 10, 13, 16, 2, 12),
     justificativa: 'Reenviado após ajuste do histórico dos lançamentos.',
   },
   {
@@ -46,7 +46,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'carla.souza',
     usuarioAprovacao: 'diego.matos',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2025, 10, 24, 10, 45),
+    dataHoraSituacao: new Date(2025, 10, 24, 10, 45, 58),
     justificativa: null,
   },
   {
@@ -59,7 +59,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'diego.matos',
     usuarioAprovacao: null,
     situacao: 'Aberto',
-    dataHoraSituacao: new Date(2025, 11, 2, 8, 30),
+    dataHoraSituacao: new Date(2025, 11, 2, 8, 30, 4),
     justificativa: null,
   },
   {
@@ -72,7 +72,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'elisa.rocha',
     usuarioAprovacao: 'ana.costa',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2025, 11, 11, 15, 20),
+    dataHoraSituacao: new Date(2025, 11, 11, 15, 20, 41),
     justificativa: null,
   },
   {
@@ -85,7 +85,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'bruno.lima',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2025, 11, 19, 11, 5),
+    dataHoraSituacao: new Date(2025, 11, 19, 11, 5, 26),
     justificativa: null,
   },
   {
@@ -98,7 +98,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'ana.costa',
     usuarioAprovacao: null,
     situacao: 'Aberto',
-    dataHoraSituacao: new Date(2026, 0, 6, 9, 2),
+    dataHoraSituacao: new Date(2026, 0, 6, 9, 2, 9),
     justificativa: null,
   },
   {
@@ -111,7 +111,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'carla.souza',
     usuarioAprovacao: 'diego.matos',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2026, 0, 16, 17, 48),
+    dataHoraSituacao: new Date(2026, 0, 16, 17, 48, 53),
     justificativa: 'Lote de fechamento anual conferido pela controladoria.',
   },
   {
@@ -124,7 +124,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'diego.matos',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2026, 0, 23, 13, 37),
+    dataHoraSituacao: new Date(2026, 0, 23, 13, 37, 17),
     justificativa: null,
   },
   {
@@ -137,7 +137,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'elisa.rocha',
     usuarioAprovacao: null,
     situacao: 'Aberto',
-    dataHoraSituacao: new Date(2026, 1, 3, 10, 11),
+    dataHoraSituacao: new Date(2026, 1, 3, 10, 11, 45),
     justificativa: null,
   },
   {
@@ -150,7 +150,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'bruno.lima',
     usuarioAprovacao: 'ana.costa',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2026, 1, 13, 8, 55),
+    dataHoraSituacao: new Date(2026, 1, 13, 8, 55, 31),
     justificativa: null,
   },
   {
@@ -163,7 +163,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'ana.costa',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2026, 1, 26, 14, 19),
+    dataHoraSituacao: new Date(2026, 1, 26, 14, 19, 2),
     justificativa: 'Aguardando confirmação da central regional.',
   },
   {
@@ -176,7 +176,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'carla.souza',
     usuarioAprovacao: null,
     situacao: 'Aberto',
-    dataHoraSituacao: new Date(2026, 2, 5, 7, 58),
+    dataHoraSituacao: new Date(2026, 2, 5, 7, 58, 22),
     justificativa: null,
   },
   {
@@ -189,7 +189,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'diego.matos',
     usuarioAprovacao: 'elisa.rocha',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2026, 2, 19, 16, 30),
+    dataHoraSituacao: new Date(2026, 2, 19, 16, 30, 49),
     justificativa: null,
   },
   {
@@ -202,7 +202,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'elisa.rocha',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2026, 2, 31, 9, 47),
+    dataHoraSituacao: new Date(2026, 2, 31, 9, 47, 8),
     justificativa: null,
   },
   {
@@ -215,7 +215,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'ana.costa',
     usuarioAprovacao: 'bruno.lima',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2026, 3, 10, 11, 23),
+    dataHoraSituacao: new Date(2026, 3, 10, 11, 23, 34),
     justificativa: null,
   },
   {
@@ -228,7 +228,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'bruno.lima',
     usuarioAprovacao: null,
     situacao: 'Aberto',
-    dataHoraSituacao: new Date(2026, 3, 21, 15, 6),
+    dataHoraSituacao: new Date(2026, 3, 21, 15, 6, 56),
     justificativa: null,
   },
   {
@@ -241,7 +241,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'carla.souza',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2026, 4, 6, 10, 2),
+    dataHoraSituacao: new Date(2026, 4, 6, 10, 2, 13),
     justificativa: null,
   },
   {
@@ -254,7 +254,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'diego.matos',
     usuarioAprovacao: 'ana.costa',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2026, 4, 21, 14, 58),
+    dataHoraSituacao: new Date(2026, 4, 21, 14, 58, 27),
     justificativa: null,
   },
   {
@@ -267,7 +267,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'elisa.rocha',
     usuarioAprovacao: null,
     situacao: 'Aberto',
-    dataHoraSituacao: new Date(2026, 5, 2, 8, 41),
+    dataHoraSituacao: new Date(2026, 5, 2, 8, 41, 44),
     justificativa: null,
   },
   {
@@ -280,7 +280,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'ana.costa',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2026, 5, 17, 12, 35),
+    dataHoraSituacao: new Date(2026, 5, 17, 12, 35, 19),
     justificativa: 'Divergência de valor apurada e corrigida antes do envio.',
   },
   {
@@ -293,7 +293,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'bruno.lima',
     usuarioAprovacao: 'carla.souza',
     situacao: 'Confirmado',
-    dataHoraSituacao: new Date(2026, 6, 3, 9, 29),
+    dataHoraSituacao: new Date(2026, 6, 3, 9, 29, 51),
     justificativa: null,
   },
   {
@@ -306,7 +306,7 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'carla.souza',
     usuarioAprovacao: null,
     situacao: 'Aberto',
-    dataHoraSituacao: new Date(2026, 6, 20, 17, 14),
+    dataHoraSituacao: new Date(2026, 6, 20, 17, 14, 6),
     justificativa: null,
   },
   {
@@ -319,7 +319,73 @@ export const LOTES: readonly Lote[] = [
     usuarioRegistro: 'diego.matos',
     usuarioAprovacao: null,
     situacao: 'Enviado',
-    dataHoraSituacao: new Date(2026, 7, 12, 10, 53),
+    dataHoraSituacao: new Date(2026, 7, 12, 10, 53, 39),
     justificativa: null,
   },
 ];
+
+const RESPONSAVEIS = Object.values(INSTITUICAO_RESPONSAVEL);
+const INSTITUICOES_DO_LOTE = Object.values(INSTITUICAO);
+const USUARIOS = ['ana.costa', 'bruno.lima', 'carla.souza', 'diego.matos', 'elisa.rocha'];
+const RODIZIO_SITUACAO: readonly SituacaoLote[] = [
+  'Confirmado',
+  'Enviado',
+  'Aberto',
+  'Confirmado',
+  'Enviado',
+];
+const JUSTIFICATIVAS_DE_VOLUME = [
+  'Lote reaberto para inclusão de lançamento faltante.',
+  'Conferido com o extrato da conta centralizadora.',
+  'Ajuste solicitado pela contabilidade da cooperativa.',
+];
+
+const PRIMEIRO_DIA_DE_VOLUME = { ano: 2026, mes: 6, dia: 27 };
+const DIAS_DE_VOLUME = 22;
+
+const DIAS_ATE_A_SITUACAO: Record<SituacaoLote, number> = { Aberto: 0, Enviado: 1, Confirmado: 2 };
+
+function sorteioReprodutivel(semente: number): (limite: number) => number {
+  let estado = semente;
+
+  return (limite) => {
+    estado = (estado * 16807) % 2147483647;
+    return estado % limite;
+  };
+}
+
+function lotesDeVolume(idInicial: number, quantidade: number): readonly Lote[] {
+  const sortear = sorteioReprodutivel(20260727);
+
+  return Array.from({ length: quantidade }, (_, indice) => {
+    const situacao = RODIZIO_SITUACAO[indice % RODIZIO_SITUACAO.length];
+    const { ano, mes, dia } = PRIMEIRO_DIA_DE_VOLUME;
+    const diaDaEntrada = dia + Math.floor((indice * DIAS_DE_VOLUME) / quantidade);
+    const temJustificativa = situacao !== 'Aberto' && indice % 9 === 4;
+
+    return {
+      id: idInicial + indice,
+      instituicaoResponsavel: RESPONSAVEIS[indice % RESPONSAVEIS.length],
+      instituicao: INSTITUICOES_DO_LOTE[indice % INSTITUICOES_DO_LOTE.length],
+      dataEntrada: new Date(ano, mes, diaDaEntrada),
+      valor: 5000 + sortear(495000) + sortear(100) / 100,
+      quantidadeLancamentos: 1 + sortear(24),
+      usuarioRegistro: USUARIOS[indice % USUARIOS.length],
+      usuarioAprovacao: situacao === 'Confirmado' ? USUARIOS[(indice + 2) % USUARIOS.length] : null,
+      situacao,
+      dataHoraSituacao: new Date(
+        ano,
+        mes,
+        diaDaEntrada + DIAS_ATE_A_SITUACAO[situacao],
+        8 + sortear(10),
+        sortear(60),
+        sortear(60),
+      ),
+      justificativa: temJustificativa
+        ? JUSTIFICATIVAS_DE_VOLUME[indice % JUSTIFICATIVAS_DE_VOLUME.length]
+        : null,
+    };
+  });
+}
+
+export const LOTES: readonly Lote[] = [...LOTES_ESCOLHIDOS, ...lotesDeVolume(1025, 54)];

@@ -11,6 +11,9 @@ function comFiltros(parcial: Partial<FiltrosPesquisaLote>): FiltrosPesquisaLote 
   return { ...FILTROS_VAZIOS, ...parcial };
 }
 
+const ULTIMA_PAGINA = Math.ceil(LOTES.length / TAMANHO_PAGINA_PADRAO);
+const ABERTOS = LOTES.filter((lote) => lote.situacao === 'Aberto').length;
+
 describe('LoteService', () => {
   let service: LoteService;
 
@@ -30,13 +33,13 @@ describe('LoteService', () => {
       expect(resultado.total).toBe(LOTES.length);
       expect(resultado.itens).toHaveLength(TAMANHO_PAGINA_PADRAO);
       expect(resultado.pagina).toBe(1);
-      expect(resultado.totalPaginas).toBe(3);
+      expect(resultado.totalPaginas).toBe(ULTIMA_PAGINA);
     });
 
     it('filtra por situação', () => {
       const resultado = valorDe(service.pesquisar(comFiltros({ situacao: 'Aberto' })));
 
-      expect(resultado.total).toBe(7);
+      expect(resultado.total).toBe(ABERTOS);
       expect(resultado.itens.every((lote) => lote.situacao === 'Aberto')).toBe(true);
     });
 
@@ -47,9 +50,9 @@ describe('LoteService', () => {
     });
 
     it('aceita faixa com apenas um dos lados preenchido', () => {
-      const resultado = valorDe(service.pesquisar(comFiltros({ idLote: { de: 1022, ate: null } })));
+      const resultado = valorDe(service.pesquisar(comFiltros({ idLote: { de: 1076, ate: null } })));
 
-      expect(resultado.itens.map((lote) => lote.id)).toEqual([1022, 1023, 1024]);
+      expect(resultado.itens.map((lote) => lote.id)).toEqual([1076, 1077, 1078]);
     });
 
     it('filtra pela faixa de valor', () => {
@@ -66,12 +69,13 @@ describe('LoteService', () => {
       expect(resultado.itens.map((lote) => lote.id)).toEqual([1022, 1023]);
     });
 
-    it('combina filtros de instituição responsável e situação', () => {
+    it('combina filtros de instituição responsável, situação e faixa de ID', () => {
       const resultado = valorDe(
         service.pesquisar(
           comFiltros({
             instituicaoResponsavel: INSTITUICAO_RESPONSAVEL.confederacao,
             situacao: 'Enviado',
+            idLote: { de: null, ate: 1024 },
           }),
         ),
       );
@@ -88,17 +92,18 @@ describe('LoteService', () => {
     });
 
     it('devolve a última página parcial', () => {
-      const resultado = valorDe(service.pesquisar(FILTROS_VAZIOS, 3));
+      const resultado = valorDe(service.pesquisar(FILTROS_VAZIOS, ULTIMA_PAGINA));
 
-      expect(resultado.pagina).toBe(3);
-      expect(resultado.itens.map((lote) => lote.id)).toEqual([1021, 1022, 1023, 1024]);
+      expect(resultado.pagina).toBe(ULTIMA_PAGINA);
+      expect(resultado.itens).toHaveLength(LOTES.length % TAMANHO_PAGINA_PADRAO);
+      expect(resultado.itens.at(-1)).toEqual(LOTES.at(-1));
     });
 
     it('limita a página pedida à última existente', () => {
       const resultado = valorDe(service.pesquisar(FILTROS_VAZIOS, 99));
 
-      expect(resultado.pagina).toBe(3);
-      expect(resultado.itens).toHaveLength(4);
+      expect(resultado.pagina).toBe(ULTIMA_PAGINA);
+      expect(resultado.itens.at(-1)).toEqual(LOTES.at(-1));
     });
 
     it('falha quando o filtro de ID começa no valor do erro simulado', () => {
@@ -186,7 +191,7 @@ describe('LoteService', () => {
       valorDe(service.confirmar([1004]));
 
       const resultado = valorDe(service.pesquisar(comFiltros({ situacao: 'Aberto' })));
-      expect(resultado.total).toBe(6);
+      expect(resultado.total).toBe(ABERTOS - 1);
     });
   });
 
@@ -215,7 +220,7 @@ describe('LoteService', () => {
       valorDe(service.excluir(1004));
 
       const resultado = valorDe(service.pesquisar(comFiltros({ situacao: 'Aberto' })));
-      expect(resultado.total).toBe(6);
+      expect(resultado.total).toBe(ABERTOS - 1);
     });
   });
 });

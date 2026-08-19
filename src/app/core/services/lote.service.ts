@@ -14,7 +14,7 @@ import { erroMock, respostaMock } from './api-mock';
 /**
  * Gatilho determinístico do erro simulado: pesquisar com "ID Lote De" igual a 999
  * faz a consulta falhar. Escolhido por ser digitável na própria tela e por ficar
- * fora da faixa dos lotes de demonstração (1001..1024), sem aleatoriedade.
+ * fora da faixa dos lotes de demonstração (1001..1078), sem aleatoriedade.
  */
 export const ID_LOTE_ERRO_SIMULADO = 999;
 
