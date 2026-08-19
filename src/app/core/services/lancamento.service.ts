@@ -60,6 +60,12 @@ export class LancamentoService {
     return respostaMock<void>(undefined);
   }
 
+  /** Acompanha a exclusão do lote, para não sobrar lançamento sem dono. */
+  excluirPorLote(idLote: number): Observable<void> {
+    this.lancamentos = this.lancamentos.filter((lancamento) => lancamento.idLote !== idLote);
+    return respostaMock<void>(undefined);
+  }
+
   /** Cria uma cópia pendente do lançamento, sem os anexos do original. */
   duplicar(id: number): Observable<Lancamento> {
     const original = this.buscar(id);

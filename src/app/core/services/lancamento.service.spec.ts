@@ -78,6 +78,13 @@ describe('LancamentoService', () => {
     expect(valorDe(service.listarPorLote(1002)).map((lancamento) => lancamento.id)).toEqual([2]);
   });
 
+  it('exclui todos os lançamentos do lote e preserva os dos outros', () => {
+    valorDe(service.excluirPorLote(1002));
+
+    expect(valorDe(service.listarPorLote(1002))).toHaveLength(0);
+    expect(valorDe(service.listarPorLote(1004))).toHaveLength(1);
+  });
+
   it('duplica o lançamento com novo id, situação pendente e sem anexos', () => {
     const copia = valorDe(service.duplicar(1));
 
