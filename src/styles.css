@@ -69,6 +69,12 @@ body {
     @apply bg-transparent text-danger hover:bg-danger/5;
   }
 
+  /* A mesma ação destrutiva quando é a principal do diálogo que a confirma */
+  .btn-perigo-solido {
+    @apply bg-danger text-white shadow-[0_1px_2px_rgba(11,46,51,0.16)] hover:bg-danger/90
+      focus-visible:outline-danger active:translate-y-px active:shadow-none;
+  }
+
   /* Cartão de conteúdo sobre o fundo surface: filtros, tabela e futuras seções */
   .cartao {
     @apply overflow-hidden rounded-xl border border-petrol-900/[0.14] bg-white
