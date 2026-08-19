@@ -1,11 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
 import { CONTAS_CORRENTES } from '../../../../core/mocks/contas-correntes.mock';
+import { EVENTOS_CSC } from '../../../../core/mocks/eventos-csc.mock';
 import { HISTORICO, PA } from '../../../../core/mocks/opcoes.mock';
 import { ContaCorrente } from '../../../../core/models/conta-corrente';
+import { EventoCsc } from '../../../../core/models/evento';
 import { Lancamento } from '../../../../core/models/lancamento';
 import { ContaCorrenteService } from '../../../../core/services/conta-corrente.service';
+import { EventoService } from '../../../../core/services/evento.service';
 import { DadosFormularioLancamento, FormularioLancamento } from './formulario-lancamento';
 
 /* Zoneless: sem fakeAsync, e fake timers travam o whenStable. A latência da busca
@@ -33,6 +36,12 @@ class ContaCorrenteFalso {
   }
 }
 
+class EventoFalso {
+  buscarPorId(idEvento: string): Observable<EventoCsc | null> {
+    return of(EVENTOS_CSC.find((evento) => evento.idEvento === idEvento.trim()) ?? null);
+  }
+}
+
 function lancamentoCom(parcial: Partial<Lancamento> = {}): Lancamento {
   return {
     id: 10,
@@ -48,7 +57,7 @@ function lancamentoCom(parcial: Partial<Lancamento> = {}): Lancamento {
     pa: PA.cooperativa,
     idEvento: null,
     descricaoEvento: null,
-    complementoHistorico: '',
+    complementoHistorico: 'Ajuste solicitado pela contabilidade.',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
     idDocumentoCsc: null,
     anexos: [],
@@ -64,7 +73,10 @@ describe('FormularioLancamento', () => {
   beforeEach(async () => {
     contas = new ContaCorrenteFalso();
     TestBed.configureTestingModule({
-      providers: [{ provide: ContaCorrenteService, useValue: contas }],
+      providers: [
+        { provide: ContaCorrenteService, useValue: contas },
+        { provide: EventoService, useValue: new EventoFalso() },
+      ],
     });
 
     fixture = TestBed.createComponent(FormularioLancamento);
@@ -99,6 +111,7 @@ describe('FormularioLancamento', () => {
     await digitar('lancamento-historico', HISTORICO.manual);
     await digitar('lancamento-documento', '2026080001');
     await digitar('lancamento-pa', PA.cooperativa);
+    await digitar('lancamento-compl-historico', 'Ajuste da competência 08/2026.');
   }
 
   async function enviar(): Promise<void> {
@@ -197,9 +210,34 @@ describe('FormularioLancamento', () => {
         documento: '2026080001',
         descricao: '',
         pa: PA.cooperativa,
+        idEvento: null,
+        descricaoEvento: null,
+        complementoHistorico: 'Ajuste da competência 08/2026.',
       },
     ]);
     expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('');
+  });
+
+  it('leva o evento digitado e a descrição encontrada', async () => {
+    await preencherValido();
+    await digitar('lancamento-evento', '106');
+
+    expect(fixture.nativeElement.textContent).toContain('Tarifa de Manutenção de Conta');
+
+    await enviar();
+
+    expect(salvos).toHaveLength(1);
+    expect(salvos[0].idEvento).toBe('106');
+    expect(salvos[0].descricaoEvento).toBe('Tarifa de Manutenção de Conta');
+  });
+
+  it('recusa evento que não existe', async () => {
+    await preencherValido();
+    await digitar('lancamento-evento', '999');
+    await enviar();
+
+    expect(salvos).toEqual([]);
+    expect(erros()).toContain('Evento não encontrado.');
   });
 
   it('carrega o lançamento recebido para alteração', async () => {

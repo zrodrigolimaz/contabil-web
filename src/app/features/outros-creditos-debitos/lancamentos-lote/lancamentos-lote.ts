@@ -186,17 +186,12 @@ export class LancamentosLote {
     );
   }
 
-  /* Campos ainda sem tela entram vazios; em alteração, preserva o que já existe. */
+  /* Anexos ainda não têm tela; em alteração, preserva os que já existem. */
   private montar(idLote: number, dados: DadosFormularioLancamento): NovoLancamento {
-    const anterior = this.emEdicao();
-
     return {
       idLote,
       ...dados,
-      idEvento: anterior?.idEvento ?? null,
-      descricaoEvento: anterior?.descricaoEvento ?? null,
-      complementoHistorico: anterior?.complementoHistorico ?? '',
-      anexos: anterior?.anexos ?? [],
+      anexos: this.emEdicao()?.anexos ?? [],
     };
   }
 
