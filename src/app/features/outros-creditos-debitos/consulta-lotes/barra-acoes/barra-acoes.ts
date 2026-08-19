@@ -17,6 +17,8 @@ interface Botao {
   readonly perigo?: boolean;
 }
 
+let sequencia = 0;
+
 const ICONE = {
   confirmar: 'm4 12 5 5L20 6',
   enviar: 'm22 2-7 20-4-9-9-4Z M22 2 11 13',
@@ -51,7 +53,20 @@ export class BarraAcoes {
   readonly acionar = output<AcaoLote>();
   readonly limparSelecao = output<void>();
 
+  /** Liga cada botão bloqueado à dica que explica o bloqueio. */
+  protected readonly idDica = `barra-acoes-dica-${sequencia++}`;
+
   protected readonly quantidade = computed(() => this.selecionados().length);
+
+  protected bloqueado(botao: Botao): boolean {
+    return !botao.habilitado || this.executando();
+  }
+
+  protected acionarBotao(botao: Botao): void {
+    if (!this.bloqueado(botao)) {
+      this.acionar.emit(botao.acao);
+    }
+  }
 
   private readonly unico = computed(() => {
     const selecionados = this.selecionados();

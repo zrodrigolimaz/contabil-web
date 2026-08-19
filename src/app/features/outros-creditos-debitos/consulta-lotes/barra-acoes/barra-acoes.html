@@ -9,13 +9,18 @@
         class="inline-flex gap-0.5 rounded-[9px] border border-petrol-900/[0.08] bg-surface p-[3px]"
       >
         @for (botao of grupo; track botao.acao) {
+          <!--
+            aria-disabled, e não disabled: o botão continua no caminho do teclado e o
+            leitor de tela chega ao motivo do bloqueio, que a faixa abaixo explica.
+          -->
           <button
             type="button"
-            class="btn gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+            class="btn gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] aria-disabled:opacity-35"
             [class]="botao.destaque ? 'btn-primario' : botao.perigo ? 'btn-perigo' : 'btn-fantasma'"
-            [disabled]="!botao.habilitado || executando()"
+            [attr.aria-disabled]="bloqueado(botao) ? 'true' : null"
+            [attr.aria-describedby]="bloqueado(botao) ? idDica : null"
             [title]="botao.descricao"
-            (click)="acionar.emit(botao.acao)"
+            (click)="acionarBotao(botao)"
           >
             <svg
               viewBox="0 0 24 24"
@@ -38,9 +43,8 @@
 
   <!--
     A faixa fica sempre presente para a tabela não pular quando a primeira linha é
-    marcada. A dica é visível, e não um title: o navegador não dispara evento de
-    mouse em botão desabilitado, então o tooltip nunca chegaria a quem olha o botão
-    apagado.
+    marcada. A dica é visível, e não um title: quem olha o botão apagado precisa ler
+    o motivo sem depender de passar o mouse por cima.
   -->
   <div class="flex min-h-6 flex-wrap items-center gap-2">
     @if (quantidade(); as total) {
@@ -71,7 +75,7 @@
     }
 
     @if (dica(); as texto) {
-      <p class="text-[11px] text-petrol-700/70">{{ texto }}</p>
+      <p [id]="idDica" class="text-[11px] text-petrol-700/80">{{ texto }}</p>
     }
   </div>
 </div>
