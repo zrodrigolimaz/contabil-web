@@ -1,11 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Observable, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
 import { provideLocalePtBr } from '../../../app.config';
 import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../../../core/models/filtros';
+import { Lancamento } from '../../../core/models/lancamento';
 import { Lote, SituacaoLote } from '../../../core/models/lote';
 import { ResultadoPaginado } from '../../../core/models/paginacao';
+import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
 import { aparelharDialogos } from '../../../core/testing/dialogo-jsdom';
 import { ConsultaLotes } from './consulta-lotes';
@@ -28,6 +30,9 @@ class LoteServiceFalso {
   readonly confirmados: number[][] = [];
   readonly enviados: number[][] = [];
 
+  readonly exclusao = new Subject<void>();
+  readonly excluidos: number[] = [];
+
   pesquisar(filtros: FiltrosPesquisaLote, pagina = 1): Observable<ResultadoPaginado<Lote>> {
     this.recebidos.push({ filtros, pagina });
     return this.resposta.asObservable();
@@ -41,6 +46,25 @@ class LoteServiceFalso {
   enviar(ids: readonly number[]): Observable<readonly Lote[]> {
     this.enviados.push([...ids]);
     return this.alteracao.asObservable();
+  }
+
+  excluir(id: number): Observable<void> {
+    this.excluidos.push(id);
+    return this.exclusao.asObservable();
+  }
+}
+
+class LancamentoServiceFalso {
+  readonly lotesLimpos: number[] = [];
+
+  /* O modal de lançamentos vive dentro da consulta e lista ao abrir. */
+  listarPorLote(): Observable<readonly Lancamento[]> {
+    return of([]);
+  }
+
+  excluirPorLote(idLote: number): Observable<void> {
+    this.lotesLimpos.push(idLote);
+    return of(undefined);
   }
 }
 
@@ -75,11 +99,17 @@ function paginaUnica(itens: readonly Lote[]): ResultadoPaginado<Lote> {
 describe('ConsultaLotes', () => {
   let fixture: ComponentFixture<ConsultaLotes>;
   let servico: LoteServiceFalso;
+  let lancamentos: LancamentoServiceFalso;
 
   beforeEach(async () => {
     servico = new LoteServiceFalso();
+    lancamentos = new LancamentoServiceFalso();
     TestBed.configureTestingModule({
-      providers: [{ provide: LoteService, useValue: servico }, provideLocalePtBr()],
+      providers: [
+        { provide: LoteService, useValue: servico },
+        { provide: LancamentoService, useValue: lancamentos },
+        provideLocalePtBr(),
+      ],
     });
 
     fixture = TestBed.createComponent(ConsultaLotes);
@@ -137,6 +167,22 @@ describe('ConsultaLotes', () => {
 
   function texto(): string {
     return fixture.nativeElement.textContent;
+  }
+
+  function dialogoDeConfirmacao(): HTMLDialogElement {
+    return fixture.nativeElement.querySelector('app-dialogo-confirmacao dialog');
+  }
+
+  async function responderNoDialogo(rotulo: string): Promise<void> {
+    const botao = [...dialogoDeConfirmacao().querySelectorAll('button')].find(
+      (elemento: HTMLButtonElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLButtonElement | undefined;
+    if (!botao) {
+      throw new Error(`Botão "${rotulo}" não está no diálogo de confirmação`);
+    }
+
+    botao.click();
+    await fixture.whenStable();
   }
 
   /* A tela tem dois diálogos; este é o dos lançamentos. */
@@ -272,6 +318,7 @@ describe('ConsultaLotes', () => {
     await marcar(1006);
 
     await clicarNaAcao('Confirmar');
+    await responderNoDialogo('Confirmar');
 
     expect(servico.confirmados).toEqual([[1004, 1006]]);
   });
@@ -281,6 +328,7 @@ describe('ConsultaLotes', () => {
     await marcar(1005);
 
     await clicarNaAcao('Enviar');
+    await responderNoDialogo('Enviar');
 
     expect(servico.enviados).toEqual([[1005]]);
   });
@@ -291,6 +339,7 @@ describe('ConsultaLotes', () => {
     await marcar(1005);
 
     await clicarNaAcao('Confirmar');
+    await responderNoDialogo('Confirmar');
     await responderAcao([loteCom(1004, 'Confirmado')]);
 
     expect(texto()).toContain('1 lote confirmado.');
@@ -302,6 +351,7 @@ describe('ConsultaLotes', () => {
     await clicar('input[aria-label="Selecionar todos os lotes da página"]');
 
     await clicarNaAcao('Enviar');
+    await responderNoDialogo('Enviar');
     await responderAcao([loteCom(1004, 'Enviado'), loteCom(1005, 'Enviado')]);
 
     expect(texto()).toContain('2 lotes enviados.');
@@ -315,6 +365,7 @@ describe('ConsultaLotes', () => {
     await marcar(1004);
 
     await clicarNaAcao('Confirmar');
+    await responderNoDialogo('Confirmar');
     await responderAcao([loteCom(1004, 'Confirmado')]);
     await responder(paginaUnica([loteCom(1004, 'Confirmado')]));
 
@@ -326,6 +377,7 @@ describe('ConsultaLotes', () => {
     await grade([loteCom(1004)]);
     await marcar(1004);
     await clicarNaAcao('Enviar');
+    await responderNoDialogo('Enviar');
     await responderAcao([loteCom(1004, 'Enviado')]);
     await responder(paginaUnica([loteCom(1004, 'Enviado')]));
     expect(texto()).toContain('1 lote enviado.');
@@ -365,13 +417,51 @@ describe('ConsultaLotes', () => {
     expect(modalDeLancamentos().textContent).toContain('Lançamentos de um lote novo');
   });
 
-  it('a exclusão de lote continua avisando que ainda não chegou', async () => {
+  it('pergunta antes de excluir, e não exclui nada enquanto não responderem', async () => {
     await grade([loteCom(1004)]);
     await marcar(1004);
 
     await clicarNaAcao('Excluir');
 
-    expect(texto()).toContain('A exclusão de lote chega em uma próxima entrega.');
+    expect(dialogoDeConfirmacao().textContent).toContain('Excluir o lote 1004?');
+    expect(servico.excluidos).toEqual([]);
+  });
+
+  it('desiste da exclusão no cancelar', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Excluir');
+    await responderNoDialogo('Cancelar');
+
+    expect(servico.excluidos).toEqual([]);
+    expect(dialogoDeConfirmacao().open).toBe(false);
+  });
+
+  it('exclui o lote com os lançamentos dele e reconsulta a página', async () => {
+    await grade([loteCom(1004), loteCom(1005)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Excluir');
+    await responderNoDialogo('Excluir');
+    servico.exclusao.next();
+    await fixture.whenStable();
+    await responder(paginaUnica([loteCom(1005)]));
+
+    expect(servico.excluidos).toEqual([1004]);
+    expect(lancamentos.lotesLimpos).toEqual([1004]);
+    expect(texto()).toContain('Lote 1004 excluído.');
+    expect(caixaDoLote(1004)).toBeNull();
+  });
+
+  it('anuncia no diálogo quantos lotes a ação alcança', async () => {
+    await grade([loteCom(1004), loteCom(1005, 'Confirmado')]);
+    await clicar('input[aria-label="Selecionar todos os lotes da página"]');
+
+    await clicarNaAcao('Confirmar');
+
+    expect(dialogoDeConfirmacao().textContent).toContain('Confirmar 1 dos 2 lotes selecionados?');
+    expect(dialogoDeConfirmacao().textContent).toContain('1 já está confirmado e será ignorado.');
   });
 
   it('abre a justificativa do lote selecionado', async () => {
