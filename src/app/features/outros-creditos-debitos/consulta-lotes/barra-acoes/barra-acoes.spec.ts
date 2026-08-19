@@ -22,11 +22,14 @@ function loteCom(id: number, situacao: SituacaoLote, justificativa: string | nul
 describe('BarraAcoes', () => {
   let fixture: ComponentFixture<BarraAcoes>;
   let acionadas: AcaoLote[];
+  let limpezas: number;
 
   beforeEach(() => {
     fixture = TestBed.createComponent(BarraAcoes);
     acionadas = [];
+    limpezas = 0;
     fixture.componentInstance.acionar.subscribe((acao) => acionadas.push(acao));
+    fixture.componentInstance.limparSelecao.subscribe(() => (limpezas += 1));
   });
 
   async function montar(selecionados: readonly Lote[]): Promise<void> {
@@ -34,33 +37,43 @@ describe('BarraAcoes', () => {
     await fixture.whenStable();
   }
 
+  /* Escopado na toolbar: fora dela mora o botão de limpar seleção, que não é ação. */
+  function acoes(): HTMLButtonElement[] {
+    return [...fixture.nativeElement.querySelectorAll('[role="toolbar"] button')];
+  }
+
   function botao(rotulo: string): HTMLButtonElement {
-    const encontrado = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (elemento: HTMLButtonElement) => elemento.textContent?.trim() === rotulo,
-    );
+    const encontrado = acoes().find((elemento) => elemento.textContent?.trim() === rotulo);
     if (!encontrado) {
       throw new Error(`Botão "${rotulo}" não está na barra`);
     }
 
-    return encontrado as HTMLButtonElement;
+    return encontrado;
   }
 
   function habilitados(): string[] {
-    return [...fixture.nativeElement.querySelectorAll('button')]
-      .filter((elemento: HTMLButtonElement) => !elemento.disabled)
-      .map((elemento: HTMLButtonElement) => elemento.textContent?.trim() ?? '');
+    return acoes()
+      .filter((elemento) => !elemento.disabled)
+      .map((elemento) => elemento.textContent?.trim() ?? '');
   }
 
   function dica(): string | null {
     return fixture.nativeElement.querySelector('p')?.textContent?.trim() ?? null;
   }
 
+  function contagem(): string | null {
+    const pastilha: HTMLElement | null = fixture.nativeElement.querySelector('.chip');
+    return pastilha?.textContent?.replace(/\s+/g, ' ').trim() ?? null;
+  }
+
+  function limpar(): HTMLButtonElement | null {
+    return fixture.nativeElement.querySelector('.chip button');
+  }
+
   it('mostra os sete botões do enunciado, agrupados por família', async () => {
     await montar([]);
 
-    const rotulos = [...fixture.nativeElement.querySelectorAll('button')].map(
-      (elemento: HTMLButtonElement) => elemento.textContent?.trim(),
-    );
+    const rotulos = acoes().map((elemento) => elemento.textContent?.trim());
     expect(rotulos).toEqual([
       'Confirmar',
       'Enviar',
@@ -75,15 +88,21 @@ describe('BarraAcoes', () => {
   it('separa as famílias de ação em vez de enfileirar os sete', async () => {
     await montar([]);
 
-    /* Dois separadores para três grupos: situação, manutenção do lote e leitura. */
-    expect(fixture.nativeElement.querySelectorAll('[role="toolbar"] > span').length).toBe(2);
+    /* Uma ilha por família: situação, manutenção do lote e leitura. */
+    expect(fixture.nativeElement.querySelectorAll('[role="toolbar"] > div').length).toBe(3);
   });
 
   it('destaca a exclusão como ação de risco', async () => {
     await montar([loteCom(1004, 'Aberto')]);
 
     expect(botao('Excluir').className).toContain('btn-perigo');
-    expect(botao('Alterar').className).toContain('btn-contorno');
+    expect(botao('Alterar').className).toContain('btn-fantasma');
+  });
+
+  it('dá um ícone a cada ação', async () => {
+    await montar([]);
+
+    expect(acoes().every((elemento) => elemento.querySelector('svg') !== null)).toBe(true);
   });
 
   it('sem seleção, só Incluir aceita clique', async () => {
@@ -176,6 +195,36 @@ describe('BarraAcoes', () => {
     await montar([loteCom(1004, 'Aberto')]);
 
     expect(dica()).toBeNull();
+  });
+
+  it('não anuncia contagem enquanto nada está marcado', async () => {
+    await montar([]);
+
+    expect(contagem()).toBeNull();
+  });
+
+  it('conta na faixa os lotes marcados, concordando o plural', async () => {
+    await montar([loteCom(1004, 'Aberto')]);
+    expect(contagem()).toBe('1 selecionado');
+
+    await montar([loteCom(1004, 'Aberto'), loteCom(1006, 'Enviado')]);
+    expect(contagem()).toBe('2 selecionados');
+  });
+
+  it('mostra contagem e dica juntas quando algo está indisponível', async () => {
+    await montar([loteCom(1004, 'Aberto'), loteCom(1006, 'Enviado')]);
+
+    expect(contagem()).toBe('2 selecionados');
+    expect(dica()).toBe('Alterar, excluir e visualizar exigem exatamente um lote selecionado.');
+  });
+
+  it('pede a limpeza da seleção pelo botão da pastilha', async () => {
+    await montar([loteCom(1004, 'Aberto'), loteCom(1006, 'Enviado')]);
+
+    expect(limpar()?.getAttribute('aria-label')).toBe('Limpar seleção de 2 lotes');
+    limpar()?.click();
+
+    expect(limpezas).toBe(1);
   });
 
   it('anuncia a ação do botão clicado', async () => {

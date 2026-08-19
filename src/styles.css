@@ -56,10 +56,17 @@ body {
     @apply text-petrol-700 hover:bg-petrol-900/[0.05] hover:text-petrol-900;
   }
 
+  /*
+   * Botão de barra: sem contorno próprio, ganha fundo só no hover. Quem separa as
+   * ações é a ilha que as agrupa, não o contorno de cada uma.
+   */
+  .btn-fantasma {
+    @apply bg-transparent text-petrol-800 hover:bg-petrol-900/[0.05];
+  }
+
   /* Ação destrutiva: sai do cinza dos irmãos para o clique não ser por engano */
   .btn-perigo {
-    @apply border border-danger/30 bg-white text-danger hover:border-danger/50 hover:bg-danger/5
-      active:translate-y-px;
+    @apply bg-transparent text-danger hover:bg-danger/5;
   }
 
   /* Cartão de conteúdo sobre o fundo surface: filtros, tabela e futuras seções */

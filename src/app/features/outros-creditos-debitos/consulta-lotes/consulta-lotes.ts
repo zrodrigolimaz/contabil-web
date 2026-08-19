@@ -106,6 +106,7 @@ const RESULTADO: Record<
               [selecionados]="lotesSelecionados()"
               [executando]="executando()"
               (acionar)="acionar($event)"
+              (limparSelecao)="limparSelecao()"
             />
           </div>
 
@@ -262,6 +263,11 @@ export class ConsultaLotes {
 
       return proximos;
     });
+  }
+
+  /** Alcança também o que foi marcado em outras páginas, que a grade não mostra. */
+  protected limparSelecao(): void {
+    this.selecionados.set(new Map());
   }
 
   protected acionar(acao: AcaoLote): void {
