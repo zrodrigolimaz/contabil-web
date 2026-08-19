@@ -49,7 +49,9 @@ describe('Shell', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     const sidebar = () => el.querySelector('nav[aria-label="Menu principal"]')!;
-    const grupo = sidebar().querySelector('button[aria-controls="submenu-contabil"]') as HTMLButtonElement;
+    const grupo = sidebar().querySelector(
+      'button[aria-controls="submenu-contabil"]',
+    ) as HTMLButtonElement;
 
     expect(sidebar().textContent).toContain('Outros Créditos/Débitos');
     expect(grupo.getAttribute('aria-expanded')).toBe('true');
@@ -69,7 +71,9 @@ describe('Shell', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     const sidebar = () => el.querySelector('nav[aria-label="Menu principal"]')!;
-    const alternar = sidebar().querySelector('button[aria-label="Alternar menu"]') as HTMLButtonElement;
+    const alternar = sidebar().querySelector(
+      'button[aria-label="Alternar menu"]',
+    ) as HTMLButtonElement;
 
     expect(sidebar().textContent).toContain('Início');
     expect(alternar.getAttribute('aria-expanded')).toBe('true');
