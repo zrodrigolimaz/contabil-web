@@ -11,9 +11,23 @@ interface Botao {
   readonly habilitado: boolean;
   /** Vira `title`, que o navegador só mostra em botão habilitado. */
   readonly descricao: string;
+  /** `d` do ícone, num viewBox de 24; dado, para o template não repetir sete SVGs. */
+  readonly caminho: string;
   readonly destaque?: boolean;
   readonly perigo?: boolean;
 }
+
+const ICONE = {
+  confirmar: 'm4 12 5 5L20 6',
+  enviar: 'm22 2-7 20-4-9-9-4Z M22 2 11 13',
+  incluir: 'M12 5v14M5 12h14',
+  alterar: 'M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z',
+  excluir: 'M3 6h18M8 6V4h8v2M5 6l1 15h12l1-15M10 10v7M14 10v7',
+  visualizar:
+    'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
+  justificativa:
+    'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z M14 2v6h6 M9 13h6 M9 17h4',
+} as const satisfies Record<AcaoLote, string>;
 
 /**
  * Barra de ações da consulta de lotes.
@@ -29,30 +43,46 @@ interface Botao {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-2">
+      <!--
+        Cada família ganha sua própria ilha: mesmo com quase tudo apagado, o olho lê
+        três grupos de ação, e não sete botões quebrados.
+      -->
       <div
         class="flex flex-wrap items-center gap-2"
         role="toolbar"
         aria-label="Ações sobre os lotes"
       >
         @for (grupo of grupos(); track $index) {
-          @if (!$first) {
-            <span class="mx-1 h-5 w-px shrink-0 bg-petrol-900/15" aria-hidden="true"></span>
-          }
-
-          @for (botao of grupo; track botao.acao) {
-            <button
-              type="button"
-              class="btn text-[11.5px] uppercase tracking-[0.03em]"
-              [class]="
-                botao.destaque ? 'btn-primario' : botao.perigo ? 'btn-perigo' : 'btn-contorno'
-              "
-              [disabled]="!botao.habilitado || executando()"
-              [title]="botao.descricao"
-              (click)="acionar.emit(botao.acao)"
-            >
-              {{ botao.rotulo }}
-            </button>
-          }
+          <div
+            class="inline-flex gap-0.5 rounded-[9px] border border-petrol-900/[0.08] bg-surface p-[3px]"
+          >
+            @for (botao of grupo; track botao.acao) {
+              <button
+                type="button"
+                class="btn gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] disabled:opacity-35"
+                [class]="
+                  botao.destaque ? 'btn-primario' : botao.perigo ? 'btn-perigo' : 'btn-fantasma'
+                "
+                [disabled]="!botao.habilitado || executando()"
+                [title]="botao.descricao"
+                (click)="acionar.emit(botao.acao)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="size-[13px] shrink-0"
+                  aria-hidden="true"
+                >
+                  <path [attr.d]="botao.caminho" />
+                </svg>
+                {{ botao.rotulo }}
+              </button>
+            }
+          </div>
         }
       </div>
 
@@ -97,12 +127,14 @@ export class BarraAcoes {
           rotulo: 'Confirmar',
           habilitado: this.temPendente(),
           descricao: 'Confirma os lotes selecionados e registra o usuário de aprovação',
+          caminho: ICONE.confirmar,
         },
         {
           acao: 'enviar',
           rotulo: 'Enviar',
           habilitado: this.temAberto(),
           descricao: 'Envia os lotes selecionados que ainda estão abertos',
+          caminho: ICONE.enviar,
         },
       ],
       [
@@ -111,6 +143,7 @@ export class BarraAcoes {
           rotulo: 'Incluir',
           habilitado: true,
           descricao: 'Abre a tela de lançamentos para criar um lote',
+          caminho: ICONE.incluir,
           destaque: true,
         },
         {
@@ -118,12 +151,14 @@ export class BarraAcoes {
           rotulo: 'Alterar',
           habilitado: unico !== null,
           descricao: 'Abre os lançamentos do lote selecionado para edição',
+          caminho: ICONE.alterar,
         },
         {
           acao: 'excluir',
           rotulo: 'Excluir',
           habilitado: unico !== null,
           descricao: 'Exclui o lote selecionado',
+          caminho: ICONE.excluir,
           perigo: true,
         },
       ],
@@ -133,12 +168,14 @@ export class BarraAcoes {
           rotulo: 'Visualizar',
           habilitado: unico !== null,
           descricao: 'Abre os lançamentos do lote selecionado somente para leitura',
+          caminho: ICONE.visualizar,
         },
         {
           acao: 'justificativa',
           rotulo: 'Visualizar Justificativa',
           habilitado: unico?.justificativa != null,
           descricao: 'Mostra a justificativa registrada no lote',
+          caminho: ICONE.justificativa,
         },
       ],
     ];

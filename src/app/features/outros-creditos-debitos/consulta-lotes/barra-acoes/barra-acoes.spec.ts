@@ -34,21 +34,23 @@ describe('BarraAcoes', () => {
     await fixture.whenStable();
   }
 
+  function acoes(): HTMLButtonElement[] {
+    return [...fixture.nativeElement.querySelectorAll('[role="toolbar"] button')];
+  }
+
   function botao(rotulo: string): HTMLButtonElement {
-    const encontrado = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (elemento: HTMLButtonElement) => elemento.textContent?.trim() === rotulo,
-    );
+    const encontrado = acoes().find((elemento) => elemento.textContent?.trim() === rotulo);
     if (!encontrado) {
       throw new Error(`Botão "${rotulo}" não está na barra`);
     }
 
-    return encontrado as HTMLButtonElement;
+    return encontrado;
   }
 
   function habilitados(): string[] {
-    return [...fixture.nativeElement.querySelectorAll('button')]
-      .filter((elemento: HTMLButtonElement) => !elemento.disabled)
-      .map((elemento: HTMLButtonElement) => elemento.textContent?.trim() ?? '');
+    return acoes()
+      .filter((elemento) => !elemento.disabled)
+      .map((elemento) => elemento.textContent?.trim() ?? '');
   }
 
   function dica(): string | null {
@@ -58,9 +60,7 @@ describe('BarraAcoes', () => {
   it('mostra os sete botões do enunciado, agrupados por família', async () => {
     await montar([]);
 
-    const rotulos = [...fixture.nativeElement.querySelectorAll('button')].map(
-      (elemento: HTMLButtonElement) => elemento.textContent?.trim(),
-    );
+    const rotulos = acoes().map((elemento) => elemento.textContent?.trim());
     expect(rotulos).toEqual([
       'Confirmar',
       'Enviar',
@@ -75,15 +75,21 @@ describe('BarraAcoes', () => {
   it('separa as famílias de ação em vez de enfileirar os sete', async () => {
     await montar([]);
 
-    /* Dois separadores para três grupos: situação, manutenção do lote e leitura. */
-    expect(fixture.nativeElement.querySelectorAll('[role="toolbar"] > span').length).toBe(2);
+    /* Uma ilha por família: situação, manutenção do lote e leitura. */
+    expect(fixture.nativeElement.querySelectorAll('[role="toolbar"] > div').length).toBe(3);
   });
 
   it('destaca a exclusão como ação de risco', async () => {
     await montar([loteCom(1004, 'Aberto')]);
 
     expect(botao('Excluir').className).toContain('btn-perigo');
-    expect(botao('Alterar').className).toContain('btn-contorno');
+    expect(botao('Alterar').className).toContain('btn-fantasma');
+  });
+
+  it('dá um ícone a cada ação', async () => {
+    await montar([]);
+
+    expect(acoes().every((elemento) => elemento.querySelector('svg') !== null)).toBe(true);
   });
 
   it('sem seleção, só Incluir aceita clique', async () => {
