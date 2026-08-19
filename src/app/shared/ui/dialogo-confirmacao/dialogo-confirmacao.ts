@@ -25,7 +25,7 @@ export interface PedidoConfirmacao {
         <p class="text-[13px] leading-relaxed text-petrol-800">{{ atual.mensagem }}</p>
 
         @if (atual.detalhe; as detalhe) {
-          <p class="mt-2 text-[12.5px] leading-relaxed text-petrol-700/75">{{ detalhe }}</p>
+          <p class="mt-2 text-[12.5px] leading-relaxed text-petrol-700/80">{{ detalhe }}</p>
         }
       }
 

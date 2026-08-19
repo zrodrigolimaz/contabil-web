@@ -36,7 +36,7 @@ const MAXIMO_SEM_RETICENCIAS = 7;
       <div
         class="flex flex-wrap items-center justify-between gap-3 border-t border-petrol-900/[0.08] px-6 py-3.5"
       >
-        <p class="text-[12px] tabular-nums text-petrol-700/75" role="status">
+        <p class="text-[12px] tabular-nums text-petrol-700/80" role="status">
           Mostrando {{ primeiro() }}–{{ ultimo() }} de {{ total() }}
         </p>
 
