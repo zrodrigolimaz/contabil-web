@@ -18,14 +18,16 @@ let sequencia = 0;
     <!--
       m-auto é o que centraliza: o reset do Tailwind zera o "margin: auto" que o
       navegador dá ao dialog em modo modal, e sem ela ele encosta no canto da tela.
+      O hidden é da mesma família: "flex" sozinho venceria o "display: none" que o
+      navegador dá ao dialog fechado, que então deixaria uma faixa na página.
     -->
     <dialog
       #dialogo
       [attr.aria-labelledby]="idTitulo"
       (close)="aoFecharNativo()"
-      class="m-auto flex max-h-[calc(100vh-4rem)] w-[calc(100vw-2rem)] flex-col rounded-xl
+      class="m-auto hidden max-h-[calc(100vh-4rem)] w-[calc(100vw-2rem)] flex-col rounded-xl
         border border-petrol-900/[0.14] bg-white p-0 text-petrol-900
-        shadow-[0_8px_28px_rgba(11,46,51,0.18)] backdrop:bg-petrol-900/40"
+        shadow-[0_8px_28px_rgba(11,46,51,0.18)] backdrop:bg-petrol-900/40 open:flex"
       [style.max-width]="larguraMaxima()"
     >
       @if (aberto()) {
