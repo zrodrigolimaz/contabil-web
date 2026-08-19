@@ -50,8 +50,8 @@ body {
   }
 
   .btn-primario {
-    @apply bg-primary-600 px-5 text-white shadow-[0_1px_2px_rgba(11,46,51,0.18)]
-      hover:bg-primary-700 active:translate-y-px active:shadow-none;
+    @apply bg-primary-700 px-5 text-white shadow-[0_1px_2px_rgba(11,46,51,0.18)]
+      hover:bg-primary-800 active:translate-y-px active:shadow-none;
   }
 
   .btn-contorno {
@@ -135,7 +135,7 @@ body {
   .campo {
     @apply h-[38px] w-full rounded-lg border border-petrol-900/[0.18] bg-white px-3 text-sm
       tabular-nums text-petrol-900 transition-[border-color,box-shadow,background-color]
-      duration-150 placeholder:text-hint hover:border-petrol-900/[0.28]
+      duration-150 placeholder:text-muted hover:border-petrol-900/[0.28]
       focus:border-primary-500 focus:outline-none focus:ring-[3px] focus:ring-primary-500/25
       disabled:bg-surface disabled:text-petrol-700 aria-[invalid=true]:border-danger
       aria-[invalid=true]:ring-[3px] aria-[invalid=true]:ring-danger/10
