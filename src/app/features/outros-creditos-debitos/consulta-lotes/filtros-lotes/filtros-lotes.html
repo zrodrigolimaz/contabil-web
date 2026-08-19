@@ -1,7 +1,7 @@
 <app-painel-recolhivel titulo="Filtros" subtitulo="Pesquisar lote outros créditos/débitos">
   <div resumo>
-    @for (chip of chips(); track chip) {
-      <span class="chip">{{ chip }}</span>
+    @for (chip of chips(); track chip.chave) {
+      <span class="chip">{{ chip.texto }}</span>
     }
   </div>
 
