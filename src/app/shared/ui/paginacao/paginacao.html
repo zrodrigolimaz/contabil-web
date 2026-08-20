@@ -1,0 +1,56 @@
+@if (total() > 0) {
+  <div
+    class="grid items-center gap-2 border-t border-petrol-900/[0.08] px-6 py-3.5 sm:grid-cols-[1fr_auto_1fr]"
+  >
+    <p class="text-[12.5px] tabular-nums text-muted" role="status">
+      Mostrando {{ primeiro() }}–{{ ultimo() }} de {{ total() }}
+    </p>
+
+    @if (totalPaginas() > 1) {
+      <nav class="flex items-center justify-center gap-2" aria-label="Paginação">
+        @for (passo of anteriores(); track passo.rotulo) {
+          <button
+            type="button"
+            [class]="classePasso"
+            [attr.aria-label]="passo.rotulo"
+            [disabled]="passo.desabilitado"
+            (click)="irPara.emit(passo.destino)"
+          >
+            <span aria-hidden="true">{{ passo.glifo }}</span>
+          </button>
+        }
+
+        @for (item of numeros(); track $index) {
+          @if (item === reticencias) {
+            <span class="px-0.5 text-[12.5px] text-hint" aria-hidden="true">{{ reticencias }}</span>
+          } @else if (item === pagina()) {
+            <button type="button" [class]="classeAtual" aria-current="page" disabled>
+              {{ item }}
+            </button>
+          } @else {
+            <button
+              type="button"
+              [class]="classePasso"
+              [attr.aria-label]="'Página ' + item"
+              (click)="irPara.emit(item)"
+            >
+              {{ item }}
+            </button>
+          }
+        }
+
+        @for (passo of proximos(); track passo.rotulo) {
+          <button
+            type="button"
+            [class]="classePasso"
+            [attr.aria-label]="passo.rotulo"
+            [disabled]="passo.desabilitado"
+            (click)="irPara.emit(passo.destino)"
+          >
+            <span aria-hidden="true">{{ passo.glifo }}</span>
+          </button>
+        }
+      </nav>
+    }
+  </div>
+}
