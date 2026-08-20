@@ -30,7 +30,7 @@
               ? 'bg-primary-50 shadow-[inset_3px_0_0_var(--color-primary-500)]'
               : 'hover:bg-[#f0faf9]'
           "
-          (click)="alternar(lancamento.id)"
+          (click)="marcar(lancamento.id)"
         >
           <td class="pl-3.5">
             <input
@@ -39,7 +39,7 @@
               class="size-4 cursor-pointer accent-primary-600"
               [attr.aria-label]="'Selecionar lançamento ' + lancamento.id"
               [checked]="selecionado() === lancamento.id"
-              (click)="$event.stopPropagation(); alternar(lancamento.id)"
+              (click)="$event.stopPropagation(); marcar(lancamento.id)"
             />
           </td>
           <td class="px-3.5 font-semibold tabular-nums text-petrol-900">{{ lancamento.id }}</td>

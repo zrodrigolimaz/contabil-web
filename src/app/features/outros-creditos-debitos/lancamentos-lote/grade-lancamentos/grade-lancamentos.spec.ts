@@ -30,7 +30,7 @@ function lancamentoCom(id: number, parcial: Partial<Lancamento> = {}): Lancament
 
 describe('GradeLancamentos', () => {
   let fixture: ComponentFixture<GradeLancamentos>;
-  let selecionados: (number | null)[];
+  let selecionados: number[];
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideLocalePtBr()] });
@@ -84,12 +84,12 @@ describe('GradeLancamentos', () => {
     expect(selecionados).toEqual([2]);
   });
 
-  it('desmarca ao clicar de novo na mesma linha', async () => {
+  it('mantém a linha marcada ao clicar de novo nela', async () => {
     await montar([lancamentoCom(1), lancamentoCom(2)], 2);
 
     radioDo(2).click();
 
-    expect(selecionados).toEqual([null]);
+    expect(selecionados).toEqual([2]);
   });
 
   it('mostra marcada a linha que o container informa', async () => {

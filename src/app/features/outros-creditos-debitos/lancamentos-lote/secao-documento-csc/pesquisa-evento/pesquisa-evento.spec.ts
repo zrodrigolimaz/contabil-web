@@ -150,12 +150,12 @@ describe('PesquisaEvento', () => {
     expect(escolhidos).toEqual([EVENTOS_CSC[2]]);
   });
 
-  it('desmarca o evento ao clicar de novo na linha', async () => {
+  it('mantém o evento marcado ao clicar de novo na linha', async () => {
     await abrir();
     await clicar('input[aria-label="Selecionar evento 104"]');
     await clicar('input[aria-label="Selecionar evento 104"]');
 
-    expect(botao('OK').disabled).toBe(true);
+    expect(botao('OK').disabled).toBe(false);
   });
 
   it('esquece a marcação ao paginar', async () => {

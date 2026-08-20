@@ -106,7 +106,7 @@
                 ? 'bg-primary-50 shadow-[inset_3px_0_0_var(--color-primary-500)]'
                 : 'hover:bg-[#f0faf9]'
             "
-            (click)="alternar(anexo.id)"
+            (click)="marcar(anexo.id)"
           >
             <td class="pl-3.5">
               <input
@@ -115,7 +115,7 @@
                 class="size-4 cursor-pointer accent-primary-600"
                 [attr.aria-label]="'Selecionar anexo ' + anexo.nomeReduzido"
                 [checked]="idMarcado() === anexo.id"
-                (click)="$event.stopPropagation(); alternar(anexo.id)"
+                (click)="$event.stopPropagation(); marcar(anexo.id)"
               />
             </td>
             <td class="whitespace-nowrap px-3.5 font-medium text-petrol-900">

@@ -360,10 +360,10 @@ describe('LancamentosLote', () => {
   });
 
   it('pede a marcação de uma linha antes das ações da grade', async () => {
-    lancamentos.lancamentos = [lancamentoCom(1, 1004)];
+    lancamentos.lancamentos = [lancamentoCom(1, 1004), lancamentoCom(2, 1004)];
     await abrir('edicao', loteCom(1004));
 
-    await marcar(1);
+    await clicarNaGrade('Excluir');
 
     expect(texto()).toContain('Marque um lançamento para alterar, excluir ou duplicar.');
   });

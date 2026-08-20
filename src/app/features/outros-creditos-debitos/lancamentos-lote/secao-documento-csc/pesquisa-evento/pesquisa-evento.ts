@@ -93,8 +93,8 @@ export class PesquisaEvento {
     this.pesquisar(pagina);
   }
 
-  protected alternar(evento: EventoCsc): void {
-    this.marcado.set(this.marcado()?.idEvento === evento.idEvento ? null : evento);
+  protected marcar(evento: EventoCsc): void {
+    this.marcado.set(evento);
   }
 
   protected confirmar(): void {
