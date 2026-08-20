@@ -64,6 +64,7 @@ export class FormularioLancamento {
   readonly lancamento = input<Lancamento | null>(null);
   readonly desabilitado = input(false);
   readonly emEdicao = input(false);
+  readonly leitura = input(false);
   readonly manterDados = input(false);
 
   readonly salvar = output<DadosFormularioLancamento>();
@@ -106,8 +107,8 @@ export class FormularioLancamento {
     { initialValue: null },
   );
 
-  protected readonly lancamentoEmEdicao = computed(() =>
-    this.emEdicao() ? this.lancamento() : null,
+  protected readonly lancamentoEmDestaque = computed(() =>
+    this.emEdicao() || this.leitura() ? this.lancamento() : null,
   );
 
   protected readonly situacao = computed(() => this.lancamento()?.situacao ?? 'Pendente');

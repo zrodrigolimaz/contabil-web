@@ -10,9 +10,10 @@
     }
 
     <app-formulario-lancamento
-      [lancamento]="emEdicao()"
+      [lancamento]="lancamentoNoFormulario()"
       [desabilitado]="somenteLeitura() || executando()"
       [emEdicao]="emEdicao() !== null"
+      [leitura]="somenteLeitura()"
       [manterDados]="manterDados()"
       (salvar)="aoSalvar($event)"
     />

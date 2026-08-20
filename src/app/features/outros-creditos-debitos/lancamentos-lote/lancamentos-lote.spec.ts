@@ -385,6 +385,42 @@ describe('LancamentosLote', () => {
     expect(texto()).toContain('Inclua o primeiro lançamento pelo formulário acima.');
   });
 
+  it('em leitura mostra o primeiro lançamento na ficha ao abrir', async () => {
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004, { documento: 'PRIMEIRO', situacao: 'Processado' }),
+      lancamentoCom(2, 1004, { documento: 'SEGUNDO' }),
+    ];
+
+    await abrir('leitura', loteCom(1004));
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('PRIMEIRO');
+    expect((campo('lancamento-situacao') as HTMLInputElement).value).toBe('Processado');
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Vendo o lançamento 1',
+    );
+  });
+
+  it('em leitura troca a ficha ao marcar outro lançamento', async () => {
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004, { documento: 'PRIMEIRO' }),
+      lancamentoCom(2, 1004, { documento: 'SEGUNDO' }),
+    ];
+    await abrir('leitura', loteCom(1004));
+
+    await marcar(2);
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('SEGUNDO');
+  });
+
+  it('em leitura não pede campo obrigatório', async () => {
+    lancamentos.lancamentos = [lancamentoCom(1, 1004)];
+
+    await abrir('leitura', loteCom(1004));
+
+    const rotulos = [...fixture.nativeElement.querySelectorAll('label.rotulo')];
+    expect(rotulos.some((rotulo: HTMLElement) => rotulo.textContent?.includes('*'))).toBe(false);
+  });
+
   it('diz qual lançamento está em alteração e some ao cancelar', async () => {
     lancamentos.lancamentos = [lancamentoCom(1, 1004)];
     await abrir('edicao', loteCom(1004));

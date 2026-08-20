@@ -27,6 +27,7 @@ export class SecaoContaCorrente {
   readonly titular = input<string | null>(null);
   readonly situacao = input<SituacaoLancamento>('Pendente');
   readonly desabilitado = input(false);
+  readonly leitura = input(false);
 
   protected readonly historicos = HISTORICOS;
   protected readonly pesquisaAberta = signal(false);

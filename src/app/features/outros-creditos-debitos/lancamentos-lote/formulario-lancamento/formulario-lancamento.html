@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-[26px]">
-  @if (lancamentoEmEdicao(); as emEdicao) {
+  @if (lancamentoEmDestaque(); as destaque) {
     <p
       role="status"
       class="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg border border-primary-200 bg-primary-50 px-4 py-2.5 text-[13px] text-primary-800"
@@ -14,12 +14,19 @@
         class="size-[15px] shrink-0"
         aria-hidden="true"
       >
-        <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        @if (leitura()) {
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        } @else {
+          <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        }
       </svg>
 
-      <span class="font-semibold">Alterando o lançamento {{ emEdicao.id }}</span>
+      <span class="font-semibold">
+        {{ leitura() ? 'Vendo' : 'Alterando' }} o lançamento {{ destaque.id }}
+      </span>
       <span class="text-petrol-700">
-        {{ emEdicao.conta }} · {{ emEdicao.titular }} · {{ emEdicao.valor | currency: 'BRL' }}
+        {{ destaque.conta }} · {{ destaque.titular }} · {{ destaque.valor | currency: 'BRL' }}
       </span>
     </p>
   }
@@ -30,6 +37,7 @@
       [titular]="titular()"
       [situacao]="situacao()"
       [desabilitado]="desabilitado()"
+      [leitura]="leitura()"
     />
 
     <app-secao-documento-csc
@@ -38,6 +46,7 @@
       [situacao]="situacaoCsc()"
       [idDocumentoCsc]="idDocumentoCsc()"
       [desabilitado]="desabilitado()"
+      [leitura]="leitura()"
     />
   </form>
 

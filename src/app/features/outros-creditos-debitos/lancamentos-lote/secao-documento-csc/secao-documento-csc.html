@@ -11,7 +11,7 @@
       rotulo="PA"
       paraId="lancamento-pa"
       [controle]="grupo().controls.pa"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <select id="lancamento-pa" class="campo campo-select" formControlName="pa">
         <option value="">Selecione</option>
@@ -96,7 +96,7 @@
       rotulo="Compl. Histórico"
       paraId="lancamento-compl-historico"
       [controle]="grupo().controls.complementoHistorico"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <textarea
         id="lancamento-compl-historico"

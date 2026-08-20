@@ -25,6 +25,7 @@ export class SecaoDocumentoCsc {
   readonly situacao = input<SituacaoDocumentoCsc>('Aguardando Processamento CCO');
   readonly idDocumentoCsc = input<string | null>(null);
   readonly desabilitado = input(false);
+  readonly leitura = input(false);
 
   protected readonly opcoesPa = OPCOES_PA;
   protected readonly pesquisaAberta = signal(false);

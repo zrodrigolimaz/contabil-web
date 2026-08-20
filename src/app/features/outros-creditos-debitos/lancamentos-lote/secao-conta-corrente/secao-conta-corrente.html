@@ -11,7 +11,7 @@
       rotulo="Conta Corrente"
       paraId="lancamento-conta"
       [controle]="grupo().controls.conta"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <div class="flex items-center gap-2.5">
         <input
@@ -72,7 +72,7 @@
       rotulo="Valor"
       paraId="lancamento-valor"
       [controle]="grupo().controls.valor"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <div class="relative">
         <span
@@ -96,7 +96,7 @@
       rotulo="Histórico"
       paraId="lancamento-historico"
       [controle]="grupo().controls.historico"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <select id="lancamento-historico" class="campo campo-select" formControlName="historico">
         <option value="">Selecione</option>
@@ -110,7 +110,7 @@
       rotulo="Documento"
       paraId="lancamento-documento"
       [controle]="grupo().controls.documento"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <input id="lancamento-documento" type="text" class="campo" formControlName="documento" />
     </app-campo-form>

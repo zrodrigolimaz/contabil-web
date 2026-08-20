@@ -80,9 +80,15 @@ export class LancamentosLote {
     return this.lancamentos().find((lancamento) => lancamento.id === id) ?? null;
   });
 
+  protected readonly lancamentoNoFormulario = computed(() =>
+    this.somenteLeitura() ? this.marcado() : this.emEdicao(),
+  );
+
   protected readonly dica = computed(() => {
     if (this.somenteLeitura()) {
-      return 'Lote aberto apenas para leitura.';
+      return this.lancamentos().length === 0
+        ? 'Lote aberto apenas para leitura.'
+        : 'Lote aberto apenas para leitura. Marque um lançamento para ver os detalhes acima.';
     }
     if (this.lancamentos().length === 0) {
       return 'Inclua o primeiro lançamento pelo formulário acima.';
@@ -205,7 +211,13 @@ export class LancamentosLote {
       .listarPorLote(idLote)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (lancamentos) => this.lancamentos.set(lancamentos),
+        next: (lancamentos) => {
+          this.lancamentos.set(lancamentos);
+
+          if (this.somenteLeitura()) {
+            this.selecionado.set(lancamentos[0]?.id ?? null);
+          }
+        },
         error: (falha: Error) => this.erro.set(falha.message),
       });
   }
