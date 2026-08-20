@@ -1,6 +1,5 @@
 import { ContaCorrente } from '../models/conta-corrente';
 
-/** Contas correntes conhecidas pela lupa da seção Conta Corrente. */
 export const CONTAS_CORRENTES: readonly ContaCorrente[] = [
   { numero: '44444', titular: 'Ana Paula Costa', agencia: '0101' },
   { numero: '11223', titular: 'Bruno Almeida Lima', agencia: '0101' },

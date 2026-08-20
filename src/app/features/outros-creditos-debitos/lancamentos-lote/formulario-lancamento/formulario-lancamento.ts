@@ -25,7 +25,6 @@ import { SecaoAnexos } from '../secao-anexos/secao-anexos';
 import { SecaoContaCorrente } from '../secao-conta-corrente/secao-conta-corrente';
 import { SecaoDocumentoCsc } from '../secao-documento-csc/secao-documento-csc';
 
-/** O container completa o resto do lançamento. */
 export interface DadosFormularioLancamento {
   readonly conta: string;
   readonly titular: string;
@@ -41,7 +40,6 @@ export interface DadosFormularioLancamento {
   readonly anexos: readonly Anexo[];
 }
 
-/** O botão de enviar mora no rodapé do modal e se liga ao formulário por este id. */
 export const ID_FORM_LANCAMENTO = 'form-lancamento';
 
 @Component({
@@ -67,8 +65,6 @@ export class FormularioLancamento {
   protected readonly idForm = ID_FORM_LANCAMENTO;
   protected readonly anexos = signal<readonly Anexo[]>([]);
 
-  /* Conta e evento validam no blur: a cada tecla, o erro apareceria no meio de um
-     número ainda incompleto. */
   protected readonly form = this.fb.nonNullable.group({
     contaCorrente: this.fb.nonNullable.group({
       conta: [
@@ -149,7 +145,6 @@ export class FormularioLancamento {
   }
 
   protected aoEnviar(): void {
-    /* Conta ainda em validação: espera o veredito em vez de ignorar o clique. */
     if (this.form.pending) {
       this.form.statusChanges
         .pipe(

@@ -26,7 +26,6 @@
         </p>
       }
 
-      <!-- Em tela estreita a lateral já fica compacta por conta própria. -->
       @if (!telaEstreita()) {
         <button
           type="button"
@@ -181,7 +180,6 @@
       </nav>
     </header>
 
-    <!-- O shell fornece só o fundo; cada página compõe seus próprios cartões sobre ele. -->
     <main class="flex flex-1 flex-col overflow-y-auto px-5 pb-8 pt-7 sm:px-8">
       <router-outlet />
     </main>

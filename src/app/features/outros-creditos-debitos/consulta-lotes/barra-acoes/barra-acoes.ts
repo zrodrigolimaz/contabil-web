@@ -9,9 +9,7 @@ interface Botao {
   readonly acao: AcaoLote;
   readonly rotulo: string;
   readonly habilitado: boolean;
-  /** Vira `title`, que o navegador só mostra em botão habilitado. */
   readonly descricao: string;
-  /** `d` do ícone, num viewBox de 24; dado, para o template não repetir sete SVGs. */
   readonly caminho: string;
   readonly destaque?: boolean;
   readonly perigo?: boolean;
@@ -31,29 +29,18 @@ const ICONE = {
     'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z M14 2v6h6 M9 13h6 M9 17h4',
 } as const satisfies Record<AcaoLote, string>;
 
-/**
- * Barra de ações da consulta de lotes.
- *
- * A entrada são os lotes inteiros, e não os ids, porque a habilitação de Confirmar e
- * Enviar depende da situação de cada um.
- *
- * Os botões saem agrupados por família, e não na fila única do sistema legado; os
- * rótulos, esses, são os do enunciado.
- */
 @Component({
   selector: 'app-barra-acoes',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './barra-acoes.html',
 })
 export class BarraAcoes {
-  /** Lotes marcados em toda a consulta, não só os da página exibida. */
   readonly selecionados = input.required<readonly Lote[]>();
   readonly executando = input(false);
 
   readonly acionar = output<AcaoLote>();
   readonly limparSelecao = output<void>();
 
-  /** Liga cada botão bloqueado à dica que explica o bloqueio. */
   protected readonly idDica = `barra-acoes-dica-${sequencia++}`;
 
   protected readonly quantidade = computed(() => this.selecionados().length);
@@ -77,7 +64,6 @@ export class BarraAcoes {
     this.selecionados().some((lote) => lote.situacao === 'Aberto'),
   );
 
-  /** Confirmar aceita tanto Aberto quanto Enviado — daí a negação, e não uma lista. */
   private readonly temPendente = computed(() =>
     this.selecionados().some((lote) => lote.situacao !== 'Confirmado'),
   );

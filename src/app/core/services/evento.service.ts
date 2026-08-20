@@ -7,18 +7,12 @@ import { ResultadoPaginado } from '../models/paginacao';
 import { paginar } from '../utils/paginar';
 import { respostaMock } from './api-mock';
 
-/** A grade do sub-modal "Pesquisa Evento" é menor que a da consulta de lotes. */
 export const TAMANHO_PAGINA_EVENTOS = 5;
 
 @Injectable({ providedIn: 'root' })
 export class EventoService {
-  /* Validador e exibição da descrição perguntam pelo mesmo evento em sequência. */
   private readonly consultados = new Map<string, EventoCsc | null>();
 
-  /**
-   * Pesquisa eventos pelo campo escolhido no sub-modal, por trecho e sem
-   * diferenciar maiúsculas. Valor em branco lista todos os eventos.
-   */
   pesquisar(
     campo: CampoBuscaEvento,
     valor: string,

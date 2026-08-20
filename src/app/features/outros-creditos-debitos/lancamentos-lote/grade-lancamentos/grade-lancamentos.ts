@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
 import { Lancamento } from '../../../../core/models/lancamento';
 
-/** Seleção única: as ações da grade agem sobre um lançamento por vez. */
 @Component({
   selector: 'app-grade-lancamentos',
   imports: [CurrencyPipe],

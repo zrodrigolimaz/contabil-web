@@ -1,9 +1,7 @@
 import { delay, Observable, of, switchMap, throwError, timer } from 'rxjs';
 
-/** Latência artificial de toda resposta mock, em milissegundos. */
 export const LATENCIA_MOCK_MS = 400;
 
-/** Resposta bem-sucedida da "API": o valor chega após a latência simulada. */
 export function respostaMock<T>(valor: T): Observable<T> {
   return of(valor).pipe(delay(LATENCIA_MOCK_MS));
 }

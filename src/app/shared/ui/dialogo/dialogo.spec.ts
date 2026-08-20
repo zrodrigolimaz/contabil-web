@@ -78,7 +78,6 @@ describe('Dialogo', () => {
   it('não devolve como aviso o fechamento que ele mesmo recebeu', async () => {
     await abrir();
 
-    /* O eco do `close` nativo fecharia um diálogo reaberto nesse intervalo. */
     fixture.componentInstance.aberto.set(false);
     await fixture.whenStable();
 

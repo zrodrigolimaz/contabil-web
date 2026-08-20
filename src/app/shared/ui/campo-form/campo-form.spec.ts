@@ -85,8 +85,6 @@ describe('CampoForm', () => {
     expect(campo().getAttribute('aria-describedby')).toBeNull();
   });
 
-  /* Regressão: com o campo seguindo inválido por outro motivo, o texto ficava no
-     erro anterior. */
   it('troca o texto quando muda o motivo, sem o campo voltar a ser válido', async () => {
     const { controle } = fixture.componentInstance;
     controle.markAsTouched();

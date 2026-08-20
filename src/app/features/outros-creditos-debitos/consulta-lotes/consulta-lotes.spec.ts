@@ -20,10 +20,6 @@ interface Consulta {
   readonly ordenacao: Ordenacao;
 }
 
-/**
- * Dublê do serviço: a resposta fica sob controle do teste, o que permite verificar o
- * estado de carregamento sem depender da latência simulada.
- */
 class LoteServiceFalso {
   readonly resposta = new Subject<ResultadoPaginado<Lote>>();
   readonly recebidos: Consulta[] = [];
@@ -35,7 +31,6 @@ class LoteServiceFalso {
   readonly exclusao = new Subject<void>();
   readonly excluidos: number[] = [];
 
-  /** Cada consulta ganha também um canal próprio, para o teste responder só a ela. */
   readonly pendentes: Subject<ResultadoPaginado<Lote>>[] = [];
 
   pesquisar(
@@ -70,7 +65,6 @@ class LoteServiceFalso {
 class LancamentoServiceFalso {
   readonly lotesLimpos: number[] = [];
 
-  /* O modal de lançamentos vive dentro da consulta e lista ao abrir. */
   listarPorLote(): Observable<readonly Lancamento[]> {
     return of([]);
   }
@@ -121,7 +115,6 @@ describe('ConsultaLotes', () => {
       providers: [
         { provide: LoteService, useValue: servico },
         { provide: LancamentoService, useValue: lancamentos },
-        /* Sem espera: o teste controla quando cada resposta chega. */
         { provide: ESPERA_CONSULTA_MS, useValue: 0 },
         provideLocalePtBr(),
       ],
@@ -224,7 +217,6 @@ describe('ConsultaLotes', () => {
     await fixture.whenStable();
   }
 
-  /* A tela tem dois diálogos; este é o dos lançamentos. */
   function modalDeLancamentos(): HTMLDialogElement {
     return fixture.nativeElement.querySelector('app-lancamentos-lote dialog');
   }

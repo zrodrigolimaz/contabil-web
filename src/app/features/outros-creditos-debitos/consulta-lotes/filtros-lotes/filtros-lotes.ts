@@ -21,18 +21,11 @@ import { CAMPO_FORM } from '../../../../shared/ui/campo-form/campo-form';
 import { PainelRecolhivel } from '../../../../shared/ui/painel-recolhivel/painel-recolhivel';
 import { faixaValidator } from '../../../../shared/validators/faixa.validator';
 
-/** A chave é o critério, não o texto: trocar o valor do filtro não recria a pastilha. */
 interface ChipFiltro {
   readonly chave: string;
   readonly texto: string;
 }
 
-/**
- * Painel de filtros da consulta de lotes.
- *
- * Componente de apresentação: não conhece o serviço nem o resultado — apenas emite
- * os critérios para o container pesquisar.
- */
 @Component({
   selector: 'app-filtros-lotes',
   imports: [ReactiveFormsModule, PainelRecolhivel, CAMPO_FORM, CampoFaixa],
@@ -42,7 +35,6 @@ interface ChipFiltro {
 export class FiltrosLotes {
   private readonly fb = inject(FormBuilder);
 
-  /** Enquanto a consulta corre, o botão vira "Buscando…" e não aceita novo envio. */
   readonly carregando = input(false);
 
   readonly pesquisar = output<FiltrosPesquisaLote>();
@@ -56,10 +48,6 @@ export class FiltrosLotes {
     'Confirmado',
   ];
 
-  /**
-   * Faixas ficam em grupos aninhados porque o `faixaValidator` é cross-field: o erro
-   * pertence ao par De/Até, não a um dos lados.
-   */
   protected readonly form = this.fb.group({
     instituicaoResponsavel: this.fb.control<string | null>(null),
     instituicao: this.fb.control<string | null>(null),
@@ -87,10 +75,6 @@ export class FiltrosLotes {
     ),
   });
 
-  /**
-   * Critérios da última pesquisa, resumidos em pastilhas no cabeçalho do painel:
-   * com o painel recolhido, é o que responde "o que está filtrando esta grade?".
-   */
   private readonly aplicados = signal<FiltrosPesquisaLote | null>(null);
 
   protected readonly chips = computed<readonly ChipFiltro[]>(() => {
@@ -117,7 +101,6 @@ export class FiltrosLotes {
     return itens.length > 0 ? itens : [{ chave: 'todos', texto: 'Todos os lotes' }];
   });
 
-  /** Submit do form — também disparado pelo Enter em qualquer campo. */
   protected aoEnviar(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -127,7 +110,6 @@ export class FiltrosLotes {
     this.emitir();
   }
 
-  /** Volta aos valores iniciais e refaz a pesquisa sem critérios. */
   protected limpar(): void {
     this.form.reset();
     this.emitir();
@@ -139,7 +121,6 @@ export class FiltrosLotes {
     this.pesquisar.emit(filtros);
   }
 
-  /** Traduz o formulário para o contrato do serviço: campo em branco vira `null`. */
   private montarFiltros(): FiltrosPesquisaLote {
     const { instituicaoResponsavel, instituicao, situacao, idLote, valor, dataEntrada } =
       this.form.getRawValue();
@@ -159,7 +140,6 @@ function chip(chave: string, valor: string | null, rotulo: string): ChipFiltro |
   return valor ? { chave, texto: `${rotulo}: ${valor}` } : null;
 }
 
-/** Descreve a faixa do jeito que ela foi preenchida — inteira ou aberta de um lado. */
 function chipDeFaixa<T extends number | string>(
   chave: string,
   rotulo: string,

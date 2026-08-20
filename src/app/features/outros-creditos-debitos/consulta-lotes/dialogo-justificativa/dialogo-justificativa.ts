@@ -23,7 +23,6 @@ import { Dialogo } from '../../../../shared/ui/dialogo/dialogo';
   `,
 })
 export class DialogoJustificativa {
-  /** `null` mantém o diálogo fechado. */
   readonly lote = input.required<Lote | null>();
 
   readonly fechar = output<void>();
