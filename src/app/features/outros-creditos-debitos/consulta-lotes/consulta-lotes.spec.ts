@@ -1,25 +1,25 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Observable, Subject } from 'rxjs';
+import { merge, Observable, of, Subject } from 'rxjs';
 
 import { provideLocalePtBr } from '../../../app.config';
 import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../../../core/models/filtros';
+import { Lancamento } from '../../../core/models/lancamento';
 import { Lote, SituacaoLote } from '../../../core/models/lote';
+import { Ordenacao, ORDENACAO_PADRAO } from '../../../core/models/ordenacao';
 import { ResultadoPaginado } from '../../../core/models/paginacao';
+import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
 import { aparelharDialogos } from '../../../core/testing/dialogo-jsdom';
-import { ConsultaLotes } from './consulta-lotes';
+import { ConsultaLotes, ESPERA_CONSULTA_MS } from './consulta-lotes';
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 
 interface Consulta {
   readonly filtros: FiltrosPesquisaLote;
   readonly pagina: number;
+  readonly ordenacao: Ordenacao;
 }
 
-/**
- * Dublê do serviço: a resposta fica sob controle do teste, o que permite verificar o
- * estado de carregamento sem depender da latência simulada.
- */
 class LoteServiceFalso {
   readonly resposta = new Subject<ResultadoPaginado<Lote>>();
   readonly recebidos: Consulta[] = [];
@@ -28,9 +28,22 @@ class LoteServiceFalso {
   readonly confirmados: number[][] = [];
   readonly enviados: number[][] = [];
 
-  pesquisar(filtros: FiltrosPesquisaLote, pagina = 1): Observable<ResultadoPaginado<Lote>> {
-    this.recebidos.push({ filtros, pagina });
-    return this.resposta.asObservable();
+  readonly exclusao = new Subject<void>();
+  readonly excluidos: number[] = [];
+
+  readonly pendentes: Subject<ResultadoPaginado<Lote>>[] = [];
+
+  pesquisar(
+    filtros: FiltrosPesquisaLote,
+    pagina = 1,
+    ordenacao = ORDENACAO_PADRAO,
+  ): Observable<ResultadoPaginado<Lote>> {
+    this.recebidos.push({ filtros, pagina, ordenacao });
+
+    const propria = new Subject<ResultadoPaginado<Lote>>();
+    this.pendentes.push(propria);
+
+    return merge(this.resposta, propria);
   }
 
   confirmar(ids: readonly number[]): Observable<readonly Lote[]> {
@@ -41,6 +54,24 @@ class LoteServiceFalso {
   enviar(ids: readonly number[]): Observable<readonly Lote[]> {
     this.enviados.push([...ids]);
     return this.alteracao.asObservable();
+  }
+
+  excluir(id: number): Observable<void> {
+    this.excluidos.push(id);
+    return this.exclusao.asObservable();
+  }
+}
+
+class LancamentoServiceFalso {
+  readonly lotesLimpos: number[] = [];
+
+  listarPorLote(): Observable<readonly Lancamento[]> {
+    return of([]);
+  }
+
+  excluirPorLote(idLote: number): Observable<void> {
+    this.lotesLimpos.push(idLote);
+    return of(undefined);
   }
 }
 
@@ -75,11 +106,18 @@ function paginaUnica(itens: readonly Lote[]): ResultadoPaginado<Lote> {
 describe('ConsultaLotes', () => {
   let fixture: ComponentFixture<ConsultaLotes>;
   let servico: LoteServiceFalso;
+  let lancamentos: LancamentoServiceFalso;
 
   beforeEach(async () => {
     servico = new LoteServiceFalso();
+    lancamentos = new LancamentoServiceFalso();
     TestBed.configureTestingModule({
-      providers: [{ provide: LoteService, useValue: servico }, provideLocalePtBr()],
+      providers: [
+        { provide: LoteService, useValue: servico },
+        { provide: LancamentoService, useValue: lancamentos },
+        { provide: ESPERA_CONSULTA_MS, useValue: 0 },
+        provideLocalePtBr(),
+      ],
     });
 
     fixture = TestBed.createComponent(ConsultaLotes);
@@ -127,8 +165,32 @@ describe('ConsultaLotes', () => {
     await fixture.whenStable();
   }
 
+  async function clicarNoBotao(rotulo: string): Promise<void> {
+    const botao = [...fixture.nativeElement.querySelectorAll('button')].find(
+      (elemento: HTMLButtonElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLButtonElement | undefined;
+    if (!botao) {
+      throw new Error(`Botão "${rotulo}" não está na tela`);
+    }
+
+    botao.click();
+    await fixture.whenStable();
+  }
+
   async function marcar(id: number): Promise<void> {
     await clicar(`input[aria-label="Selecionar lote ${id}"]`);
+  }
+
+  async function ordenarPor(rotulo: string): Promise<void> {
+    const celula = [...fixture.nativeElement.querySelectorAll('thead th')].find(
+      (elemento: HTMLTableCellElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLTableCellElement | undefined;
+    if (!celula) {
+      throw new Error(`Coluna "${rotulo}" não está no cabeçalho`);
+    }
+
+    celula.querySelector('button')?.click();
+    await fixture.whenStable();
   }
 
   function caixaDoLote(id: number): HTMLInputElement {
@@ -139,15 +201,37 @@ describe('ConsultaLotes', () => {
     return fixture.nativeElement.textContent;
   }
 
-  it('mostra a orientação inicial antes de qualquer pesquisa', () => {
-    expect(texto()).toContain('Nenhuma pesquisa realizada');
+  function dialogoDeConfirmacao(): HTMLDialogElement {
+    return fixture.nativeElement.querySelector('app-dialogo-confirmacao dialog');
+  }
+
+  async function responderNoDialogo(rotulo: string): Promise<void> {
+    const botao = [...dialogoDeConfirmacao().querySelectorAll('button')].find(
+      (elemento: HTMLButtonElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLButtonElement | undefined;
+    if (!botao) {
+      throw new Error(`Botão "${rotulo}" não está no diálogo de confirmação`);
+    }
+
+    botao.click();
+    await fixture.whenStable();
+  }
+
+  function modalDeLancamentos(): HTMLDialogElement {
+    return fixture.nativeElement.querySelector('app-lancamentos-lote dialog');
+  }
+
+  it('consulta a primeira página assim que a tela abre, sem filtro nenhum', () => {
+    expect(servico.recebidos).toEqual([
+      { filtros: FILTROS_VAZIOS, pagina: 1, ordenacao: ORDENACAO_PADRAO },
+    ]);
   });
 
   it('repassa ao serviço os filtros emitidos pelo painel', async () => {
     const filtros: FiltrosPesquisaLote = { ...FILTROS_VAZIOS, situacao: 'Aberto' };
     await pesquisarCom(filtros);
 
-    expect(servico.recebidos).toEqual([{ filtros, pagina: 1 }]);
+    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 1, ordenacao: ORDENACAO_PADRAO });
   });
 
   it('indica o carregamento enquanto a primeira consulta não responde', async () => {
@@ -181,6 +265,38 @@ describe('ConsultaLotes', () => {
     expect(alerta.textContent).toContain('Não foi possível consultar os lotes.');
   });
 
+  it('ignora a resposta da consulta que ficou para trás', async () => {
+    await pesquisarCom();
+    await pesquisarCom({ ...FILTROS_VAZIOS, situacao: 'Aberto' });
+
+    /* A consulta que a tela dispara sozinha ao abrir é a de índice 0. */
+    servico.pendentes[1].next(paginaUnica([loteCom(1001)]));
+    await fixture.whenStable();
+
+    expect(texto()).toContain('Consultando lotes…');
+
+    servico.pendentes[2].next(paginaUnica([loteCom(1002)]));
+    await fixture.whenStable();
+
+    expect(texto()).toContain('1002');
+    expect(texto()).not.toContain('1001');
+  });
+
+  it('repete pelo Tentar novamente a consulta que falhou', async () => {
+    await pesquisarCom();
+    servico.pendentes[1].error(new Error('Não foi possível consultar os lotes.'));
+    await fixture.whenStable();
+
+    await clicarNoBotao('Tentar novamente');
+
+    expect(servico.recebidos).toHaveLength(3);
+
+    servico.pendentes[2].next(paginaUnica([loteCom(1001)]));
+    await fixture.whenStable();
+
+    expect(texto()).toContain('1001');
+  });
+
   it('repete a consulta com os mesmos filtros ao mudar de página', async () => {
     const filtros: FiltrosPesquisaLote = { ...FILTROS_VAZIOS, situacao: 'Enviado' };
     await pesquisarCom(filtros);
@@ -188,7 +304,7 @@ describe('ConsultaLotes', () => {
 
     await clicar('button[aria-label="Próxima página"]');
 
-    expect(servico.recebidos[1]).toEqual({ filtros, pagina: 2 });
+    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 2, ordenacao: ORDENACAO_PADRAO });
   });
 
   it('volta para a primeira página a cada nova pesquisa', async () => {
@@ -200,6 +316,37 @@ describe('ConsultaLotes', () => {
     await pesquisarCom();
 
     expect(servico.recebidos.at(-1)?.pagina).toBe(1);
+  });
+
+  it('reconsulta a partir da página 1 ao trocar a ordenação', async () => {
+    const filtros: FiltrosPesquisaLote = { ...FILTROS_VAZIOS, situacao: 'Enviado' };
+    await pesquisarCom(filtros);
+    await responder(paginaCom(1001, 1));
+    await clicar('button[aria-label="Última página"]');
+    await responder(paginaCom(1003, 3));
+
+    await ordenarPor('Valor');
+
+    expect(servico.recebidos.at(-1)).toEqual({
+      filtros,
+      pagina: 1,
+      ordenacao: { campo: 'valor', direcao: 'asc' },
+    });
+  });
+
+  it('mantém a ordenação escolhida ao mudar de página', async () => {
+    await pesquisarCom();
+    await responder(paginaCom(1001, 1));
+    await ordenarPor('Data Entrada');
+    await responder(paginaCom(1001, 1));
+
+    await clicar('button[aria-label="Próxima página"]');
+
+    expect(servico.recebidos.at(-1)).toEqual({
+      filtros: FILTROS_VAZIOS,
+      pagina: 2,
+      ordenacao: { campo: 'dataEntrada', direcao: 'asc' },
+    });
   });
 
   it('preserva a seleção ao navegar entre páginas', async () => {
@@ -267,6 +414,7 @@ describe('ConsultaLotes', () => {
     await marcar(1006);
 
     await clicarNaAcao('Confirmar');
+    await responderNoDialogo('Confirmar');
 
     expect(servico.confirmados).toEqual([[1004, 1006]]);
   });
@@ -276,6 +424,7 @@ describe('ConsultaLotes', () => {
     await marcar(1005);
 
     await clicarNaAcao('Enviar');
+    await responderNoDialogo('Enviar');
 
     expect(servico.enviados).toEqual([[1005]]);
   });
@@ -286,6 +435,7 @@ describe('ConsultaLotes', () => {
     await marcar(1005);
 
     await clicarNaAcao('Confirmar');
+    await responderNoDialogo('Confirmar');
     await responderAcao([loteCom(1004, 'Confirmado')]);
 
     expect(texto()).toContain('1 lote confirmado.');
@@ -297,6 +447,7 @@ describe('ConsultaLotes', () => {
     await clicar('input[aria-label="Selecionar todos os lotes da página"]');
 
     await clicarNaAcao('Enviar');
+    await responderNoDialogo('Enviar');
     await responderAcao([loteCom(1004, 'Enviado'), loteCom(1005, 'Enviado')]);
 
     expect(texto()).toContain('2 lotes enviados.');
@@ -310,17 +461,19 @@ describe('ConsultaLotes', () => {
     await marcar(1004);
 
     await clicarNaAcao('Confirmar');
+    await responderNoDialogo('Confirmar');
     await responderAcao([loteCom(1004, 'Confirmado')]);
     await responder(paginaUnica([loteCom(1004, 'Confirmado')]));
 
     expect(caixaDoLote(1004).checked).toBe(false);
-    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 1 });
+    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 1, ordenacao: ORDENACAO_PADRAO });
   });
 
   it('descarta o aviso ao começar uma nova pesquisa', async () => {
     await grade([loteCom(1004)]);
     await marcar(1004);
     await clicarNaAcao('Enviar');
+    await responderNoDialogo('Enviar');
     await responderAcao([loteCom(1004, 'Enviado')]);
     await responder(paginaUnica([loteCom(1004, 'Enviado')]));
     expect(texto()).toContain('1 lote enviado.');
@@ -331,21 +484,90 @@ describe('ConsultaLotes', () => {
     expect(texto()).not.toContain('1 lote enviado.');
   });
 
-  it('responde ao clique das ações que ainda não têm tela', async () => {
+  it('abre os lançamentos do lote marcado para alteração', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Alterar');
+
+    expect(modalDeLancamentos().open).toBe(true);
+    expect(modalDeLancamentos().textContent).toContain('Lançamentos do lote 1004');
+  });
+
+  it('abre os lançamentos em leitura pelo Visualizar', async () => {
     await grade([loteCom(1004)]);
     await marcar(1004);
 
     await clicarNaAcao('Visualizar');
 
-    expect(texto()).toContain('Visualizar abre os lançamentos do lote em leitura');
+    expect(modalDeLancamentos().textContent).toContain('(leitura)');
+    expect(modalDeLancamentos().querySelector('button[type="submit"]')).toBeNull();
   });
 
-  it('avisa o que Incluir fará mesmo sem nenhuma seleção', async () => {
+  it('abre um lote novo pelo Incluir, mesmo sem nenhuma seleção', async () => {
     await grade([loteCom(1004)]);
 
     await clicarNaAcao('Incluir');
 
-    expect(texto()).toContain('Incluir abre a tela de lançamentos de um lote novo');
+    expect(modalDeLancamentos().open).toBe(true);
+    expect(modalDeLancamentos().textContent).toContain('Lançamentos de um lote novo');
+  });
+
+  it('desmarca o lote ao abrir o Incluir, que vai para um lote novo', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Incluir');
+
+    expect(modalDeLancamentos().textContent).toContain('Lançamentos de um lote novo');
+    expect(caixaDoLote(1004).checked).toBe(false);
+  });
+
+  it('pergunta antes de excluir, e não exclui nada enquanto não responderem', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Excluir');
+
+    expect(dialogoDeConfirmacao().textContent).toContain('Excluir o lote 1004?');
+    expect(servico.excluidos).toEqual([]);
+  });
+
+  it('desiste da exclusão no cancelar', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Excluir');
+    await responderNoDialogo('Cancelar');
+
+    expect(servico.excluidos).toEqual([]);
+    expect(dialogoDeConfirmacao().open).toBe(false);
+  });
+
+  it('exclui o lote com os lançamentos dele e reconsulta a página', async () => {
+    await grade([loteCom(1004), loteCom(1005)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Excluir');
+    await responderNoDialogo('Excluir');
+    servico.exclusao.next();
+    await fixture.whenStable();
+    await responder(paginaUnica([loteCom(1005)]));
+
+    expect(servico.excluidos).toEqual([1004]);
+    expect(lancamentos.lotesLimpos).toEqual([1004]);
+    expect(texto()).toContain('Lote 1004 excluído.');
+    expect(caixaDoLote(1004)).toBeNull();
+  });
+
+  it('anuncia no diálogo quantos lotes a ação alcança', async () => {
+    await grade([loteCom(1004), loteCom(1005, 'Confirmado')]);
+    await clicar('input[aria-label="Selecionar todos os lotes da página"]');
+
+    await clicarNaAcao('Confirmar');
+
+    expect(dialogoDeConfirmacao().textContent).toContain('Confirmar 1 dos 2 lotes selecionados?');
+    expect(dialogoDeConfirmacao().textContent).toContain('1 já está confirmado e será ignorado.');
   });
 
   it('abre a justificativa do lote selecionado', async () => {

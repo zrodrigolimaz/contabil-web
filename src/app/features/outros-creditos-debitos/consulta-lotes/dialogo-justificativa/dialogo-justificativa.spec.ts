@@ -81,7 +81,6 @@ describe('DialogoJustificativa', () => {
   it('avisa o container quando o diálogo fecha por fora do botão', async () => {
     await montar(LOTE);
 
-    /* O Esc do `<dialog>` nativo chega ao componente como o evento `close`. */
     dialogo().close();
     await fixture.whenStable();
 

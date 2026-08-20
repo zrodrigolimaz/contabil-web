@@ -1,13 +1,11 @@
-import { Lancamento } from '../models/lancamento';
-import { HISTORICO, PA } from './opcoes.mock';
+import { Lancamento, SituacaoLancamento } from '../models/lancamento';
+import { Lote, SituacaoLote } from '../models/lote';
+import { CONTAS_CORRENTES } from './contas-correntes.mock';
+import { EVENTOS_CSC } from './eventos-csc.mock';
+import { LOTES } from './lotes.mock';
+import { HISTORICO, HISTORICOS, OPCOES_PA, PA } from './opcoes.mock';
 
-/**
- * Lançamentos iniciais dos lotes de menor volume — 1002, 1004, 1010 e 1023 —,
- * mantendo a coluna "Quant. Lançamentos" da grade coerente com o conteúdo do modal.
- * Os demais lotes começam sem lançamentos carregados: reproduzir as dezenas de
- * linhas dos lotes grandes não acrescentaria nada à demonstração.
- */
-export const LANCAMENTOS: readonly Lancamento[] = [
+const LANCAMENTOS_ESCOLHIDOS: readonly Lancamento[] = [
   {
     id: 1,
     idLote: 1002,
@@ -20,7 +18,7 @@ export const LANCAMENTOS: readonly Lancamento[] = [
     descricao: 'Crédito de repasse de convênio.',
     situacao: 'Processado',
     pa: PA.cooperativa,
-    codigoEvento: '102/300',
+    idEvento: '102',
     descricaoEvento: 'Centralização Título CSC Crédito',
     complementoHistorico: 'Repasse referente à competência 10/2025.',
     situacaoDocumentoCsc: 'Processado',
@@ -47,7 +45,7 @@ export const LANCAMENTOS: readonly Lancamento[] = [
     descricao: 'Débito de tarifa de manutenção.',
     situacao: 'Processado',
     pa: PA.centro,
-    codigoEvento: '105/120',
+    idEvento: '106',
     descricaoEvento: 'Tarifa de Manutenção de Conta',
     complementoHistorico: 'Tarifa mensal da conta 11223.',
     situacaoDocumentoCsc: 'Processado',
@@ -66,7 +64,7 @@ export const LANCAMENTOS: readonly Lancamento[] = [
     descricao: 'Ajuste de conciliação contábil.',
     situacao: 'Pendente',
     pa: PA.cooperativa,
-    codigoEvento: '115/330',
+    idEvento: '112',
     descricaoEvento: 'Ajuste Contábil de Crédito',
     complementoHistorico: 'Conciliação da conta transitória de dezembro.',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
@@ -85,7 +83,7 @@ export const LANCAMENTOS: readonly Lancamento[] = [
     descricao: 'Transferência entre contas da cooperativa.',
     situacao: 'Pendente',
     pa: PA.zonaSul,
-    codigoEvento: '105/121',
+    idEvento: '107',
     descricaoEvento: 'Tarifa de Transferência entre Contas',
     complementoHistorico: 'Transferência solicitada pela agência 0102.',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
@@ -104,7 +102,7 @@ export const LANCAMENTOS: readonly Lancamento[] = [
     descricao: 'Estorno de tarifa cobrada em duplicidade.',
     situacao: 'Pendente',
     pa: PA.cooperativa,
-    codigoEvento: '102/310',
+    idEvento: '104',
     descricaoEvento: 'Centralização Título CSC Estorno de Crédito',
     complementoHistorico: 'Estorno autorizado pelo gerente do PA.',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
@@ -123,7 +121,7 @@ export const LANCAMENTOS: readonly Lancamento[] = [
     descricao: 'Liquidação de título em cobrança.',
     situacao: 'Pendente',
     pa: PA.industrial,
-    codigoEvento: '108/400',
+    idEvento: '108',
     descricaoEvento: 'Liquidação de Título em Cobrança',
     complementoHistorico: 'Título 998877 liquidado no caixa.',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
@@ -142,11 +140,149 @@ export const LANCAMENTOS: readonly Lancamento[] = [
     descricao: 'Crédito de sobras a distribuir.',
     situacao: 'Pendente',
     pa: PA.cooperativa,
-    codigoEvento: '130/700',
+    idEvento: '118',
     descricaoEvento: 'Crédito de Sobras a Distribuir',
     complementoHistorico: 'Distribuição aprovada em assembleia.',
     situacaoDocumentoCsc: 'Aguardando Processamento CCO',
     idDocumentoCsc: null,
     anexos: [],
   },
+];
+
+const SITUACAO_DO_LANCAMENTO: Record<SituacaoLote, SituacaoLancamento> = {
+  Aberto: 'Pendente',
+  Enviado: 'Processado',
+  Confirmado: 'Processado',
+};
+
+const TEXTOS: Record<string, { descricao: string; complemento: string; idEvento: string }> = {
+  [HISTORICO.manual]: {
+    descricao: 'Lançamento manual de acerto.',
+    complemento: 'Acerto registrado pela contabilidade.',
+    idEvento: '112',
+  },
+  [HISTORICO.credito]: {
+    descricao: 'Crédito em conta corrente.',
+    complemento: 'Crédito conferido com o extrato do dia.',
+    idEvento: '102',
+  },
+  [HISTORICO.debito]: {
+    descricao: 'Débito em conta corrente.',
+    complemento: 'Débito autorizado pelo gerente da conta.',
+    idEvento: '103',
+  },
+  [HISTORICO.estornoTarifa]: {
+    descricao: 'Estorno de tarifa cobrada indevidamente.',
+    complemento: 'Estorno aprovado no atendimento do PA.',
+    idEvento: '104',
+  },
+  [HISTORICO.transferencia]: {
+    descricao: 'Transferência entre contas da cooperativa.',
+    complemento: 'Transferência solicitada pela agência.',
+    idEvento: '107',
+  },
+  [HISTORICO.ajusteContabil]: {
+    descricao: 'Ajuste de conciliação contábil.',
+    complemento: 'Conciliação da conta transitória.',
+    idEvento: '113',
+  },
+  [HISTORICO.liquidacaoTitulo]: {
+    descricao: 'Liquidação de título em cobrança.',
+    complemento: 'Título liquidado no caixa do PA.',
+    idEvento: '108',
+  },
+};
+
+function sorteioReprodutivel(semente: number): (limite: number) => number {
+  let estado = semente;
+
+  return (limite) => {
+    estado = (estado * 16807) % 2147483647;
+    return estado % limite;
+  };
+}
+
+function repartir(
+  valorDoLote: number,
+  quantidade: number,
+  sortear: (n: number) => number,
+): number[] {
+  const totalEmCentavos = Math.round(valorDoLote * 100);
+  const pesos = Array.from({ length: quantidade }, () => 70 + sortear(60));
+  const somaDosPesos = pesos.reduce((total, peso) => total + peso, 0);
+
+  let distribuido = 0;
+
+  return pesos.map((peso, indice) => {
+    const parte =
+      indice === quantidade - 1
+        ? totalEmCentavos - distribuido
+        : Math.round((totalEmCentavos * peso) / somaDosPesos);
+
+    distribuido += parte;
+    return parte / 100;
+  });
+}
+
+function lancamentosDoLote(lote: Lote, primeiroId: number): Lancamento[] {
+  const sortear = sorteioReprodutivel(lote.id * 7919);
+  const valores = repartir(lote.valor, lote.quantidadeLancamentos, sortear);
+  const situacao = SITUACAO_DO_LANCAMENTO[lote.situacao];
+  const processado = situacao === 'Processado';
+  const ano = lote.dataEntrada.getFullYear();
+  const mes = `${lote.dataEntrada.getMonth() + 1}`.padStart(2, '0');
+
+  return valores.map((valor, indice) => {
+    const conta = CONTAS_CORRENTES[sortear(CONTAS_CORRENTES.length)];
+    const historico = HISTORICOS[sortear(HISTORICOS.length)];
+    const texto = TEXTOS[historico];
+    const evento = EVENTOS_CSC.find((atual) => atual.idEvento === texto.idEvento) ?? EVENTOS_CSC[0];
+    const sequencial = `${indice + 1}`.padStart(4, '0');
+
+    return {
+      id: primeiroId + indice,
+      idLote: lote.id,
+      conta: conta.numero,
+      titular: conta.titular,
+      valor,
+      historico,
+      estorno: historico === HISTORICO.estornoTarifa,
+      documento: `${ano}${mes}${sequencial}`,
+      descricao: texto.descricao,
+      situacao,
+      pa: OPCOES_PA[sortear(OPCOES_PA.length)],
+      idEvento: evento.idEvento,
+      descricaoEvento: evento.descricao,
+      complementoHistorico: texto.complemento,
+      situacaoDocumentoCsc: processado ? 'Processado' : 'Aguardando Processamento CCO',
+      idDocumentoCsc: processado
+        ? `CSC-${ano}-${`${lote.id * 10 + indice}`.padStart(6, '0')}`
+        : null,
+      anexos: [],
+    };
+  });
+}
+
+function lancamentosDeVolume(): readonly Lancamento[] {
+  const lotesJaEscritos = new Set(LANCAMENTOS_ESCOLHIDOS.map((lancamento) => lancamento.idLote));
+  const gerados: Lancamento[] = [];
+
+  let proximoId = LANCAMENTOS_ESCOLHIDOS.length + 1;
+
+  for (const lote of LOTES) {
+    if (lotesJaEscritos.has(lote.id)) {
+      continue;
+    }
+
+    const doLote = lancamentosDoLote(lote, proximoId);
+    proximoId += doLote.length;
+    gerados.push(...doLote);
+  }
+
+  return gerados;
+}
+
+export const LANCAMENTOS: readonly Lancamento[] = [
+  ...LANCAMENTOS_ESCOLHIDOS,
+  ...lancamentosDeVolume(),
 ];

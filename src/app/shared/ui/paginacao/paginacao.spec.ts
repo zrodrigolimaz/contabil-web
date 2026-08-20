@@ -29,7 +29,6 @@ describe('Paginacao', () => {
     return fixture.nativeElement.querySelector(`button[aria-label="${rotulo}"]`);
   }
 
-  /** Régua de páginas como o usuário a lê, incluindo as reticências. */
   function regua(): string[] {
     return [...fixture.nativeElement.querySelectorAll('nav > button, nav > span')]
       .map((elemento: HTMLElement) => elemento.textContent?.trim() ?? '')

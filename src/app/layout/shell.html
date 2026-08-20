@@ -1,64 +1,63 @@
-<div class="flex min-h-screen bg-surface">
+<div class="flex h-dvh overflow-hidden bg-surface">
   <nav
     aria-label="Menu principal"
-    class="flex shrink-0 flex-col border-r border-r-petrol-900/10 bg-white transition-[width] duration-200 motion-reduce:transition-none"
-    [class]="menuRecolhido() ? 'w-[76px]' : 'w-72'"
+    class="flex shrink-0 flex-col bg-petrol-900 transition-[width] duration-200 motion-reduce:transition-none"
+    [class]="menuRecolhido() ? 'w-18' : 'w-66'"
   >
     <div
-      class="flex h-[72px] border-b border-petrol-900/10 px-3"
+      class="flex h-16 shrink-0 border-b border-white/[0.08]"
       [class]="
         menuRecolhido()
-          ? 'flex-col items-center justify-center gap-1'
-          : 'flex-row items-center gap-2.5'
+          ? 'flex-col items-center justify-center gap-0.5 px-2'
+          : 'flex-row items-center gap-3 px-5'
       "
     >
-      <span class="grid size-9 shrink-0 place-items-center rounded-full bg-petrol-900 text-white">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="size-4"
-          aria-hidden="true"
-        >
-          <path
-            d="M12 6.5C10.5 5.5 8.5 5 6.5 5H4v13h2.5c2 0 4 .5 5.5 1.5 1.5-1 3.5-1.5 5.5-1.5H20V5h-2.5c-2 0-4 .5-5.5 1.5Z"
-          />
-          <path d="M12 6.5v13" />
-        </svg>
-      </span>
+      <img
+        src="sicoob.jpg"
+        alt="Sicoob"
+        class="size-8 shrink-0 rounded-lg object-cover"
+        width="32"
+        height="32"
+      />
+
       @if (!menuRecolhido()) {
-        <p class="min-w-0 flex-1 truncate text-sm font-bold text-petrol-900">Contábil Web</p>
+        <p class="min-w-0 flex-1 truncate font-display text-[15px] font-semibold text-white">
+          Contábil <span class="text-primary-300">Web</span>
+        </p>
       }
-      <button
-        type="button"
-        aria-label="Alternar menu"
-        [attr.aria-expanded]="!menuRecolhido()"
-        (click)="menuRecolhido.set(!menuRecolhido())"
-        class="grid size-8 shrink-0 place-items-center rounded-lg text-petrol-700 transition-colors hover:bg-petrol-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          class="size-5"
-          aria-hidden="true"
+
+      @if (!telaEstreita()) {
+        <button
+          type="button"
+          aria-label="Alternar menu"
+          [attr.aria-expanded]="!menuRecolhido()"
+          [title]="menuRecolhido() ? 'Expandir menu' : 'Recolher menu'"
+          (click)="alternarMenu()"
+          class="grid shrink-0 place-items-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          [class]="menuRecolhido() ? 'size-6' : 'size-8'"
         >
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+            [class]="menuRecolhido() ? 'size-4' : 'size-[18px]'"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      }
     </div>
 
-    <ul class="flex flex-col gap-1 p-3">
+    <ul class="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
       <li>
         <a
           href="#"
-          class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-petrol-800 transition-colors hover:bg-petrol-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          class="flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           [class.justify-center]="menuRecolhido()"
+          [title]="menuRecolhido() ? 'Início' : null"
         >
           <svg
             viewBox="0 0 24 24"
@@ -67,10 +66,10 @@
             stroke-width="1.8"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="size-5 shrink-0"
+            class="size-[17px] shrink-0"
             aria-hidden="true"
           >
-            <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z" />
+            <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z" />
           </svg>
           @if (!menuRecolhido()) {
             <span>Início</span>
@@ -84,8 +83,9 @@
           aria-controls="submenu-contabil"
           [attr.aria-expanded]="grupoContabilAberto()"
           (click)="grupoContabilAberto.set(!grupoContabilAberto())"
-          class="flex w-full items-center gap-3 rounded-xl bg-primary-50 px-3.5 py-2.5 text-sm font-semibold text-petrol-900 transition-colors hover:bg-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          class="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-white/85 transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           [class.justify-center]="menuRecolhido()"
+          [title]="menuRecolhido() ? 'Contábil' : null"
         >
           <svg
             viewBox="0 0 24 24"
@@ -94,13 +94,11 @@
             stroke-width="1.8"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="size-5 shrink-0 text-primary-700"
+            class="size-[17px] shrink-0"
             aria-hidden="true"
           >
-            <path
-              d="M12 6.5C10.5 5.5 8.5 5 6.5 5H4v13h2.5c2 0 4 .5 5.5 1.5 1.5-1 3.5-1.5 5.5-1.5H20V5h-2.5c-2 0-4 .5-5.5 1.5Z"
-            />
-            <path d="M12 6.5v13" />
+            <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2Z" />
+            <path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7Z" />
           </svg>
           @if (!menuRecolhido()) {
             <span class="flex-1 text-left">Contábil</span>
@@ -108,28 +106,31 @@
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
+              stroke-width="1.8"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="size-4 text-petrol-700/70 transition-transform motion-reduce:transition-none"
-              [class.-rotate-90]="!grupoContabilAberto()"
+              class="size-[15px] text-white/50 transition-transform motion-reduce:transition-none"
+              [class.rotate-180]="!grupoContabilAberto()"
               aria-hidden="true"
             >
-              <path d="m6 9 6 6 6-6" />
+              <path d="m18 15-6-6-6 6" />
             </svg>
           }
         </button>
 
-        @if (grupoContabilAberto() && !menuRecolhido()) {
-          <ul
-            id="submenu-contabil"
-            class="ml-[21px] mt-1 flex flex-col gap-1 border-l border-petrol-900/10 pl-2.5"
-          >
+        @if (grupoContabilAberto()) {
+          <ul id="submenu-contabil" class="mt-0.5 flex flex-col gap-0.5">
             <li>
               <a
                 href="#"
                 aria-current="page"
-                class="flex items-center gap-2.5 rounded-lg bg-primary-100/60 px-3 py-2 text-[13px] font-medium text-petrol-900 transition-colors hover:bg-primary-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+                [title]="menuRecolhido() ? 'Outros Créditos/Débitos' : null"
+                class="flex h-10 items-center rounded-lg bg-primary-500/15 text-[#7fe0d4] transition-colors hover:bg-primary-500/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+                [class]="
+                  menuRecolhido()
+                    ? 'justify-center px-3'
+                    : 'gap-[11px] pl-[23px] pr-3 text-[13.5px] font-semibold'
+                "
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -138,15 +139,17 @@
                   stroke-width="1.8"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  class="size-4 shrink-0 text-primary-700"
+                  class="size-4 shrink-0"
                   aria-hidden="true"
                 >
-                  <path d="m16 3 4 4-4 4" />
-                  <path d="M20 7H4" />
-                  <path d="m8 21-4-4 4-4" />
-                  <path d="M4 17h16" />
+                  <path d="M8 3 4 7l4 4" />
+                  <path d="M4 7h16" />
+                  <path d="m16 21 4-4-4-4" />
+                  <path d="M20 17H4" />
                 </svg>
-                Outros Créditos/Débitos
+                @if (!menuRecolhido()) {
+                  Outros Créditos/Débitos
+                }
               </a>
             </li>
           </ul>
@@ -155,28 +158,29 @@
     </ul>
   </nav>
 
-  <div class="flex min-w-0 flex-1 flex-col">
+  <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
     <header
-      class="flex h-[72px] flex-col justify-center border-b border-petrol-900/10 bg-white px-7 shadow-[0_1px_2px_rgba(11,46,51,0.04)]"
+      class="flex h-16 shrink-0 flex-col justify-center gap-[3px] border-b border-petrol-900/[0.08] bg-white px-5 sm:px-8"
     >
-      <h1 class="text-lg font-semibold tracking-tight text-petrol-900">Outros Créditos/Débitos</h1>
-      <nav aria-label="Trilha de navegação" class="mt-0.5">
-        <ol class="flex items-center gap-1.5 text-[11px]">
+      <h1 class="font-display text-[19px] font-bold tracking-[-0.01em] text-petrol-900">
+        Outros Créditos/Débitos
+      </h1>
+      <nav aria-label="Trilha de navegação">
+        <ol class="flex items-center text-xs text-muted">
           <li>
             <a
               href="#"
-              class="text-primary-700 underline decoration-primary-300 underline-offset-2 transition-colors hover:text-primary-600 hover:decoration-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+              class="font-medium text-primary-700 transition-colors hover:text-primary-600 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
               >Início</a
             >
           </li>
-          <li aria-hidden="true" class="text-petrol-700/50">›</li>
-          <li aria-current="page" class="text-petrol-700/80">Outros Créditos/Débitos</li>
+          <li aria-hidden="true" class="mx-1.5 text-[#9db0b2]">›</li>
+          <li aria-current="page">Outros Créditos/Débitos</li>
         </ol>
       </nav>
     </header>
 
-    <!-- O shell fornece só o fundo; cada página compõe seus próprios cartões sobre ele. -->
-    <main class="flex flex-1 flex-col p-5 sm:p-7">
+    <main class="flex flex-1 flex-col overflow-y-auto px-5 pb-8 pt-7 sm:px-8">
       <router-outlet />
     </main>
   </div>

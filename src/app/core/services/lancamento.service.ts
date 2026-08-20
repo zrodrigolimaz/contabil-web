@@ -7,16 +7,13 @@ import { erroMock, respostaMock } from './api-mock';
 
 @Injectable({ providedIn: 'root' })
 export class LancamentoService {
-  /** Fonte de verdade em memória; sobrevive enquanto a aba estiver aberta. */
   private lancamentos: readonly Lancamento[] = LANCAMENTOS;
   private proximoId = Math.max(0, ...LANCAMENTOS.map((lancamento) => lancamento.id)) + 1;
 
-  /** Lançamentos do lote, na ordem de inclusão. */
   listarPorLote(idLote: number): Observable<readonly Lancamento[]> {
     return respostaMock(this.lancamentos.filter((lancamento) => lancamento.idLote === idLote));
   }
 
-  /** Inclui o lançamento como "Pendente", aguardando processamento do CCO. */
   incluir(dados: NovoLancamento): Observable<Lancamento> {
     const incluido: Lancamento = {
       ...dados,
@@ -30,7 +27,6 @@ export class LancamentoService {
     return respostaMock(incluido);
   }
 
-  /** Substitui os dados do lançamento, preservando id e situações. */
   alterar(id: number, dados: NovoLancamento): Observable<Lancamento> {
     const atual = this.buscar(id);
     if (!atual) {
@@ -60,7 +56,11 @@ export class LancamentoService {
     return respostaMock<void>(undefined);
   }
 
-  /** Cria uma cópia pendente do lançamento, sem os anexos do original. */
+  excluirPorLote(idLote: number): Observable<void> {
+    this.lancamentos = this.lancamentos.filter((lancamento) => lancamento.idLote !== idLote);
+    return respostaMock<void>(undefined);
+  }
+
   duplicar(id: number): Observable<Lancamento> {
     const original = this.buscar(id);
     if (!original) {

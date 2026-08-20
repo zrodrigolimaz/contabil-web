@@ -15,7 +15,7 @@ const NOVO: NovoLancamento = {
   documento: '2026080001',
   descricao: 'Crédito de ajuste.',
   pa: PA.cooperativa,
-  codigoEvento: '102/300',
+  idEvento: '102',
   descricaoEvento: 'Centralização Título CSC Crédito',
   complementoHistorico: 'Ajuste solicitado pela contabilidade.',
   anexos: [],
@@ -39,8 +39,8 @@ describe('LancamentoService', () => {
     expect(lancamentos.map((lancamento) => lancamento.id)).toEqual([1, 2]);
   });
 
-  it('devolve lista vazia para lote sem lançamentos carregados', () => {
-    expect(valorDe(service.listarPorLote(1008))).toHaveLength(0);
+  it('devolve lista vazia para lote que não existe', () => {
+    expect(valorDe(service.listarPorLote(9999))).toHaveLength(0);
   });
 
   it('inclui o lançamento como pendente e o adiciona à grade do lote', () => {
@@ -76,6 +76,13 @@ describe('LancamentoService', () => {
     valorDe(service.excluir(1));
 
     expect(valorDe(service.listarPorLote(1002)).map((lancamento) => lancamento.id)).toEqual([2]);
+  });
+
+  it('exclui todos os lançamentos do lote e preserva os dos outros', () => {
+    valorDe(service.excluirPorLote(1002));
+
+    expect(valorDe(service.listarPorLote(1002))).toHaveLength(0);
+    expect(valorDe(service.listarPorLote(1004))).toHaveLength(1);
   });
 
   it('duplica o lançamento com novo id, situação pendente e sem anexos', () => {
