@@ -17,10 +17,9 @@
         <input
           id="lancamento-conta"
           type="text"
+          [appDigitos]="10"
           class="campo"
           formControlName="conta"
-          inputmode="numeric"
-          autocomplete="off"
         />
 
         <button
@@ -82,9 +81,8 @@
         </span>
         <input
           id="lancamento-valor"
-          type="number"
-          step="0.01"
-          min="0"
+          type="text"
+          appMoeda
           class="campo pl-9"
           formControlName="valor"
           placeholder="0,00"
@@ -112,7 +110,13 @@
       [controle]="grupo().controls.documento"
       [obrigatorio]="!leitura()"
     >
-      <input id="lancamento-documento" type="text" class="campo" formControlName="documento" />
+      <input
+        id="lancamento-documento"
+        type="text"
+        [appDigitos]="12"
+        class="campo"
+        formControlName="documento"
+      />
     </app-campo-form>
   </div>
 

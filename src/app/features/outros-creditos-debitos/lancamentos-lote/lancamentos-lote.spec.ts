@@ -302,18 +302,18 @@ describe('LancamentosLote', () => {
   });
 
   it('altera o lançamento marcado', async () => {
-    lancamentos.lancamentos = [lancamentoCom(1, 1004, { documento: 'ANTIGO' })];
+    lancamentos.lancamentos = [lancamentoCom(1, 1004, { documento: '2026080001' })];
     await abrir('edicao', loteCom(1004));
 
     await marcar(1);
     await clicarNaGrade('Alterar');
-    await digitar('lancamento-documento', 'NOVO');
+    await digitar('lancamento-documento', '2026080099');
 
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     await fixture.whenStable();
 
     expect(lancamentos.lancamentos).toHaveLength(1);
-    expect(lancamentos.lancamentos[0].documento).toBe('NOVO');
+    expect(lancamentos.lancamentos[0].documento).toBe('2026080099');
   });
 
   it('exclui o lançamento marcado', async () => {
@@ -329,7 +329,7 @@ describe('LancamentosLote', () => {
   it('duplica o lançamento marcado', async () => {
     lancamentos.lancamentos = [
       lancamentoCom(1, 1004),
-      lancamentoCom(2, 1004, { documento: 'ORIGINAL' }),
+      lancamentoCom(2, 1004, { documento: '2026080002' }),
     ];
     await abrir('edicao', loteCom(1004));
 
@@ -337,7 +337,7 @@ describe('LancamentosLote', () => {
     await clicarNaGrade('Duplicar');
 
     expect(lancamentos.lancamentos).toHaveLength(3);
-    expect(lancamentos.lancamentos[2].documento).toBe('ORIGINAL');
+    expect(lancamentos.lancamentos[2].documento).toBe('2026080002');
   });
 
   it('pede a marcação de uma linha antes das ações da grade', async () => {
@@ -468,7 +468,7 @@ describe('LancamentosLote', () => {
 
   it('não leva para a próxima abertura o que ficou digitado', async () => {
     await abrir('novo', null);
-    await preencher('RASCUNHO');
+    await preencher('2026089999');
     await abrir(null, null);
 
     await abrir('edicao', loteCom(1004));

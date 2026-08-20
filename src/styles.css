@@ -155,20 +155,6 @@ body {
   }
 
   /*
-   * As setinhas de incremento roubam largura de campos estreitos e ninguém ajusta um
-   * ID de lote de um em um — some com elas em todos os navegadores.
-   */
-  .campo[type='number'] {
-    appearance: textfield;
-  }
-
-  .campo[type='number']::-webkit-outer-spin-button,
-  .campo[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  /*
    * O campo de data nativo pinta cada parte (dia, mês, ano) com sua própria cor e um
    * ícone de calendário azulado. Aqui ele passa a falar a mesma língua dos outros campos.
    */
