@@ -14,7 +14,9 @@ describe('LANCAMENTOS', () => {
   it('entrega a quantidade de lançamentos que a grade de lotes anuncia', () => {
     const divergentes = LOTES.filter(
       (lote) => porLote.get(lote.id)!.length !== lote.quantidadeLancamentos,
-    ).map((lote) => `lote ${lote.id}: ${porLote.get(lote.id)!.length} de ${lote.quantidadeLancamentos}`);
+    ).map(
+      (lote) => `lote ${lote.id}: ${porLote.get(lote.id)!.length} de ${lote.quantidadeLancamentos}`,
+    );
 
     expect(divergentes).toEqual([]);
   });
