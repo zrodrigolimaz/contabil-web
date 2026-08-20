@@ -202,7 +202,11 @@ function sorteioReprodutivel(semente: number): (limite: number) => number {
   };
 }
 
-function repartir(valorDoLote: number, quantidade: number, sortear: (n: number) => number): number[] {
+function repartir(
+  valorDoLote: number,
+  quantidade: number,
+  sortear: (n: number) => number,
+): number[] {
   const totalEmCentavos = Math.round(valorDoLote * 100);
   const pesos = Array.from({ length: quantidade }, () => 70 + sortear(60));
   const somaDosPesos = pesos.reduce((total, peso) => total + peso, 0);

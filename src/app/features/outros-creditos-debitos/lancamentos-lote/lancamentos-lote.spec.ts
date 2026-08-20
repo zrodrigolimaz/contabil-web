@@ -444,7 +444,9 @@ describe('LancamentosLote', () => {
     await abrir(null, null);
     await abrir('edicao', loteCom(1010));
 
-    expect(fixture.nativeElement.querySelector('footer input[type="checkbox"]').checked).toBe(false);
+    expect(fixture.nativeElement.querySelector('footer input[type="checkbox"]').checked).toBe(
+      false,
+    );
   });
 
   it('atualiza os totais do lote mesmo se o modal fechar antes da resposta', async () => {
