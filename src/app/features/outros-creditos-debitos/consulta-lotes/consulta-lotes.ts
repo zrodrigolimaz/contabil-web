@@ -244,6 +244,7 @@ export class ConsultaLotes {
         this.justificativaAberta.set(this.lotesSelecionados()[0] ?? null);
         break;
       case 'incluir':
+        this.limparSelecao();
         this.abrirLancamentos('novo', null);
         break;
       case 'alterar':

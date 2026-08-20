@@ -26,8 +26,8 @@ export class SecaoAnexos {
     () => this.anexos().find((anexo) => anexo.id === this.idMarcado()) ?? null,
   );
 
-  protected alternar(id: number): void {
-    this.idMarcado.set(this.idMarcado() === id ? null : id);
+  protected marcar(id: number): void {
+    this.idMarcado.set(id);
   }
 
   protected aoIncluir(dados: NovoAnexo): void {

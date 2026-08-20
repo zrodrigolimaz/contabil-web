@@ -1,4 +1,4 @@
-<fieldset class="border-0 p-0" [formGroup]="grupo()">
+<fieldset class="min-w-0 border-0 p-0" [formGroup]="grupo()">
   <legend class="sr-only">Documento CSC</legend>
 
   <div class="mb-[18px] flex items-center gap-3">
@@ -11,7 +11,7 @@
       rotulo="PA"
       paraId="lancamento-pa"
       [controle]="grupo().controls.pa"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <select id="lancamento-pa" class="campo campo-select" formControlName="pa">
         <option value="">Selecione</option>
@@ -30,10 +30,9 @@
         <input
           id="lancamento-evento"
           type="text"
+          [appDigitos]="6"
           class="campo"
           formControlName="idEvento"
-          inputmode="numeric"
-          autocomplete="off"
         />
 
         <button
@@ -96,7 +95,7 @@
       rotulo="Compl. Histórico"
       paraId="lancamento-compl-historico"
       [controle]="grupo().controls.complementoHistorico"
-      [obrigatorio]="true"
+      [obrigatorio]="!leitura()"
     >
       <textarea
         id="lancamento-compl-historico"

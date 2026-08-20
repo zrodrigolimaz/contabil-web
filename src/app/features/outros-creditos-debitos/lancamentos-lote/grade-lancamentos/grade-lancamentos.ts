@@ -13,9 +13,9 @@ export class GradeLancamentos {
   readonly lancamentos = input.required<readonly Lancamento[]>();
   readonly selecionado = input.required<number | null>();
 
-  readonly selecionar = output<number | null>();
+  readonly selecionar = output<number>();
 
-  protected alternar(id: number): void {
-    this.selecionar.emit(this.selecionado() === id ? null : id);
+  protected marcar(id: number): void {
+    this.selecionar.emit(id);
   }
 }

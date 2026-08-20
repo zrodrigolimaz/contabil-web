@@ -80,9 +80,15 @@ export class LancamentosLote {
     return this.lancamentos().find((lancamento) => lancamento.id === id) ?? null;
   });
 
+  protected readonly lancamentoNoFormulario = computed(() =>
+    this.somenteLeitura() ? this.marcado() : this.emEdicao(),
+  );
+
   protected readonly dica = computed(() => {
     if (this.somenteLeitura()) {
-      return 'Lote aberto apenas para leitura.';
+      return this.lancamentos().length === 0
+        ? 'Lote aberto apenas para leitura.'
+        : 'Lote aberto apenas para leitura. Marque um lançamento para ver os detalhes acima.';
     }
     if (this.lancamentos().length === 0) {
       return 'Inclua o primeiro lançamento pelo formulário acima.';
@@ -99,6 +105,9 @@ export class LancamentosLote {
       this.selecionado.set(null);
       this.emEdicao.set(null);
       this.erro.set(null);
+      this.manterDados.set(false);
+
+      this.formulario()?.limpar();
 
       if (modo === null) {
         this.lancamentos.set([]);
@@ -137,6 +146,7 @@ export class LancamentosLote {
 
   protected editarMarcado(): void {
     this.emEdicao.set(this.marcado());
+    this.formulario()?.destacar();
   }
 
   protected cancelarEdicao(): void {
@@ -156,7 +166,7 @@ export class LancamentosLote {
     this.executar(this.lancamentoService.excluir(marcado.id), () => {
       this.selecionado.set(null);
       this.emEdicao.set(null);
-      this.recarregar();
+      this.recarregar(marcado.idLote);
     });
   }
 
@@ -168,7 +178,7 @@ export class LancamentosLote {
 
     this.executar(this.lancamentoService.duplicar(marcado.id), (copia) => {
       this.selecionado.set(copia.id);
-      this.recarregar();
+      this.recarregar(marcado.idLote);
     });
   }
 
@@ -179,7 +189,7 @@ export class LancamentosLote {
   private incluir(idLote: number, dados: DadosFormularioLancamento): void {
     this.executar(this.lancamentoService.incluir(this.montar(idLote, dados)), (incluido) => {
       this.selecionado.set(incluido.id);
-      this.recarregar();
+      this.recarregar(idLote);
     });
   }
 
@@ -188,7 +198,7 @@ export class LancamentosLote {
       this.lancamentoService.alterar(atual.id, this.montar(atual.idLote, dados)),
       () => {
         this.emEdicao.set(null);
-        this.recarregar();
+        this.recarregar(atual.idLote);
       },
     );
   }
@@ -202,25 +212,29 @@ export class LancamentosLote {
       .listarPorLote(idLote)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (lancamentos) => this.lancamentos.set(lancamentos),
+        next: (lancamentos) => {
+          this.lancamentos.set(lancamentos);
+
+          const primeiro = lancamentos[0] ?? null;
+          this.selecionado.set(primeiro?.id ?? null);
+
+          if (!this.somenteLeitura()) {
+            this.emEdicao.set(primeiro);
+          }
+        },
         error: (falha: Error) => this.erro.set(falha.message),
       });
   }
 
-  private recarregar(): void {
-    const lote = this.loteDestino();
-    if (!lote) {
-      return;
-    }
-
+  private recarregar(idLote: number): void {
     this.houveMutacao = true;
     this.lancamentoService
-      .listarPorLote(lote.id)
+      .listarPorLote(idLote)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (lancamentos) => {
           this.lancamentos.set(lancamentos);
-          this.atualizarTotais(lote.id, lancamentos);
+          this.atualizarTotais(idLote, lancamentos);
         },
         error: (falha: Error) => this.erro.set(falha.message),
       });

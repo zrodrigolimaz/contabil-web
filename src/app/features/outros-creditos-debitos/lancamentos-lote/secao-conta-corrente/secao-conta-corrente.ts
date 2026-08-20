@@ -5,6 +5,7 @@ import { HISTORICOS } from '../../../../core/mocks/opcoes.mock';
 import { ContaCorrente } from '../../../../core/models/conta-corrente';
 import { SituacaoLancamento } from '../../../../core/models/lancamento';
 import { CAMPO_FORM } from '../../../../shared/ui/campo-form/campo-form';
+import { MASCARAS } from '../../../../shared/ui/mascaras';
 import { PesquisaConta } from './pesquisa-conta/pesquisa-conta';
 
 export type GrupoContaCorrente = FormGroup<{
@@ -18,7 +19,7 @@ export type GrupoContaCorrente = FormGroup<{
 
 @Component({
   selector: 'app-secao-conta-corrente',
-  imports: [ReactiveFormsModule, CAMPO_FORM, PesquisaConta],
+  imports: [ReactiveFormsModule, CAMPO_FORM, MASCARAS, PesquisaConta],
   templateUrl: './secao-conta-corrente.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,6 +28,7 @@ export class SecaoContaCorrente {
   readonly titular = input<string | null>(null);
   readonly situacao = input<SituacaoLancamento>('Pendente');
   readonly desabilitado = input(false);
+  readonly leitura = input(false);
 
   protected readonly historicos = HISTORICOS;
   protected readonly pesquisaAberta = signal(false);

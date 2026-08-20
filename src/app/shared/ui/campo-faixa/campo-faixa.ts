@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { estadoDoControle } from '../estado-controle';
+import { MASCARAS } from '../mascaras';
 
 let sequencia = 0;
 
 @Component({
   selector: 'app-campo-faixa',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, MASCARAS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './campo-faixa.html',
 })
@@ -25,6 +26,4 @@ export class CampoFaixa {
   protected readonly idErro = `erro-faixa-${sequencia++}`;
 
   protected readonly estado = estadoDoControle(this.grupo);
-
-  protected readonly passo = computed(() => (this.tipo() === 'decimal' ? '0.01' : '1'));
 }

@@ -1,10 +1,14 @@
+import { CurrencyPipe } from '@angular/common';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
   effect,
+  ElementRef,
   inject,
+  Injector,
   input,
   output,
   signal,
@@ -44,7 +48,7 @@ export const ID_FORM_LANCAMENTO = 'form-lancamento';
 
 @Component({
   selector: 'app-formulario-lancamento',
-  imports: [ReactiveFormsModule, SecaoAnexos, SecaoContaCorrente, SecaoDocumentoCsc],
+  imports: [CurrencyPipe, ReactiveFormsModule, SecaoAnexos, SecaoContaCorrente, SecaoDocumentoCsc],
   templateUrl: './formulario-lancamento.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -54,10 +58,13 @@ export class FormularioLancamento {
   private readonly eventos = inject(EventoService);
   private readonly anexoService = inject(AnexoService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   readonly lancamento = input<Lancamento | null>(null);
   readonly desabilitado = input(false);
   readonly emEdicao = input(false);
+  readonly leitura = input(false);
   readonly manterDados = input(false);
 
   readonly salvar = output<DadosFormularioLancamento>();
@@ -98,6 +105,10 @@ export class FormularioLancamento {
       map((evento) => evento?.descricao ?? null),
     ),
     { initialValue: null },
+  );
+
+  protected readonly lancamentoEmDestaque = computed(() =>
+    this.emEdicao() || this.leitura() ? this.lancamento() : null,
   );
 
   protected readonly situacao = computed(() => this.lancamento()?.situacao ?? 'Pendente');
@@ -145,6 +156,10 @@ export class FormularioLancamento {
   }
 
   protected aoEnviar(): void {
+    if (this.desabilitado()) {
+      return;
+    }
+
     if (this.form.pending) {
       this.form.statusChanges
         .pipe(
@@ -182,6 +197,20 @@ export class FormularioLancamento {
   limpar(): void {
     this.form.reset();
     this.anexos.set([]);
+  }
+
+  destacar(): void {
+    afterNextRender(
+      () => {
+        const suave = !matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+        this.elemento.nativeElement.scrollIntoView?.({
+          behavior: suave ? 'smooth' : 'auto',
+          block: 'start',
+        });
+      },
+      { injector: this.injector },
+    );
   }
 
   protected incluirAnexo(dados: NovoAnexo): void {

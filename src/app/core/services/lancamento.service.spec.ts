@@ -39,8 +39,8 @@ describe('LancamentoService', () => {
     expect(lancamentos.map((lancamento) => lancamento.id)).toEqual([1, 2]);
   });
 
-  it('devolve lista vazia para lote sem lançamentos carregados', () => {
-    expect(valorDe(service.listarPorLote(1008))).toHaveLength(0);
+  it('devolve lista vazia para lote que não existe', () => {
+    expect(valorDe(service.listarPorLote(9999))).toHaveLength(0);
   });
 
   it('inclui o lançamento como pendente e o adiciona à grade do lote', () => {

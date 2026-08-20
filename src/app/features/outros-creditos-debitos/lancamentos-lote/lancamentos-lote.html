@@ -10,14 +10,16 @@
     }
 
     <app-formulario-lancamento
-      [lancamento]="emEdicao()"
+      class="min-w-0"
+      [lancamento]="lancamentoNoFormulario()"
       [desabilitado]="somenteLeitura() || executando()"
       [emEdicao]="emEdicao() !== null"
+      [leitura]="somenteLeitura()"
       [manterDados]="manterDados()"
       (salvar)="aoSalvar($event)"
     />
 
-    <section class="flex flex-col gap-3.5">
+    <section class="flex min-w-0 flex-col gap-3.5">
       <div class="flex flex-wrap items-center gap-3">
         <h3 class="eyebrow">Lançamentos</h3>
 
@@ -142,7 +144,12 @@
           <button type="button" class="btn btn-texto" (click)="limparFormulario()">Limpar</button>
         }
 
-        <button type="submit" class="btn btn-primario" [attr.form]="idForm">
+        <button
+          type="submit"
+          class="btn btn-primario"
+          [attr.form]="idForm"
+          [disabled]="executando()"
+        >
           {{ emEdicao() ? 'Salvar alteração' : 'Incluir' }}
         </button>
       }

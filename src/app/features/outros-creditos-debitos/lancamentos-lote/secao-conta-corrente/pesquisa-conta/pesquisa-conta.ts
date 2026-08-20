@@ -92,8 +92,8 @@ export class PesquisaConta {
     this.pesquisar(pagina);
   }
 
-  protected alternar(conta: ContaCorrente): void {
-    this.marcada.set(this.marcada()?.numero === conta.numero ? null : conta);
+  protected marcar(conta: ContaCorrente): void {
+    this.marcada.set(conta);
   }
 
   protected confirmar(): void {

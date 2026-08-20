@@ -102,11 +102,11 @@ describe('FiltrosLotes', () => {
 
   it('volta a pesquisar depois de corrigir a faixa', async () => {
     const [de, ate] = faixa(1);
-    preencher(de, '900');
-    preencher(ate, '100');
+    preencher(de, '90000');
+    preencher(ate, '10000');
     await enviar();
 
-    preencher(ate, '9000');
+    preencher(ate, '900000');
     await enviar();
 
     expect(emitidos).toHaveLength(1);
@@ -149,7 +149,7 @@ describe('FiltrosLotes', () => {
       preencher(idAte, '1008');
 
       const [, valorAte] = faixa(1);
-      preencher(valorAte, '5000');
+      preencher(valorAte, '500000');
 
       const situacao: HTMLSelectElement = fixture.nativeElement.querySelector('#filtro-situacao');
       preencher(situacao, situacao.options[1].value);

@@ -19,9 +19,9 @@
           </span>
         }
         <!--
-          O tipo do input é fixo em cada ramo de propósito: o Angular escolhe o
-          NumberValueAccessor pelo seletor input[type=number], e com o tipo vindo
-          de um binding o controle receberia texto em vez de número.
+          A máscara de cada ramo é escolhida por seletor de atributo, e um atributo
+          não entra por binding: por isso os três ramos aparecem escritos por extenso
+          em vez de um input só com o tipo calculado.
         -->
         @if (tipo() === 'data') {
           <input
@@ -32,11 +32,23 @@
             [attr.aria-invalid]="estado.comErro() || null"
             [attr.aria-describedby]="estado.mensagem() ? idErro : null"
           />
+        } @else if (tipo() === 'decimal') {
+          <input
+            [id]="idDe"
+            type="text"
+            appMoeda
+            [placeholder]="exemploDe() ?? ''"
+            formControlName="de"
+            class="campo"
+            [class.pl-9]="prefixo()"
+            [attr.aria-invalid]="estado.comErro() || null"
+            [attr.aria-describedby]="estado.mensagem() ? idErro : null"
+          />
         } @else {
           <input
             [id]="idDe"
-            type="number"
-            [attr.step]="passo()"
+            type="text"
+            [appInteiro]="9"
             [placeholder]="exemploDe() ?? ''"
             formControlName="de"
             class="campo"
@@ -68,11 +80,23 @@
             [attr.aria-invalid]="estado.comErro() || null"
             [attr.aria-describedby]="estado.mensagem() ? idErro : null"
           />
+        } @else if (tipo() === 'decimal') {
+          <input
+            [id]="idAte"
+            type="text"
+            appMoeda
+            [placeholder]="exemploAte() ?? ''"
+            formControlName="ate"
+            class="campo"
+            [class.pl-9]="prefixo()"
+            [attr.aria-invalid]="estado.comErro() || null"
+            [attr.aria-describedby]="estado.mensagem() ? idErro : null"
+          />
         } @else {
           <input
             [id]="idAte"
-            type="number"
-            [attr.step]="passo()"
+            type="text"
+            [appInteiro]="9"
             [placeholder]="exemploAte() ?? ''"
             formControlName="ate"
             class="campo"

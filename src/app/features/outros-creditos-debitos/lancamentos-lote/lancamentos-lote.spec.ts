@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
 import { provideLocalePtBr } from '../../../app.config';
 import { CONTAS_CORRENTES } from '../../../core/mocks/contas-correntes.mock';
@@ -11,7 +11,7 @@ import { ContaCorrenteService } from '../../../core/services/conta-corrente.serv
 import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
 import { aparelharDialogos } from '../../../core/testing/dialogo-jsdom';
-import { LancamentosLote, ResultadoLancamentos } from './lancamentos-lote';
+import { LancamentosLote, ModoLancamentos, ResultadoLancamentos } from './lancamentos-lote';
 
 class ContaCorrenteFalso {
   buscarPorNumero(numero: string): Observable<ContaCorrente | null> {
@@ -21,7 +21,20 @@ class ContaCorrenteFalso {
 
 class LancamentoFalso {
   lancamentos: Lancamento[] = [];
+  represarInclusao = false;
+  private represadas: { resposta: Subject<Lancamento>; incluido: Lancamento }[] = [];
   private proximoId = 100;
+
+  liberarInclusoes(): void {
+    const abertas = this.represadas;
+    this.represadas = [];
+
+    for (const { resposta, incluido } of abertas) {
+      this.lancamentos.push(incluido);
+      resposta.next(incluido);
+      resposta.complete();
+    }
+  }
 
   listarPorLote(idLote: number): Observable<readonly Lancamento[]> {
     return of(this.lancamentos.filter((lancamento) => lancamento.idLote === idLote));
@@ -35,6 +48,12 @@ class LancamentoFalso {
       situacaoDocumentoCsc: 'Aguardando Processamento CCO',
       idDocumentoCsc: null,
     } as Lancamento;
+
+    if (this.represarInclusao) {
+      const resposta = new Subject<Lancamento>();
+      this.represadas.push({ resposta, incluido });
+      return resposta.asObservable();
+    }
 
     this.lancamentos.push(incluido);
     return of(incluido);
@@ -141,7 +160,7 @@ describe('LancamentosLote', () => {
     aparelharDialogos(fixture.nativeElement);
   });
 
-  async function abrir(modo: 'novo' | 'edicao' | 'leitura', lote: Lote | null): Promise<void> {
+  async function abrir(modo: ModoLancamentos | null, lote: Lote | null): Promise<void> {
     fixture.componentRef.setInput('lote', lote);
     fixture.componentRef.setInput('modo', modo);
     await fixture.whenStable();
@@ -202,6 +221,12 @@ describe('LancamentosLote', () => {
 
   function texto(): string {
     return fixture.nativeElement.textContent;
+  }
+
+  function errosDeCampo(): string[] {
+    return [...fixture.nativeElement.querySelectorAll('app-campo-form [role="alert"]')].map(
+      (alerta: HTMLElement) => alerta.textContent?.trim() ?? '',
+    );
   }
 
   it('fica fechado enquanto ninguém o abre', () => {
@@ -296,44 +321,49 @@ describe('LancamentosLote', () => {
   });
 
   it('altera o lançamento marcado', async () => {
-    lancamentos.lancamentos = [lancamentoCom(1, 1004, { documento: 'ANTIGO' })];
+    lancamentos.lancamentos = [lancamentoCom(1, 1004, { documento: '2026080001' })];
     await abrir('edicao', loteCom(1004));
 
     await marcar(1);
     await clicarNaGrade('Alterar');
-    await digitar('lancamento-documento', 'NOVO');
+    await digitar('lancamento-documento', '2026080099');
 
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     await fixture.whenStable();
 
     expect(lancamentos.lancamentos).toHaveLength(1);
-    expect(lancamentos.lancamentos[0].documento).toBe('NOVO');
+    expect(lancamentos.lancamentos[0].documento).toBe('2026080099');
   });
 
   it('exclui o lançamento marcado', async () => {
     lancamentos.lancamentos = [lancamentoCom(1, 1004), lancamentoCom(2, 1004)];
     await abrir('edicao', loteCom(1004));
 
-    await marcar(1);
+    await marcar(2);
     await clicarNaGrade('Excluir');
 
-    expect(lancamentos.lancamentos.map((lancamento) => lancamento.id)).toEqual([2]);
+    expect(lancamentos.lancamentos.map((lancamento) => lancamento.id)).toEqual([1]);
   });
 
   it('duplica o lançamento marcado', async () => {
-    lancamentos.lancamentos = [lancamentoCom(1, 1004, { documento: 'ORIGINAL' })];
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004),
+      lancamentoCom(2, 1004, { documento: '2026080002' }),
+    ];
     await abrir('edicao', loteCom(1004));
 
-    await marcar(1);
+    await marcar(2);
     await clicarNaGrade('Duplicar');
 
-    expect(lancamentos.lancamentos).toHaveLength(2);
-    expect(lancamentos.lancamentos[1].documento).toBe('ORIGINAL');
+    expect(lancamentos.lancamentos).toHaveLength(3);
+    expect(lancamentos.lancamentos[2].documento).toBe('2026080002');
   });
 
   it('pede a marcação de uma linha antes das ações da grade', async () => {
-    lancamentos.lancamentos = [lancamentoCom(1, 1004)];
+    lancamentos.lancamentos = [lancamentoCom(1, 1004), lancamentoCom(2, 1004)];
     await abrir('edicao', loteCom(1004));
+
+    await clicarNaGrade('Excluir');
 
     expect(texto()).toContain('Marque um lançamento para alterar, excluir ou duplicar.');
   });
@@ -377,5 +407,157 @@ describe('LancamentosLote', () => {
 
     expect(texto()).toContain('Nenhum registro encontrado.');
     expect(texto()).toContain('Inclua o primeiro lançamento pelo formulário acima.');
+  });
+
+  it('não inclui o mesmo lançamento duas vezes com dois cliques seguidos', async () => {
+    await abrir('edicao', loteCom(1004));
+    await preencher();
+
+    lancamentos.represarInclusao = true;
+    const enviar = async () => {
+      fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+      await fixture.whenStable();
+    };
+    await enviar();
+    await enviar();
+    await enviar();
+
+    lancamentos.liberarInclusoes();
+    await fixture.whenStable();
+
+    expect(lancamentos.lancamentos).toHaveLength(1);
+  });
+
+  it('desliga o botão de gravar enquanto a gravação não volta', async () => {
+    await abrir('edicao', loteCom(1004));
+
+    const submit: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(submit.disabled).toBe(false);
+  });
+
+  it('não carrega para a próxima abertura o pedido de manter dados', async () => {
+    await abrir('edicao', loteCom(1004));
+    fixture.nativeElement.querySelector('footer input[type="checkbox"]').click();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('footer input[type="checkbox"]').checked).toBe(true);
+
+    await abrir(null, null);
+    await abrir('edicao', loteCom(1010));
+
+    expect(fixture.nativeElement.querySelector('footer input[type="checkbox"]').checked).toBe(false);
+  });
+
+  it('atualiza os totais do lote mesmo se o modal fechar antes da resposta', async () => {
+    await abrir('edicao', loteCom(1004));
+    await preencher();
+
+    lancamentos.represarInclusao = true;
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    await abrir(null, null);
+    lancamentos.liberarInclusoes();
+    await fixture.whenStable();
+
+    expect(lotes.totais.at(-1)).toEqual({ id: 1004, valor: 1500.25, quantidade: 1 });
+  });
+
+  it('abre o lote já alterando o primeiro lançamento', async () => {
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004, { documento: 'PRIMEIRO' }),
+      lancamentoCom(2, 1004),
+    ];
+
+    await abrir('edicao', loteCom(1004));
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('PRIMEIRO');
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Alterando o lançamento 1',
+    );
+  });
+
+  it('avisa que o formulário é de lançamento novo quando o lote está vazio', async () => {
+    await abrir('edicao', loteCom(1004));
+
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Novo lançamento',
+    );
+  });
+
+  it('em leitura mostra o primeiro lançamento na ficha ao abrir', async () => {
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004, { documento: 'PRIMEIRO', situacao: 'Processado' }),
+      lancamentoCom(2, 1004, { documento: 'SEGUNDO' }),
+    ];
+
+    await abrir('leitura', loteCom(1004));
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('PRIMEIRO');
+    expect((campo('lancamento-situacao') as HTMLInputElement).value).toBe('Processado');
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Vendo o lançamento 1',
+    );
+  });
+
+  it('em leitura troca a ficha ao marcar outro lançamento', async () => {
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004, { documento: 'PRIMEIRO' }),
+      lancamentoCom(2, 1004, { documento: 'SEGUNDO' }),
+    ];
+    await abrir('leitura', loteCom(1004));
+
+    await marcar(2);
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('SEGUNDO');
+  });
+
+  it('em leitura não pede campo obrigatório', async () => {
+    lancamentos.lancamentos = [lancamentoCom(1, 1004)];
+
+    await abrir('leitura', loteCom(1004));
+
+    const rotulos = [...fixture.nativeElement.querySelectorAll('label.rotulo')];
+    expect(rotulos.some((rotulo: HTMLElement) => rotulo.textContent?.includes('*'))).toBe(false);
+  });
+
+  it('diz qual lançamento está em alteração e some ao cancelar', async () => {
+    lancamentos.lancamentos = [lancamentoCom(1, 1004)];
+    await abrir('edicao', loteCom(1004));
+
+    await marcar(1);
+    await clicarNaGrade('Alterar');
+
+    const aviso = fixture.nativeElement.querySelector('[role="status"]');
+    expect(aviso.textContent).toContain('Alterando o lançamento 1');
+    expect(aviso.textContent).toContain('Ana Paula Costa');
+
+    await clicarNoRodape('Cancelar edição');
+
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Novo lançamento',
+    );
+  });
+
+  it('não leva para a próxima abertura o que ficou digitado', async () => {
+    await abrir('novo', null);
+    await preencher('2026089999');
+    await abrir(null, null);
+
+    await abrir('edicao', loteCom(1004));
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('');
+    expect((campo('lancamento-valor') as HTMLInputElement).value).toBe('');
+  });
+
+  it('não leva para a próxima abertura os avisos de campo obrigatório', async () => {
+    await abrir('novo', null);
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+    expect(errosDeCampo()).not.toEqual([]);
+
+    await abrir(null, null);
+    await abrir('leitura', loteCom(1004));
+
+    expect(errosDeCampo()).toEqual([]);
   });
 });

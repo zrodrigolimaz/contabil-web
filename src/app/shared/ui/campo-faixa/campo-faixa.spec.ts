@@ -41,6 +41,12 @@ describe('CampoFaixa', () => {
     return fixture.nativeElement.querySelector('[role="alert"]');
   }
 
+  async function digitar(campo: HTMLInputElement, texto: string): Promise<void> {
+    campo.value = texto;
+    campo.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+  }
+
   it('rotula o par e liga cada rótulo ao seu campo', async () => {
     await montar(grupoDeFaixa());
 
@@ -54,17 +60,34 @@ describe('CampoFaixa', () => {
     expect(rotulos[1].getAttribute('for')).toBe(entradas()[1].id);
   });
 
-  it('usa campo numérico com passo inteiro por padrão', async () => {
-    await montar(grupoDeFaixa());
+  it('recusa o que não for dígito na faixa de identificador', async () => {
+    const grupo = grupoDeFaixa();
+    await montar(grupo);
 
-    expect(entradas().map((campo) => campo.type)).toEqual(['number', 'number']);
-    expect(entradas()[0].getAttribute('step')).toBe('1');
+    await digitar(entradas()[0], '10e01-');
+
+    expect(entradas()[0].value).toBe('1001');
+    expect(grupo.controls['de'].value).toBe(1001);
   });
 
-  it('abre casas decimais no passo quando a faixa é de valor', async () => {
-    await montar(grupoDeFaixa(), 'decimal');
+  it('escreve o dinheiro no formato de leitura e guarda o número', async () => {
+    const grupo = grupoDeFaixa();
+    await montar(grupo, 'decimal');
 
-    expect(entradas()[0].getAttribute('step')).toBe('0.01');
+    await digitar(entradas()[0], '123456');
+
+    expect(entradas()[0].value).toBe('1.234,56');
+    expect(grupo.controls['de'].value).toBe(1234.56);
+  });
+
+  it('esvazia o controle quando o campo de dinheiro fica em branco', async () => {
+    const grupo = grupoDeFaixa();
+    await montar(grupo, 'decimal');
+
+    await digitar(entradas()[0], '50');
+    await digitar(entradas()[0], '');
+
+    expect(grupo.controls['de'].value).toBeNull();
   });
 
   it('troca para campo de data quando a faixa é de datas', async () => {
