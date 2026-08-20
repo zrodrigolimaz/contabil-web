@@ -229,15 +229,17 @@ describe('ConsultaLotes', () => {
     return fixture.nativeElement.querySelector('app-lancamentos-lote dialog');
   }
 
-  it('mostra a orientação inicial antes de qualquer pesquisa', () => {
-    expect(texto()).toContain('Nenhuma pesquisa realizada');
+  it('consulta a primeira página assim que a tela abre, sem filtro nenhum', () => {
+    expect(servico.recebidos).toEqual([
+      { filtros: FILTROS_VAZIOS, pagina: 1, ordenacao: ORDENACAO_PADRAO },
+    ]);
   });
 
   it('repassa ao serviço os filtros emitidos pelo painel', async () => {
     const filtros: FiltrosPesquisaLote = { ...FILTROS_VAZIOS, situacao: 'Aberto' };
     await pesquisarCom(filtros);
 
-    expect(servico.recebidos).toEqual([{ filtros, pagina: 1, ordenacao: ORDENACAO_PADRAO }]);
+    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 1, ordenacao: ORDENACAO_PADRAO });
   });
 
   it('indica o carregamento enquanto a primeira consulta não responde', async () => {
@@ -275,12 +277,13 @@ describe('ConsultaLotes', () => {
     await pesquisarCom();
     await pesquisarCom({ ...FILTROS_VAZIOS, situacao: 'Aberto' });
 
-    servico.pendentes[0].next(paginaUnica([loteCom(1001)]));
+    /* A consulta que a tela dispara sozinha ao abrir é a de índice 0. */
+    servico.pendentes[1].next(paginaUnica([loteCom(1001)]));
     await fixture.whenStable();
 
     expect(texto()).toContain('Consultando lotes…');
 
-    servico.pendentes[1].next(paginaUnica([loteCom(1002)]));
+    servico.pendentes[2].next(paginaUnica([loteCom(1002)]));
     await fixture.whenStable();
 
     expect(texto()).toContain('1002');
@@ -289,14 +292,14 @@ describe('ConsultaLotes', () => {
 
   it('repete pelo Tentar novamente a consulta que falhou', async () => {
     await pesquisarCom();
-    servico.pendentes[0].error(new Error('Não foi possível consultar os lotes.'));
+    servico.pendentes[1].error(new Error('Não foi possível consultar os lotes.'));
     await fixture.whenStable();
 
     await clicarNoBotao('Tentar novamente');
 
-    expect(servico.recebidos).toHaveLength(2);
+    expect(servico.recebidos).toHaveLength(3);
 
-    servico.pendentes[1].next(paginaUnica([loteCom(1001)]));
+    servico.pendentes[2].next(paginaUnica([loteCom(1001)]));
     await fixture.whenStable();
 
     expect(texto()).toContain('1001');
@@ -309,7 +312,7 @@ describe('ConsultaLotes', () => {
 
     await clicar('button[aria-label="Próxima página"]');
 
-    expect(servico.recebidos[1]).toEqual({ filtros, pagina: 2, ordenacao: ORDENACAO_PADRAO });
+    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 2, ordenacao: ORDENACAO_PADRAO });
   });
 
   it('volta para a primeira página a cada nova pesquisa', async () => {
