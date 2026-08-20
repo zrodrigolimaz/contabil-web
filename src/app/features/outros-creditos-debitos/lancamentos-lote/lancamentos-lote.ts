@@ -105,6 +105,7 @@ export class LancamentosLote {
       this.selecionado.set(null);
       this.emEdicao.set(null);
       this.erro.set(null);
+      this.manterDados.set(false);
 
       this.formulario()?.limpar();
 
@@ -165,7 +166,7 @@ export class LancamentosLote {
     this.executar(this.lancamentoService.excluir(marcado.id), () => {
       this.selecionado.set(null);
       this.emEdicao.set(null);
-      this.recarregar();
+      this.recarregar(marcado.idLote);
     });
   }
 
@@ -177,7 +178,7 @@ export class LancamentosLote {
 
     this.executar(this.lancamentoService.duplicar(marcado.id), (copia) => {
       this.selecionado.set(copia.id);
-      this.recarregar();
+      this.recarregar(marcado.idLote);
     });
   }
 
@@ -188,7 +189,7 @@ export class LancamentosLote {
   private incluir(idLote: number, dados: DadosFormularioLancamento): void {
     this.executar(this.lancamentoService.incluir(this.montar(idLote, dados)), (incluido) => {
       this.selecionado.set(incluido.id);
-      this.recarregar();
+      this.recarregar(idLote);
     });
   }
 
@@ -197,7 +198,7 @@ export class LancamentosLote {
       this.lancamentoService.alterar(atual.id, this.montar(atual.idLote, dados)),
       () => {
         this.emEdicao.set(null);
-        this.recarregar();
+        this.recarregar(atual.idLote);
       },
     );
   }
@@ -225,20 +226,15 @@ export class LancamentosLote {
       });
   }
 
-  private recarregar(): void {
-    const lote = this.loteDestino();
-    if (!lote) {
-      return;
-    }
-
+  private recarregar(idLote: number): void {
     this.houveMutacao = true;
     this.lancamentoService
-      .listarPorLote(lote.id)
+      .listarPorLote(idLote)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (lancamentos) => {
           this.lancamentos.set(lancamentos);
-          this.atualizarTotais(lote.id, lancamentos);
+          this.atualizarTotais(idLote, lancamentos);
         },
         error: (falha: Error) => this.erro.set(falha.message),
       });

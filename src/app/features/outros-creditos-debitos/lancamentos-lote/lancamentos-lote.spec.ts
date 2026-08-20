@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 
 import { provideLocalePtBr } from '../../../app.config';
 import { CONTAS_CORRENTES } from '../../../core/mocks/contas-correntes.mock';
@@ -21,7 +21,20 @@ class ContaCorrenteFalso {
 
 class LancamentoFalso {
   lancamentos: Lancamento[] = [];
+  represarInclusao = false;
+  private represadas: { resposta: Subject<Lancamento>; incluido: Lancamento }[] = [];
   private proximoId = 100;
+
+  liberarInclusoes(): void {
+    const abertas = this.represadas;
+    this.represadas = [];
+
+    for (const { resposta, incluido } of abertas) {
+      this.lancamentos.push(incluido);
+      resposta.next(incluido);
+      resposta.complete();
+    }
+  }
 
   listarPorLote(idLote: number): Observable<readonly Lancamento[]> {
     return of(this.lancamentos.filter((lancamento) => lancamento.idLote === idLote));
@@ -35,6 +48,12 @@ class LancamentoFalso {
       situacaoDocumentoCsc: 'Aguardando Processamento CCO',
       idDocumentoCsc: null,
     } as Lancamento;
+
+    if (this.represarInclusao) {
+      const resposta = new Subject<Lancamento>();
+      this.represadas.push({ resposta, incluido });
+      return resposta.asObservable();
+    }
 
     this.lancamentos.push(incluido);
     return of(incluido);
@@ -388,6 +407,59 @@ describe('LancamentosLote', () => {
 
     expect(texto()).toContain('Nenhum registro encontrado.');
     expect(texto()).toContain('Inclua o primeiro lançamento pelo formulário acima.');
+  });
+
+  it('não inclui o mesmo lançamento duas vezes com dois cliques seguidos', async () => {
+    await abrir('edicao', loteCom(1004));
+    await preencher();
+
+    lancamentos.represarInclusao = true;
+    const enviar = async () => {
+      fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+      await fixture.whenStable();
+    };
+    await enviar();
+    await enviar();
+    await enviar();
+
+    lancamentos.liberarInclusoes();
+    await fixture.whenStable();
+
+    expect(lancamentos.lancamentos).toHaveLength(1);
+  });
+
+  it('desliga o botão de gravar enquanto a gravação não volta', async () => {
+    await abrir('edicao', loteCom(1004));
+
+    const submit: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(submit.disabled).toBe(false);
+  });
+
+  it('não carrega para a próxima abertura o pedido de manter dados', async () => {
+    await abrir('edicao', loteCom(1004));
+    fixture.nativeElement.querySelector('footer input[type="checkbox"]').click();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('footer input[type="checkbox"]').checked).toBe(true);
+
+    await abrir(null, null);
+    await abrir('edicao', loteCom(1010));
+
+    expect(fixture.nativeElement.querySelector('footer input[type="checkbox"]').checked).toBe(false);
+  });
+
+  it('atualiza os totais do lote mesmo se o modal fechar antes da resposta', async () => {
+    await abrir('edicao', loteCom(1004));
+    await preencher();
+
+    lancamentos.represarInclusao = true;
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    await abrir(null, null);
+    lancamentos.liberarInclusoes();
+    await fixture.whenStable();
+
+    expect(lotes.totais.at(-1)).toEqual({ id: 1004, valor: 1500.25, quantidade: 1 });
   });
 
   it('abre o lote já alterando o primeiro lançamento', async () => {

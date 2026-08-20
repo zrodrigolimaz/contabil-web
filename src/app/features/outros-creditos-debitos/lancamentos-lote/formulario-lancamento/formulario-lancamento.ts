@@ -156,6 +156,10 @@ export class FormularioLancamento {
   }
 
   protected aoEnviar(): void {
+    if (this.desabilitado()) {
+      return;
+    }
+
     if (this.form.pending) {
       this.form.statusChanges
         .pipe(
