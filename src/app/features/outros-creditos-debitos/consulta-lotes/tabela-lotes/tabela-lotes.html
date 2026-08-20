@@ -23,14 +23,29 @@
             (change)="aoAlternarTodos($event)"
           />
         </th>
-        <th scope="col" class="whitespace-nowrap px-3.5">ID Lote</th>
-        <th scope="col" class="whitespace-nowrap px-3.5">Data Entrada</th>
-        <th scope="col" class="whitespace-nowrap px-3.5 text-right">Valor</th>
-        <th scope="col" class="whitespace-nowrap px-3.5 text-right">Quant. Lançamentos</th>
-        <th scope="col" class="whitespace-nowrap px-3.5">Usuário Registro</th>
-        <th scope="col" class="whitespace-nowrap px-3.5">Usuário Aprovação</th>
-        <th scope="col" class="whitespace-nowrap px-3.5">Situação Lote</th>
-        <th scope="col" class="whitespace-nowrap py-0 pl-3.5 pr-4">Data/Hora Situação Lote</th>
+        @for (coluna of colunas; track coluna.campo) {
+          @let sentido = sentidoDe(coluna.campo);
+
+          <th scope="col" class="p-0" [attr.aria-sort]="sentido">
+            <button
+              type="button"
+              class="group flex h-[42px] w-full items-center gap-1.5 whitespace-nowrap px-3.5 text-inherit transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-300 motion-reduce:transition-none"
+              [class]="sentido === 'none' ? '' : colunaAtiva"
+              [class.flex-row-reverse]="coluna.numerica"
+              (click)="aoOrdenar(coluna.campo)"
+            >
+              {{ coluna.rotulo }}
+
+              <svg viewBox="0 0 8 13" class="h-[13px] w-2 shrink-0" aria-hidden="true">
+                <path d="M4 0 8 5H0Z" [class]="sentido === 'ascending' ? setaAcesa : setaApagada" />
+                <path
+                  d="M4 13 0 8h8Z"
+                  [class]="sentido === 'descending' ? setaAcesa : setaApagada"
+                />
+              </svg>
+            </button>
+          </th>
+        }
       </tr>
     </thead>
 

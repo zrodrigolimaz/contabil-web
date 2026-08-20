@@ -2,9 +2,27 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { Lote, SituacaoLote } from '../../../../core/models/lote';
+import { CampoOrdenacao, Ordenacao } from '../../../../core/models/ordenacao';
 
 /** Marcador de campo sem valor, no lugar de deixar a célula em branco. */
 export const SEM_VALOR = '—';
+
+interface Coluna {
+  readonly campo: CampoOrdenacao;
+  readonly rotulo: string;
+  readonly numerica?: boolean;
+}
+
+const COLUNAS: readonly Coluna[] = [
+  { campo: 'id', rotulo: 'ID Lote' },
+  { campo: 'dataEntrada', rotulo: 'Data Entrada' },
+  { campo: 'valor', rotulo: 'Valor', numerica: true },
+  { campo: 'quantidadeLancamentos', rotulo: 'Quant. Lançamentos', numerica: true },
+  { campo: 'usuarioRegistro', rotulo: 'Usuário Registro' },
+  { campo: 'usuarioAprovacao', rotulo: 'Usuário Aprovação' },
+  { campo: 'situacao', rotulo: 'Situação Lote' },
+  { campo: 'dataHoraSituacao', rotulo: 'Data/Hora Situação Lote' },
+];
 
 /** Tom da pastilha por situação; o avanço no fluxo aparece na intensidade da cor. */
 const CLASSE_DA_SITUACAO: Record<SituacaoLote, string> = {
@@ -23,8 +41,8 @@ const LARGURAS_ESQUELETO = ['100%', '45%', '70%', '55%', '35%', '65%', '60%', '5
  * Grade de resultados da consulta de lotes.
  *
  * Componente de apresentação: recebe a página já paginada e o conjunto de ids
- * selecionados, e apenas avisa quais linhas o usuário marcou. Quem decide o que
- * fazer com a seleção é o container.
+ * selecionados, e apenas avisa quais linhas o usuário marcou e por qual coluna quer
+ * ordenar. Quem consulta o serviço é o container.
  */
 @Component({
   selector: 'app-tabela-lotes',
@@ -37,14 +55,23 @@ export class TabelaLotes {
   readonly carregando = input(false);
   /** Ids marcados em toda a consulta, não só nesta página. */
   readonly selecionados = input.required<ReadonlySet<number>>();
+  readonly ordenacao = input.required<Ordenacao>();
 
   /** Id do lote cuja caixa foi clicada. */
   readonly alternarSelecao = output<number>();
   /** Novo estado da caixa mestre: marcar ou desmarcar a página inteira. */
   readonly alternarTodos = output<boolean>();
+  readonly ordenar = output<Ordenacao>();
 
   protected readonly semValor = SEM_VALOR;
   protected readonly classeDaSituacao = CLASSE_DA_SITUACAO;
+  protected readonly colunas = COLUNAS;
+
+  protected readonly colunaAtiva = 'bg-white/[0.07] text-white';
+
+  protected readonly setaAcesa = 'fill-primary-300';
+  protected readonly setaApagada =
+    'fill-white/35 transition-[fill] group-hover:fill-white/70 motion-reduce:transition-none';
 
   /** Células cinzas no lugar do corpo enquanto a consulta responde. */
   protected readonly linhasEsqueleto = Array.from({ length: 5 });
@@ -68,5 +95,21 @@ export class TabelaLotes {
 
   protected aoAlternarTodos(evento: Event): void {
     this.alternarTodos.emit((evento.target as HTMLInputElement).checked);
+  }
+
+  protected aoOrdenar(campo: CampoOrdenacao): void {
+    const atual = this.ordenacao();
+    const direcao = atual.campo === campo && atual.direcao === 'asc' ? 'desc' : 'asc';
+
+    this.ordenar.emit({ campo, direcao });
+  }
+
+  protected sentidoDe(campo: CampoOrdenacao): 'ascending' | 'descending' | 'none' {
+    const atual = this.ordenacao();
+    if (atual.campo !== campo) {
+      return 'none';
+    }
+
+    return atual.direcao === 'asc' ? 'ascending' : 'descending';
   }
 }

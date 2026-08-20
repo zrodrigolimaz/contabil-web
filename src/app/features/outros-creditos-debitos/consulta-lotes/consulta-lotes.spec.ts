@@ -6,6 +6,7 @@ import { provideLocalePtBr } from '../../../app.config';
 import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../../../core/models/filtros';
 import { Lancamento } from '../../../core/models/lancamento';
 import { Lote, SituacaoLote } from '../../../core/models/lote';
+import { Ordenacao, ORDENACAO_PADRAO } from '../../../core/models/ordenacao';
 import { ResultadoPaginado } from '../../../core/models/paginacao';
 import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
@@ -16,6 +17,7 @@ import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 interface Consulta {
   readonly filtros: FiltrosPesquisaLote;
   readonly pagina: number;
+  readonly ordenacao: Ordenacao;
 }
 
 /**
@@ -36,8 +38,12 @@ class LoteServiceFalso {
   /** Cada consulta ganha também um canal próprio, para o teste responder só a ela. */
   readonly pendentes: Subject<ResultadoPaginado<Lote>>[] = [];
 
-  pesquisar(filtros: FiltrosPesquisaLote, pagina = 1): Observable<ResultadoPaginado<Lote>> {
-    this.recebidos.push({ filtros, pagina });
+  pesquisar(
+    filtros: FiltrosPesquisaLote,
+    pagina = 1,
+    ordenacao = ORDENACAO_PADRAO,
+  ): Observable<ResultadoPaginado<Lote>> {
+    this.recebidos.push({ filtros, pagina, ordenacao });
 
     const propria = new Subject<ResultadoPaginado<Lote>>();
     this.pendentes.push(propria);
@@ -182,6 +188,18 @@ describe('ConsultaLotes', () => {
     await clicar(`input[aria-label="Selecionar lote ${id}"]`);
   }
 
+  async function ordenarPor(rotulo: string): Promise<void> {
+    const celula = [...fixture.nativeElement.querySelectorAll('thead th')].find(
+      (elemento: HTMLTableCellElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLTableCellElement | undefined;
+    if (!celula) {
+      throw new Error(`Coluna "${rotulo}" não está no cabeçalho`);
+    }
+
+    celula.querySelector('button')?.click();
+    await fixture.whenStable();
+  }
+
   function caixaDoLote(id: number): HTMLInputElement {
     return fixture.nativeElement.querySelector(`input[aria-label="Selecionar lote ${id}"]`);
   }
@@ -219,7 +237,7 @@ describe('ConsultaLotes', () => {
     const filtros: FiltrosPesquisaLote = { ...FILTROS_VAZIOS, situacao: 'Aberto' };
     await pesquisarCom(filtros);
 
-    expect(servico.recebidos).toEqual([{ filtros, pagina: 1 }]);
+    expect(servico.recebidos).toEqual([{ filtros, pagina: 1, ordenacao: ORDENACAO_PADRAO }]);
   });
 
   it('indica o carregamento enquanto a primeira consulta não responde', async () => {
@@ -291,7 +309,7 @@ describe('ConsultaLotes', () => {
 
     await clicar('button[aria-label="Próxima página"]');
 
-    expect(servico.recebidos[1]).toEqual({ filtros, pagina: 2 });
+    expect(servico.recebidos[1]).toEqual({ filtros, pagina: 2, ordenacao: ORDENACAO_PADRAO });
   });
 
   it('volta para a primeira página a cada nova pesquisa', async () => {
@@ -303,6 +321,37 @@ describe('ConsultaLotes', () => {
     await pesquisarCom();
 
     expect(servico.recebidos.at(-1)?.pagina).toBe(1);
+  });
+
+  it('reconsulta a partir da página 1 ao trocar a ordenação', async () => {
+    const filtros: FiltrosPesquisaLote = { ...FILTROS_VAZIOS, situacao: 'Enviado' };
+    await pesquisarCom(filtros);
+    await responder(paginaCom(1001, 1));
+    await clicar('button[aria-label="Última página"]');
+    await responder(paginaCom(1003, 3));
+
+    await ordenarPor('Valor');
+
+    expect(servico.recebidos.at(-1)).toEqual({
+      filtros,
+      pagina: 1,
+      ordenacao: { campo: 'valor', direcao: 'asc' },
+    });
+  });
+
+  it('mantém a ordenação escolhida ao mudar de página', async () => {
+    await pesquisarCom();
+    await responder(paginaCom(1001, 1));
+    await ordenarPor('Data Entrada');
+    await responder(paginaCom(1001, 1));
+
+    await clicar('button[aria-label="Próxima página"]');
+
+    expect(servico.recebidos.at(-1)).toEqual({
+      filtros: FILTROS_VAZIOS,
+      pagina: 2,
+      ordenacao: { campo: 'dataEntrada', direcao: 'asc' },
+    });
   });
 
   it('preserva a seleção ao navegar entre páginas', async () => {
@@ -422,7 +471,7 @@ describe('ConsultaLotes', () => {
     await responder(paginaUnica([loteCom(1004, 'Confirmado')]));
 
     expect(caixaDoLote(1004).checked).toBe(false);
-    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 1 });
+    expect(servico.recebidos.at(-1)).toEqual({ filtros, pagina: 1, ordenacao: ORDENACAO_PADRAO });
   });
 
   it('descarta o aviso ao começar uma nova pesquisa', async () => {

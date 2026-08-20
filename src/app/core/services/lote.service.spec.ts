@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { LOTES } from '../mocks/lotes.mock';
 import { INSTITUICAO_RESPONSAVEL } from '../mocks/opcoes.mock';
 import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../models/filtros';
+import { Lote } from '../models/lote';
+import { Ordenacao } from '../models/ordenacao';
 import { TAMANHO_PAGINA_PADRAO } from '../models/paginacao';
 import { erroDe, valorDe } from '../testing/resposta-mock';
 import { ID_LOTE_ERRO_SIMULADO, LoteService, SO_LOTE_ABERTO_SE_EXCLUI } from './lote.service';
@@ -112,6 +114,84 @@ describe('LoteService', () => {
       );
 
       expect(erro.message).toBe('Não foi possível consultar os lotes. Tente novamente.');
+    });
+  });
+
+  describe('ordenação', () => {
+    const MENOR_VALOR = Math.min(...LOTES.map((lote) => lote.valor));
+    const MAIOR_VALOR = Math.max(...LOTES.map((lote) => lote.valor));
+
+    function paginaDe(ordenacao: Ordenacao, pagina = 1): readonly Lote[] {
+      return valorDe(service.pesquisar(FILTROS_VAZIOS, pagina, ordenacao)).itens;
+    }
+
+    function todosOsLotes(ordenacao: Ordenacao): readonly Lote[] {
+      return Array.from({ length: ULTIMA_PAGINA }, (_, indice) =>
+        paginaDe(ordenacao, indice + 1),
+      ).flat();
+    }
+
+    it('ordena por id ascendente enquanto ninguém pede outra coluna', () => {
+      const ids = valorDe(service.pesquisar(FILTROS_VAZIOS)).itens.map((lote) => lote.id);
+
+      expect(ids).toEqual([...ids].sort((a, b) => a - b));
+      expect(ids[0]).toBe(Math.min(...LOTES.map((lote) => lote.id)));
+    });
+
+    it('ordena o conjunto filtrado inteiro, e não apenas a página exibida', () => {
+      const ordenacao: Ordenacao = { campo: 'valor', direcao: 'desc' };
+
+      expect(paginaDe(ordenacao)[0].valor).toBe(MAIOR_VALOR);
+      expect(paginaDe(ordenacao, ULTIMA_PAGINA).at(-1)?.valor).toBe(MENOR_VALOR);
+    });
+
+    it('inverte a ordem quando a direção é ascendente', () => {
+      const ordenacao: Ordenacao = { campo: 'valor', direcao: 'asc' };
+
+      expect(paginaDe(ordenacao)[0].valor).toBe(MENOR_VALOR);
+      expect(paginaDe(ordenacao, ULTIMA_PAGINA).at(-1)?.valor).toBe(MAIOR_VALOR);
+    });
+
+    it('ordena a situação pelo fluxo do lote, e não pelo alfabeto', () => {
+      const situacoes = todosOsLotes({ campo: 'situacao', direcao: 'asc' }).map(
+        (lote) => lote.situacao,
+      );
+      const primeiroConfirmado = situacoes.indexOf('Confirmado');
+
+      expect(situacoes[0]).toBe('Aberto');
+      expect(situacoes.at(-1)).toBe('Confirmado');
+      expect(situacoes.slice(situacoes.lastIndexOf('Aberto') + 1, primeiroConfirmado)).toContain(
+        'Enviado',
+      );
+    });
+
+    it('leva os lotes sem aprovador para o fim nas duas direções', () => {
+      const comAprovador = LOTES.filter((lote) => lote.usuarioAprovacao !== null).length;
+
+      for (const direcao of ['asc', 'desc'] as const) {
+        const aprovadores = todosOsLotes({ campo: 'usuarioAprovacao', direcao }).map(
+          (lote) => lote.usuarioAprovacao,
+        );
+
+        expect(aprovadores.slice(0, comAprovador)).not.toContain(null);
+        expect(aprovadores.slice(comAprovador).every((aprovador) => aprovador === null)).toBe(true);
+      }
+    });
+
+    it('ordena os textos pelo alfabeto de pt-BR', () => {
+      const usuarios = todosOsLotes({ campo: 'usuarioRegistro', direcao: 'asc' }).map(
+        (lote) => lote.usuarioRegistro,
+      );
+
+      expect(usuarios).toEqual([...usuarios].sort((a, b) => a.localeCompare(b, 'pt-BR')));
+    });
+
+    it('desempata por id, para o mesmo lote não aparecer em duas páginas', () => {
+      const abertos = todosOsLotes({ campo: 'situacao', direcao: 'desc' })
+        .filter((lote) => lote.situacao === 'Aberto')
+        .map((lote) => lote.id);
+
+      expect(abertos).toEqual([...abertos].sort((a, b) => a - b));
     });
   });
 

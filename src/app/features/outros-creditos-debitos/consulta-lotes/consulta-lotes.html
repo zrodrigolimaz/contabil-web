@@ -98,8 +98,10 @@
         [lotes]="lotes()"
         [carregando]="carregando()"
         [selecionados]="idsSelecionados()"
+        [ordenacao]="ordenacao()"
         (alternarSelecao)="alternarSelecao($event)"
         (alternarTodos)="alternarTodos($event)"
+        (ordenar)="ordenarPor($event)"
       />
 
       <app-paginacao
