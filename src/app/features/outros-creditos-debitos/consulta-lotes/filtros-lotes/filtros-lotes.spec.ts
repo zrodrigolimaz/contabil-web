@@ -168,6 +168,16 @@ describe('FiltrosLotes', () => {
     });
   });
 
+  it('não repete identificadores entre os três campos de faixa', async () => {
+    const identificados: HTMLElement[] = Array.from(
+      fixture.nativeElement.querySelectorAll('app-campo-faixa [id]'),
+    );
+    const ids = identificados.map((elemento) => elemento.id);
+
+    expect(ids.length).toBeGreaterThan(0);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('limpa os campos e refaz a pesquisa sem critérios', async () => {
     const [de] = faixa(0);
     preencher(de, '1005');
