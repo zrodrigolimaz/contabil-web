@@ -112,7 +112,17 @@ describe('TabelaLotes', () => {
 
     expect(classePor('Aberto')).toContain('chip-neutro');
     expect(classePor('Confirmado')).toContain('chip-solido');
-    expect(classePor('Enviado')).toBe('chip');
+    expect(classePor('Enviado')).not.toMatch(/chip-(neutro|solido)/);
+  });
+
+  it('dá a mesma largura mínima às três pastilhas, para a coluna não escalonar', async () => {
+    const enviado: Lote = { ...LOTE_ABERTO, id: 1006, situacao: 'Enviado' };
+    await montar([LOTE_ABERTO, enviado, LOTE_CONFIRMADO]);
+
+    const pastilhas = [...fixture.nativeElement.querySelectorAll('tbody .chip')];
+    expect(
+      pastilhas.every((pastilha: HTMLElement) => pastilha.classList.contains('min-w-[5.5rem]')),
+    ).toBe(true);
   });
 
   it('mostra a frase do legado quando não há resultados', async () => {
