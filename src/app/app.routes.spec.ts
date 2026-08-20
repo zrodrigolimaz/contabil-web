@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from './app.routes';
 import { ConsultaLotes } from './features/outros-creditos-debitos/consulta-lotes/consulta-lotes';
@@ -19,5 +19,13 @@ describe('app.routes', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/');
     expect(document.title).toContain('Outros Créditos/Débitos');
+  });
+
+  it('manda para a consulta qualquer rota desconhecida', async () => {
+    const harness = await RouterTestingHarness.create();
+    const pagina = await harness.navigateByUrl('/lotes/9999', ConsultaLotes);
+
+    expect(pagina).toBeInstanceOf(ConsultaLotes);
+    expect(TestBed.inject(Router).url).toBe('/');
   });
 });
