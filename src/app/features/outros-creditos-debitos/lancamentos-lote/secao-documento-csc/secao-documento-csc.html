@@ -1,0 +1,141 @@
+<fieldset class="min-w-0 border-0 p-0" [formGroup]="grupo()">
+  <legend class="sr-only">Documento CSC</legend>
+
+  <div class="mb-[18px] flex items-center gap-3">
+    <span class="eyebrow" aria-hidden="true">Documento CSC</span>
+    <span class="regua"></span>
+  </div>
+
+  <div class="mb-[18px] grid gap-x-7 gap-y-[18px] sm:grid-cols-2 lg:grid-cols-3">
+    <app-campo-form
+      rotulo="PA"
+      paraId="lancamento-pa"
+      [controle]="grupo().controls.pa"
+      [obrigatorio]="!leitura()"
+    >
+      <select id="lancamento-pa" class="campo campo-select" formControlName="pa">
+        <option value="">Selecione</option>
+        @for (opcao of opcoesPa; track opcao) {
+          <option [value]="opcao">{{ opcao }}</option>
+        }
+      </select>
+    </app-campo-form>
+
+    <app-campo-form
+      rotulo="ID Evento"
+      paraId="lancamento-evento"
+      [controle]="grupo().controls.idEvento"
+    >
+      <div class="flex items-center gap-2.5">
+        <input
+          id="lancamento-evento"
+          type="text"
+          [appDigitos]="6"
+          class="campo"
+          formControlName="idEvento"
+        />
+
+        <button
+          type="button"
+          class="btn btn-contorno size-[38px] shrink-0 px-0"
+          aria-label="Pesquisar evento"
+          [disabled]="desabilitado()"
+          (click)="pesquisaAberta.set(true)"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            class="size-[15px]"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+        </button>
+      </div>
+
+      @if (descricaoEvento(); as descricao) {
+        <p class="text-[12.5px] font-medium text-primary-800">{{ descricao }}</p>
+      }
+    </app-campo-form>
+
+    <app-campo-form rotulo="ID Doc CSC" paraId="csc-id-doc">
+      <div class="relative">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="pointer-events-none absolute left-3 top-1/2 size-[13px] -translate-y-1/2 text-hint"
+          aria-hidden="true"
+        >
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+        <input
+          id="csc-id-doc"
+          type="text"
+          class="campo campo-leitura"
+          [value]="idDocumentoCsc() ?? ''"
+          readonly
+          tabindex="-1"
+        />
+      </div>
+    </app-campo-form>
+  </div>
+
+  <div class="grid gap-x-7 gap-y-[18px] sm:grid-cols-2 lg:grid-cols-3">
+    <app-campo-form
+      class="sm:col-span-2"
+      rotulo="Compl. Histórico"
+      paraId="lancamento-compl-historico"
+      [controle]="grupo().controls.complementoHistorico"
+      [obrigatorio]="!leitura()"
+    >
+      <textarea
+        id="lancamento-compl-historico"
+        rows="2"
+        class="campo h-auto py-2.5 leading-relaxed"
+        formControlName="complementoHistorico"
+      ></textarea>
+    </app-campo-form>
+
+    <app-campo-form rotulo="Situação" paraId="csc-situacao">
+      <div class="relative">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="pointer-events-none absolute left-3 top-1/2 size-[13px] -translate-y-1/2 text-hint"
+          aria-hidden="true"
+        >
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+        <input
+          id="csc-situacao"
+          type="text"
+          class="campo campo-leitura"
+          [value]="situacao()"
+          readonly
+          tabindex="-1"
+        />
+      </div>
+      <p class="text-xs text-muted">Somente leitura</p>
+    </app-campo-form>
+  </div>
+</fieldset>
+
+<app-pesquisa-evento
+  [aberto]="pesquisaAberta()"
+  (escolher)="escolherEvento($event)"
+  (fechar)="pesquisaAberta.set(false)"
+/>

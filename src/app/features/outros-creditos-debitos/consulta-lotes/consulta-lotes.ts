@@ -4,195 +4,80 @@ import {
   computed,
   DestroyRef,
   inject,
+  InjectionToken,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, map, Observable, of, Subject, switchMap } from 'rxjs';
 
-import { FiltrosPesquisaLote } from '../../../core/models/filtros';
+import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../../../core/models/filtros';
 import { Lote } from '../../../core/models/lote';
-import { TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
+import { Ordenacao, ORDENACAO_PADRAO } from '../../../core/models/ordenacao';
+import { ResultadoPaginado, TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
+import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
+import {
+  DialogoConfirmacao,
+  PedidoConfirmacao,
+} from '../../../shared/ui/dialogo-confirmacao/dialogo-confirmacao';
 import { Paginacao } from '../../../shared/ui/paginacao/paginacao';
+import {
+  LancamentosLote,
+  ModoLancamentos,
+  ResultadoLancamentos,
+} from '../lancamentos-lote/lancamentos-lote';
 import { AcaoLote, BarraAcoes } from './barra-acoes/barra-acoes';
 import { DialogoJustificativa } from './dialogo-justificativa/dialogo-justificativa';
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
+import {
+  AcaoDeSituacao,
+  descreverResultado,
+  pedidoDeExclusao,
+  pedidoDeSituacao,
+} from './mensagens-acoes';
 import { TabelaLotes } from './tabela-lotes/tabela-lotes';
 
-type AcaoDeSituacao = 'confirmar' | 'enviar';
+export const ESPERA_CONSULTA_MS = new InjectionToken<number>('espera da consulta de lotes', {
+  factory: () => 250,
+});
+
+interface PedidoConsulta {
+  readonly filtros: FiltrosPesquisaLote;
+  readonly pagina: number;
+  readonly ordenacao: Ordenacao;
+}
+
+type RespostaConsulta =
+  | { readonly ok: true; readonly resultado: ResultadoPaginado<Lote> }
+  | { readonly ok: false; readonly mensagem: string };
+
+type AcaoConfirmavel =
+  { readonly tipo: AcaoDeSituacao } | { readonly tipo: 'excluir'; readonly lote: Lote };
 
 interface Aviso {
   readonly texto: string;
   readonly tom: 'sucesso' | 'informacao';
 }
 
-/**
- * Respostas das ações que dependem da tela de lançamentos: botão que aceita o clique e
- * não dá sinal nenhum é indistinguível de aplicação quebrada.
- */
-const AINDA_SEM_TELA: Record<'incluir' | 'alterar' | 'excluir' | 'visualizar', string> = {
-  incluir: 'Incluir abre a tela de lançamentos de um lote novo, ainda não implementada.',
-  alterar: 'Alterar abre os lançamentos do lote para edição, tela ainda não implementada.',
-  excluir: 'A exclusão de lote chega junto com a tela de lançamentos.',
-  visualizar: 'Visualizar abre os lançamentos do lote em leitura, tela ainda não implementada.',
-};
-
-/** Escritas por extenso porque cada ação tem seu próprio motivo de ignorar um lote. */
-const RESULTADO: Record<
-  AcaoDeSituacao,
-  { alterados: (quantidade: number) => string; ignorados: (quantidade: number) => string }
-> = {
-  confirmar: {
-    alterados: (quantidade) =>
-      quantidade === 0
-        ? 'Nenhum lote confirmado.'
-        : quantidade === 1
-          ? '1 lote confirmado.'
-          : `${quantidade} lotes confirmados.`,
-    ignorados: (quantidade) =>
-      quantidade === 1
-        ? '1 lote já estava confirmado e foi ignorado.'
-        : `${quantidade} lotes já estavam confirmados e foram ignorados.`,
-  },
-  enviar: {
-    alterados: (quantidade) =>
-      quantidade === 0
-        ? 'Nenhum lote enviado.'
-        : quantidade === 1
-          ? '1 lote enviado.'
-          : `${quantidade} lotes enviados.`,
-    ignorados: (quantidade) =>
-      quantidade === 1
-        ? '1 lote não estava aberto e foi ignorado.'
-        : `${quantidade} lotes não estavam abertos e foram ignorados.`,
-  },
-};
-
 @Component({
   selector: 'app-consulta-lotes',
-  imports: [FiltrosLotes, BarraAcoes, TabelaLotes, Paginacao, DialogoJustificativa],
+  imports: [
+    FiltrosLotes,
+    BarraAcoes,
+    TabelaLotes,
+    Paginacao,
+    DialogoJustificativa,
+    DialogoConfirmacao,
+    LancamentosLote,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="flex flex-col gap-4">
-      <app-filtros-lotes [carregando]="carregando()" (pesquisar)="pesquisar($event)" />
-
-      <div class="cartao">
-        @if (erro(); as mensagem) {
-          <div class="flex justify-center px-6 py-16">
-            <p
-              class="flex items-center gap-2 rounded-md border border-danger/25 bg-danger/5 px-4 py-2.5 text-[13px] font-medium text-danger"
-              role="alert"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="size-4 shrink-0"
-                aria-hidden="true"
-              >
-                <path d="M12 9v4M12 17h.01" />
-                <path
-                  d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
-                />
-              </svg>
-              {{ mensagem }}
-            </p>
-          </div>
-        } @else if (pesquisou()) {
-          <div class="border-b border-petrol-900/[0.1] px-6 py-3">
-            <app-barra-acoes
-              [selecionados]="lotesSelecionados()"
-              [executando]="executando()"
-              (acionar)="acionar($event)"
-              (limparSelecao)="limparSelecao()"
-            />
-          </div>
-
-          @if (aviso(); as resultado) {
-            <p
-              class="flex items-center gap-2 border-b border-petrol-900/[0.07] px-6 py-2.5 text-[12.5px] font-medium"
-              [class]="
-                resultado.tom === 'sucesso'
-                  ? 'bg-primary-50/60 text-primary-700'
-                  : 'bg-petrol-900/[0.03] text-petrol-700'
-              "
-              role="status"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="size-4 shrink-0"
-                aria-hidden="true"
-              >
-                @if (resultado.tom === 'sucesso') {
-                  <path d="m4 12 5 5L20 6" />
-                } @else {
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 11v5M12 8h.01" />
-                }
-              </svg>
-              {{ resultado.texto }}
-            </p>
-          }
-
-          <app-tabela-lotes
-            [lotes]="lotes()"
-            [carregando]="carregando()"
-            [selecionados]="idsSelecionados()"
-            (alternarSelecao)="alternarSelecao($event)"
-            (alternarTodos)="alternarTodos($event)"
-          />
-
-          <app-paginacao
-            [pagina]="pagina()"
-            [totalPaginas]="totalPaginas()"
-            [total]="total() ?? 0"
-            [tamanhoPagina]="tamanhoPagina()"
-            (irPara)="irPara($event)"
-          />
-        } @else if (carregando()) {
-          <div class="flex justify-center px-6 py-16">
-            <p class="flex items-center gap-2 text-[13px] text-petrol-700/80" role="status">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                class="size-4 animate-spin text-primary-600 motion-reduce:animate-none"
-                aria-hidden="true"
-              >
-                <path d="M12 3a9 9 0 1 0 9 9" />
-              </svg>
-              Consultando lotes…
-            </p>
-          </div>
-        } @else {
-          <div class="flex flex-col items-center gap-2 px-6 py-16 text-center">
-            <p class="text-[13px] font-semibold text-petrol-900">Nenhuma pesquisa realizada</p>
-            <p class="max-w-sm text-[13px] text-petrol-700/70">
-              Ajuste os filtros acima e clique em Pesquisar para listar os lotes.
-            </p>
-          </div>
-        }
-      </div>
-    </div>
-
-    <app-dialogo-justificativa
-      [lote]="justificativaAberta()"
-      (fechar)="justificativaAberta.set(null)"
-    />
-  `,
+  templateUrl: './consulta-lotes.html',
 })
 export class ConsultaLotes {
   private readonly loteService = inject(LoteService);
+  private readonly lancamentoService = inject(LancamentoService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly espera = inject(ESPERA_CONSULTA_MS);
 
   protected readonly carregando = signal(false);
   protected readonly erro = signal<string | null>(null);
@@ -201,25 +86,44 @@ export class ConsultaLotes {
   protected readonly totalPaginas = signal(1);
   protected readonly total = signal<number | null>(null);
   protected readonly tamanhoPagina = signal(TAMANHO_PAGINA_PADRAO);
+  protected readonly ordenacao = signal<Ordenacao>(ORDENACAO_PADRAO);
 
   protected readonly executando = signal(false);
   protected readonly aviso = signal<Aviso | null>(null);
   protected readonly justificativaAberta = signal<Lote | null>(null);
 
-  /**
-   * Seleção por id, e não por índice: sobrevive à troca de página. Guarda o lote
-   * inteiro porque a barra habilita pela situação, e um lote marcado em outra página
-   * não está mais em `lotes()`.
-   */
+  protected readonly modoLancamentos = signal<ModoLancamentos | null>(null);
+  protected readonly loteDosLancamentos = signal<Lote | null>(null);
+
+  protected readonly pedido = signal<PedidoConfirmacao | null>(null);
+  private acaoPendente: AcaoConfirmavel | null = null;
+
   private readonly selecionados = signal<ReadonlyMap<number, Lote>>(new Map());
 
   protected readonly idsSelecionados = computed(() => new Set(this.selecionados().keys()));
   protected readonly lotesSelecionados = computed(() => [...this.selecionados().values()]);
 
-  /** Critérios da última pesquisa, para paginar sem depender do formulário. */
   private filtrosAtuais: FiltrosPesquisaLote | null = null;
 
+  private ultimoPedido: PedidoConsulta | null = null;
+
+  private readonly consultas = new Subject<PedidoConsulta>();
+
   protected readonly pesquisou = computed(() => this.total() !== null);
+
+  constructor() {
+    const pedidos =
+      this.espera > 0 ? this.consultas.pipe(debounceTime(this.espera)) : this.consultas;
+
+    pedidos
+      .pipe(
+        switchMap((pedido) => this.buscar(pedido)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((resposta) => this.aplicar(resposta));
+
+    this.pesquisar(FILTROS_VAZIOS);
+  }
 
   protected pesquisar(filtros: FiltrosPesquisaLote): void {
     this.filtrosAtuais = filtros;
@@ -229,6 +133,18 @@ export class ConsultaLotes {
 
   protected irPara(pagina: number): void {
     this.consultar(pagina);
+  }
+
+  protected ordenarPor(ordenacao: Ordenacao): void {
+    this.ordenacao.set(ordenacao);
+    this.consultar(1);
+  }
+
+  protected tentarNovamente(): void {
+    const pedido = this.ultimoPedido;
+    if (pedido) {
+      this.consultar(pedido.pagina);
+    }
   }
 
   protected alternarSelecao(id: number): void {
@@ -247,7 +163,6 @@ export class ConsultaLotes {
     });
   }
 
-  /** Age só sobre a página exibida; o que foi marcado nas outras continua marcado. */
   protected alternarTodos(marcar: boolean): void {
     const daPagina = this.lotes();
 
@@ -265,7 +180,6 @@ export class ConsultaLotes {
     });
   }
 
-  /** Alcança também o que foi marcado em outras páginas, que a grade não mostra. */
   protected limparSelecao(): void {
     this.selecionados.set(new Map());
   }
@@ -276,15 +190,92 @@ export class ConsultaLotes {
     switch (acao) {
       case 'confirmar':
       case 'enviar':
-        this.mudarSituacao(acao);
+        this.pedirConfirmacao({ tipo: acao }, pedidoDeSituacao(acao, this.lotesSelecionados()));
         break;
       case 'justificativa':
         this.justificativaAberta.set(this.lotesSelecionados()[0] ?? null);
         break;
-      default:
-        this.aviso.set({ texto: AINDA_SEM_TELA[acao], tom: 'informacao' });
+      case 'incluir':
+        this.limparSelecao();
+        this.abrirLancamentos('novo', null);
         break;
+      case 'alterar':
+        this.abrirLancamentos('edicao', this.lotesSelecionados()[0] ?? null);
+        break;
+      case 'visualizar':
+        this.abrirLancamentos('leitura', this.lotesSelecionados()[0] ?? null);
+        break;
+      case 'excluir': {
+        const lote = this.lotesSelecionados()[0];
+        if (lote) {
+          this.pedirConfirmacao({ tipo: 'excluir', lote }, pedidoDeExclusao(lote));
+        }
+        break;
+      }
     }
+  }
+
+  protected confirmarPedido(): void {
+    const acao = this.acaoPendente;
+    this.cancelarPedido();
+
+    if (!acao) {
+      return;
+    }
+
+    if (acao.tipo === 'excluir') {
+      this.excluir(acao.lote);
+    } else {
+      this.mudarSituacao(acao.tipo);
+    }
+  }
+
+  protected cancelarPedido(): void {
+    this.pedido.set(null);
+    this.acaoPendente = null;
+  }
+
+  private abrirLancamentos(modo: ModoLancamentos, lote: Lote | null): void {
+    this.loteDosLancamentos.set(lote);
+    this.modoLancamentos.set(modo);
+  }
+
+  protected fecharLancamentos(resultado: ResultadoLancamentos): void {
+    this.modoLancamentos.set(null);
+    this.loteDosLancamentos.set(null);
+
+    if (resultado.houveMutacao) {
+      this.selecionados.set(new Map());
+      this.consultar(this.pagina());
+    }
+  }
+
+  private pedirConfirmacao(acao: AcaoConfirmavel, pedido: PedidoConfirmacao): void {
+    this.acaoPendente = acao;
+    this.pedido.set(pedido);
+  }
+
+  private excluir(lote: Lote): void {
+    this.executando.set(true);
+
+    this.loteService
+      .excluir(lote.id)
+      .pipe(
+        switchMap(() => this.lancamentoService.excluirPorLote(lote.id)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.aviso.set({ texto: `Lote ${lote.id} excluído.`, tom: 'sucesso' });
+          this.selecionados.set(new Map());
+          this.executando.set(false);
+          this.consultar(this.pagina());
+        },
+        error: (falha: Error) => {
+          this.erro.set(falha.message);
+          this.executando.set(false);
+        },
+      });
   }
 
   private mudarSituacao(acao: AcaoDeSituacao): void {
@@ -297,13 +288,11 @@ export class ConsultaLotes {
     chamada.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (alterados) => {
         this.aviso.set({
-          texto: descrever(acao, alterados.length, ids.length - alterados.length),
+          texto: descreverResultado(acao, alterados.length, ids.length - alterados.length),
           tom: 'sucesso',
         });
         this.selecionados.set(new Map());
         this.executando.set(false);
-        /* Reconsulta em vez de remendar a lista: um lote que vira Enviado precisa sair
-           de uma consulta filtrada por Aberto. */
         this.consultar(this.pagina());
       },
       error: (falha: Error) => {
@@ -322,34 +311,32 @@ export class ConsultaLotes {
     this.carregando.set(true);
     this.erro.set(null);
 
-    this.loteService
-      .pesquisar(filtros, pagina)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (resultado) => {
-          this.lotes.set(resultado.itens);
-          this.total.set(resultado.total);
-          /* A página vem da resposta: o serviço limita o pedido ao intervalo válido. */
-          this.pagina.set(resultado.pagina);
-          this.totalPaginas.set(resultado.totalPaginas);
-          this.tamanhoPagina.set(resultado.tamanhoPagina);
-          this.carregando.set(false);
-        },
-        error: (falha: Error) => {
-          this.erro.set(falha.message);
-          this.lotes.set([]);
-          this.total.set(null);
-          this.carregando.set(false);
-        },
-      });
-  }
-}
-
-function descrever(acao: AcaoDeSituacao, alterados: number, ignorados: number): string {
-  const frases = [RESULTADO[acao].alterados(alterados)];
-  if (ignorados > 0) {
-    frases.push(RESULTADO[acao].ignorados(ignorados));
+    this.ultimoPedido = { filtros, pagina, ordenacao: this.ordenacao() };
+    this.consultas.next(this.ultimoPedido);
   }
 
-  return frases.join(' ');
+  private buscar(pedido: PedidoConsulta): Observable<RespostaConsulta> {
+    return this.loteService.pesquisar(pedido.filtros, pedido.pagina, pedido.ordenacao).pipe(
+      map((resultado) => ({ ok: true, resultado }) as const),
+      catchError((falha: Error) => of({ ok: false, mensagem: falha.message } as const)),
+    );
+  }
+
+  private aplicar(resposta: RespostaConsulta): void {
+    this.carregando.set(false);
+
+    if (!resposta.ok) {
+      this.erro.set(resposta.mensagem);
+      this.lotes.set([]);
+      this.total.set(null);
+      return;
+    }
+
+    const { resultado } = resposta;
+    this.lotes.set(resultado.itens);
+    this.total.set(resultado.total);
+    this.pagina.set(resultado.pagina);
+    this.totalPaginas.set(resultado.totalPaginas);
+    this.tamanhoPagina.set(resultado.tamanhoPagina);
+  }
 }

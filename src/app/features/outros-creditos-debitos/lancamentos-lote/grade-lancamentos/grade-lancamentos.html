@@ -1,0 +1,76 @@
+<div class="overflow-x-auto rounded-[10px] border border-petrol-900/10">
+  <table class="w-full border-collapse text-left text-[13px] text-petrol-800">
+    <caption class="sr-only">
+      Lançamentos do lote
+    </caption>
+
+    <thead
+      class="bg-[#f2f6f5] text-[11px] font-semibold uppercase tracking-[0.06em] text-petrol-700"
+    >
+      <tr class="h-9">
+        <th scope="col" class="w-9 pl-3.5">
+          <span class="sr-only">Selecionar</span>
+        </th>
+        <th scope="col" class="whitespace-nowrap px-3.5">ID</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">PA</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Conta Corrente</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Histórico</th>
+        <th scope="col" class="whitespace-nowrap px-3.5 text-right">Valor</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Documento</th>
+        <th scope="col" class="whitespace-nowrap px-3.5">Situação</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (lancamento of lancamentos(); track lancamento.id) {
+        <tr
+          class="h-[42px] cursor-pointer border-b border-petrol-900/[0.06] transition-colors last:border-b-0 motion-reduce:transition-none"
+          [class]="
+            selecionado() === lancamento.id
+              ? 'bg-primary-50 shadow-[inset_3px_0_0_var(--color-primary-500)]'
+              : 'hover:bg-[#f0faf9]'
+          "
+          (click)="marcar(lancamento.id)"
+        >
+          <td class="pl-3.5">
+            <input
+              type="radio"
+              name="lancamento-selecionado"
+              class="size-4 cursor-pointer accent-primary-600"
+              [attr.aria-label]="'Selecionar lançamento ' + lancamento.id"
+              [checked]="selecionado() === lancamento.id"
+              (click)="$event.stopPropagation(); marcar(lancamento.id)"
+            />
+          </td>
+          <td class="px-3.5 font-semibold tabular-nums text-petrol-900">{{ lancamento.id }}</td>
+          <td class="whitespace-nowrap px-3.5">{{ lancamento.pa }}</td>
+          <td class="whitespace-nowrap px-3.5">
+            <span class="tabular-nums">{{ lancamento.conta }}</span>
+            <span class="text-muted"> · {{ lancamento.titular }}</span>
+          </td>
+          <td class="whitespace-nowrap px-3.5">
+            {{ lancamento.historico }}
+            @if (lancamento.estorno) {
+              <span class="chip chip-neutro ml-1">Estorno</span>
+            }
+          </td>
+          <td class="whitespace-nowrap px-3.5 text-right font-medium tabular-nums text-petrol-900">
+            {{ lancamento.valor | currency: 'BRL' }}
+          </td>
+          <td class="whitespace-nowrap px-3.5 tabular-nums">{{ lancamento.documento }}</td>
+          <td class="whitespace-nowrap px-3.5">
+            <span class="chip" [class.chip-neutro]="lancamento.situacao === 'Pendente'">
+              {{ lancamento.situacao }}
+            </span>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="8" class="px-3.5 py-10 text-center text-[13px] text-muted">
+            Nenhum registro encontrado.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

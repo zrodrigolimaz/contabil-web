@@ -1,0 +1,177 @@
+<fieldset class="min-w-0 border-0 p-0">
+  <legend class="sr-only">Anexo</legend>
+
+  <div class="mb-3.5 flex flex-wrap items-center gap-3">
+    <span class="eyebrow" aria-hidden="true">Anexos</span>
+    <span class="regua"></span>
+
+    <div class="flex items-center gap-0.5">
+      <button
+        type="button"
+        class="btn btn-fantasma h-[30px] gap-1.5 px-[11px] text-[12.5px]"
+        [disabled]="marcado() === null"
+        title="Mostra os dados do anexo marcado"
+        (click)="visualizado.set(marcado())"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-[13px] shrink-0"
+          aria-hidden="true"
+        >
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        Visualizar
+      </button>
+
+      @if (!desabilitado()) {
+        <button
+          type="button"
+          class="btn btn-fantasma h-[30px] gap-1.5 px-[11px] text-[12.5px]"
+          title="Anexa um arquivo ao lançamento"
+          (click)="inclusaoAberta.set(true)"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            class="size-[13px] shrink-0"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Incluir
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-perigo h-[30px] gap-1.5 px-[11px] text-[12.5px]"
+          [disabled]="marcado() === null"
+          title="Remove o anexo marcado do lançamento"
+          (click)="excluirMarcado()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="size-[13px] shrink-0"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+            />
+          </svg>
+          Excluir
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="overflow-x-auto rounded-[10px] border border-petrol-900/10">
+    <table class="w-full border-collapse text-left text-[13px] text-petrol-800">
+      <caption class="sr-only">
+        Anexos do lançamento
+      </caption>
+
+      <thead
+        class="bg-[#f2f6f5] text-[11px] font-semibold uppercase tracking-[0.06em] text-petrol-700"
+      >
+        <tr class="h-9">
+          <th scope="col" class="w-9 pl-3.5">
+            <span class="sr-only">Selecionar</span>
+          </th>
+          <th scope="col" class="whitespace-nowrap px-3.5">Nome Reduzido do Arquivo</th>
+          <th scope="col" class="px-3.5">Descrição</th>
+          <th scope="col" class="whitespace-nowrap px-3.5">Data Inclusão</th>
+          <th scope="col" class="whitespace-nowrap px-3.5">ID Usuário</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (anexo of anexos(); track anexo.id) {
+          <tr
+            class="h-[42px] cursor-pointer border-b border-petrol-900/[0.06] transition-colors last:border-b-0 motion-reduce:transition-none"
+            [class]="
+              idMarcado() === anexo.id
+                ? 'bg-primary-50 shadow-[inset_3px_0_0_var(--color-primary-500)]'
+                : 'hover:bg-[#f0faf9]'
+            "
+            (click)="marcar(anexo.id)"
+          >
+            <td class="pl-3.5">
+              <input
+                type="radio"
+                name="anexo-selecionado"
+                class="size-4 cursor-pointer accent-primary-600"
+                [attr.aria-label]="'Selecionar anexo ' + anexo.nomeReduzido"
+                [checked]="idMarcado() === anexo.id"
+                (click)="$event.stopPropagation(); marcar(anexo.id)"
+              />
+            </td>
+            <td class="whitespace-nowrap px-3.5 font-medium text-petrol-900">
+              {{ anexo.nomeReduzido }}
+            </td>
+            <td class="px-3.5">{{ anexo.descricao }}</td>
+            <td class="whitespace-nowrap px-3.5 tabular-nums">
+              {{ anexo.dataInclusao | date: 'dd/MM/yyyy HH:mm' }}
+            </td>
+            <td class="whitespace-nowrap px-3.5">{{ anexo.idUsuario }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="px-3.5 py-9 text-center text-[13px] text-muted">
+              Nenhum registro encontrado.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</fieldset>
+
+<app-inclusao-anexo
+  [aberto]="inclusaoAberta()"
+  (incluir)="aoIncluir($event)"
+  (fechar)="inclusaoAberta.set(false)"
+/>
+
+<app-dialogo
+  [aberto]="visualizado() !== null"
+  titulo="Anexo do lançamento"
+  larguraMaxima="30rem"
+  (fechar)="visualizado.set(null)"
+>
+  @if (visualizado(); as anexo) {
+    <dl class="grid grid-cols-[9rem_1fr] gap-x-4 gap-y-2.5 text-[13px]">
+      <dt class="rotulo self-center">Nome do arquivo</dt>
+      <dd>{{ anexo.nomeReduzido }}</dd>
+
+      <dt class="rotulo self-center">Descrição</dt>
+      <dd>{{ anexo.descricao }}</dd>
+
+      <dt class="rotulo self-center">Data de inclusão</dt>
+      <dd class="tabular-nums">{{ anexo.dataInclusao | date: 'dd/MM/yyyy HH:mm' }}</dd>
+
+      <dt class="rotulo self-center">ID Usuário</dt>
+      <dd>{{ anexo.idUsuario }}</dd>
+    </dl>
+
+    <p class="mt-4 text-[12.5px] text-muted">
+      O conteúdo do arquivo não é armazenado nesta simulação.
+    </p>
+  }
+
+  <div rodape class="flex justify-end">
+    <button type="button" class="btn btn-contorno" (click)="visualizado.set(null)">Fechar</button>
+  </div>
+</app-dialogo>

@@ -1,0 +1,79 @@
+<div class="@container flex flex-col gap-[9px]">
+  <div class="flex flex-wrap items-center gap-y-2" role="toolbar" aria-label="Ações sobre os lotes">
+    @for (grupo of grupos(); track $index) {
+      <div class="grupo-acoes">
+        @for (botao of grupo; track botao.acao) {
+          <!--
+            aria-disabled, e não disabled: o botão continua no caminho do teclado e o
+            leitor de tela chega ao motivo do bloqueio, que a dica ao lado explica.
+          -->
+          <button
+            type="button"
+            class="btn h-[34px] gap-[7px] text-[13.5px] aria-disabled:opacity-40"
+            [class]="
+              botao.destaque
+                ? 'btn-primario px-4'
+                : botao.perigo
+                  ? 'btn-perigo px-[13px]'
+                  : 'btn-fantasma px-[13px]'
+            "
+            [attr.aria-disabled]="bloqueado(botao) ? 'true' : null"
+            [attr.aria-describedby]="bloqueado(botao) ? idDica : null"
+            [title]="botao.descricao"
+            (click)="acionarBotao(botao)"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-[15px] shrink-0"
+              aria-hidden="true"
+            >
+              <path [attr.d]="botao.caminho" />
+            </svg>
+            {{ botao.rotulo }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (quantidade() === 0 && dica(); as texto) {
+      <p [id]="idDica" class="ml-auto pl-4 pr-1.5 text-[12.5px] text-muted">{{ texto }}</p>
+    }
+  </div>
+
+  @if (quantidade(); as total) {
+    <div class="flex flex-wrap items-center gap-2.5 px-1">
+      <span class="chip gap-1.5 pr-1.5">
+        {{ total }} {{ total === 1 ? 'selecionado' : 'selecionados' }}
+
+        <button
+          type="button"
+          class="grid size-4 place-items-center rounded-full text-primary-800/70 transition-colors hover:bg-primary-700/15 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-40"
+          [attr.aria-label]="rotuloLimpar()"
+          [disabled]="executando()"
+          (click)="limparSelecao.emit()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            class="size-2.5"
+            aria-hidden="true"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </span>
+
+      @if (dica(); as texto) {
+        <p [id]="idDica" class="text-[12.5px] text-muted">{{ texto }}</p>
+      }
+    </div>
+  }
+</div>

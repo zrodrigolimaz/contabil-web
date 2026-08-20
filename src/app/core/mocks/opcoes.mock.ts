@@ -1,10 +1,3 @@
-/**
- * Opções fixas dos selects das duas telas.
- *
- * Cada grupo tem um objeto nomeado — referenciado pelos demais mocks para que os
- * dados nunca divirjam das opções do select — e o array derivado que a UI consome.
- */
-
 export const INSTITUICAO_RESPONSAVEL = {
   banco: '0001 - Banco Cooperativo',
   central: '0002 - Central Regional',
@@ -22,8 +15,8 @@ export const INSTITUICAO = {
 
 export const INSTITUICOES: readonly string[] = Object.values(INSTITUICAO);
 
-/** Histórico do lançamento (seção Conta Corrente). */
 export const HISTORICO = {
+  manual: '090 - Lançamento Manual',
   credito: '001 - Crédito em conta corrente',
   debito: '002 - Débito em conta corrente',
   estornoTarifa: '015 - Estorno de tarifa',
@@ -34,7 +27,6 @@ export const HISTORICO = {
 
 export const HISTORICOS: readonly string[] = Object.values(HISTORICO);
 
-/** Posto de atendimento (seção Documento CSC). */
 export const PA = {
   cooperativa: 'Cooperativa',
   centro: 'PA 01 - Centro',
