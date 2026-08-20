@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { provideLocalePtBr } from '../../../../app.config';
 import { Lote } from '../../../../core/models/lote';
+import { Ordenacao, ORDENACAO_PADRAO } from '../../../../core/models/ordenacao';
 import { TabelaLotes } from './tabela-lotes';
 
 const LOTE_ABERTO: Lote = {
@@ -37,10 +38,30 @@ describe('TabelaLotes', () => {
   async function montar(
     lotes: readonly Lote[],
     selecionados: ReadonlySet<number> = new Set(),
+    ordenacao: Ordenacao = ORDENACAO_PADRAO,
   ): Promise<void> {
     fixture.componentRef.setInput('lotes', lotes);
     fixture.componentRef.setInput('selecionados', selecionados);
+    fixture.componentRef.setInput('ordenacao', ordenacao);
     await fixture.whenStable();
+  }
+
+  function cabecalho(rotulo: string): HTMLTableCellElement {
+    const celula = [...fixture.nativeElement.querySelectorAll('thead th')].find(
+      (elemento: HTMLTableCellElement) => elemento.textContent?.trim() === rotulo,
+    ) as HTMLTableCellElement | undefined;
+    if (!celula) {
+      throw new Error(`Coluna "${rotulo}" não está no cabeçalho`);
+    }
+
+    return celula;
+  }
+
+  function ordensPedidas(): Ordenacao[] {
+    const pedidas: Ordenacao[] = [];
+    fixture.componentInstance.ordenar.subscribe((ordenacao) => pedidas.push(ordenacao));
+
+    return pedidas;
   }
 
   function mestre(): HTMLInputElement {
@@ -156,6 +177,60 @@ describe('TabelaLotes', () => {
     mestre().click();
 
     expect(emitidos).toEqual([false]);
+  });
+
+  it('pede a coluna clicada em ordem ascendente', async () => {
+    await montar([LOTE_ABERTO]);
+    const pedidas = ordensPedidas();
+
+    cabecalho('Valor').querySelector('button')?.click();
+
+    expect(pedidas).toEqual([{ campo: 'valor', direcao: 'asc' }]);
+  });
+
+  it('inverte a direção ao clicar de novo na coluna já ordenada', async () => {
+    await montar([LOTE_ABERTO], new Set(), { campo: 'valor', direcao: 'asc' });
+    const pedidas = ordensPedidas();
+
+    cabecalho('Valor').querySelector('button')?.click();
+
+    expect(pedidas).toEqual([{ campo: 'valor', direcao: 'desc' }]);
+  });
+
+  it('volta ao ascendente ao clicar na coluna ordenada em descendente', async () => {
+    await montar([LOTE_ABERTO], new Set(), { campo: 'valor', direcao: 'desc' });
+    const pedidas = ordensPedidas();
+
+    cabecalho('Valor').querySelector('button')?.click();
+
+    expect(pedidas).toEqual([{ campo: 'valor', direcao: 'asc' }]);
+  });
+
+  it('começa ascendente ao trocar de coluna, mesmo vindo de uma descendente', async () => {
+    await montar([LOTE_ABERTO], new Set(), { campo: 'valor', direcao: 'desc' });
+    const pedidas = ordensPedidas();
+
+    cabecalho('Situação Lote').querySelector('button')?.click();
+
+    expect(pedidas).toEqual([{ campo: 'situacao', direcao: 'asc' }]);
+  });
+
+  it('anuncia no cabeçalho qual coluna ordena e em que sentido', async () => {
+    await montar([LOTE_ABERTO], new Set(), { campo: 'valor', direcao: 'desc' });
+
+    expect(cabecalho('Valor').getAttribute('aria-sort')).toBe('descending');
+    expect(cabecalho('ID Lote').getAttribute('aria-sort')).toBe('none');
+
+    await montar([LOTE_ABERTO], new Set(), { campo: 'valor', direcao: 'asc' });
+
+    expect(cabecalho('Valor').getAttribute('aria-sort')).toBe('ascending');
+  });
+
+  it('alcança pelo teclado todas as colunas ordenáveis', async () => {
+    await montar([LOTE_ABERTO]);
+
+    const botoes = fixture.nativeElement.querySelectorAll('thead th button');
+    expect(botoes).toHaveLength(8);
   });
 
   it('troca as linhas por marcadores de carregamento durante a consulta', async () => {

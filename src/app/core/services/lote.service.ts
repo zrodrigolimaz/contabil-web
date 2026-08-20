@@ -6,6 +6,7 @@ import { INSTITUICAO, INSTITUICAO_RESPONSAVEL } from '../mocks/opcoes.mock';
 import { USUARIO_LOGADO } from '../mocks/usuario.mock';
 import { FaixaData, FaixaNumerica, FiltrosPesquisaLote, SITUACAO_TODAS } from '../models/filtros';
 import { Lote, SituacaoLote } from '../models/lote';
+import { CampoOrdenacao, Ordenacao, ORDENACAO_PADRAO } from '../models/ordenacao';
 import { ResultadoPaginado } from '../models/paginacao';
 import { dataDeIso, fimDoDia, inicioDoDia } from '../utils/data';
 import { paginar } from '../utils/paginar';
@@ -27,14 +28,18 @@ export class LoteService {
   private lotes: readonly Lote[] = LOTES;
   private proximoId = Math.max(0, ...LOTES.map((lote) => lote.id)) + 1;
 
-  /** Aplica os filtros do painel e devolve a página pedida. */
-  pesquisar(filtros: FiltrosPesquisaLote, pagina = 1): Observable<ResultadoPaginado<Lote>> {
+  /** Aplica os filtros do painel, ordena e devolve a página pedida. */
+  pesquisar(
+    filtros: FiltrosPesquisaLote,
+    pagina = 1,
+    ordenacao: Ordenacao = ORDENACAO_PADRAO,
+  ): Observable<ResultadoPaginado<Lote>> {
     if (filtros.idLote.de === ID_LOTE_ERRO_SIMULADO) {
       return erroMock('Não foi possível consultar os lotes. Tente novamente.');
     }
 
     const encontrados = this.lotes.filter((lote) => atendeAosFiltros(lote, filtros));
-    return respostaMock(paginar(encontrados, pagina));
+    return respostaMock(paginar(ordenar(encontrados, ordenacao), pagina));
   }
 
   /** Criado no primeiro lançamento, não na abertura do modal: fechar sem incluir
@@ -150,4 +155,45 @@ function dentroDaFaixaDeDatas(data: Date, faixa: FaixaData): boolean {
   const ate = dataDeIso(faixa.ate);
 
   return (de === null || data >= inicioDoDia(de)) && (ate === null || data <= fimDoDia(ate));
+}
+
+/** Ordem do fluxo, não a alfabética: "Aberto, Confirmado, Enviado" não diria nada. */
+const POSICAO_DA_SITUACAO: Record<SituacaoLote, number> = {
+  Aberto: 0,
+  Enviado: 1,
+  Confirmado: 2,
+};
+
+const COMPARADOR: Record<CampoOrdenacao, (a: Lote, b: Lote) => number> = {
+  id: (a, b) => a.id - b.id,
+  dataEntrada: (a, b) => a.dataEntrada.getTime() - b.dataEntrada.getTime(),
+  valor: (a, b) => a.valor - b.valor,
+  quantidadeLancamentos: (a, b) => a.quantidadeLancamentos - b.quantidadeLancamentos,
+  usuarioRegistro: (a, b) => a.usuarioRegistro.localeCompare(b.usuarioRegistro, 'pt-BR'),
+  usuarioAprovacao: (a, b) =>
+    (a.usuarioAprovacao ?? '').localeCompare(b.usuarioAprovacao ?? '', 'pt-BR'),
+  situacao: (a, b) => POSICAO_DA_SITUACAO[a.situacao] - POSICAO_DA_SITUACAO[b.situacao],
+  dataHoraSituacao: (a, b) => a.dataHoraSituacao.getTime() - b.dataHoraSituacao.getTime(),
+};
+
+function ordenar(lotes: readonly Lote[], { campo, direcao }: Ordenacao): readonly Lote[] {
+  const sentido = direcao === 'asc' ? 1 : -1;
+
+  return [...lotes].sort((a, b) => {
+    const ausencia = ausenteAoFim(a[campo], b[campo]);
+    if (ausencia !== 0) {
+      return ausencia;
+    }
+
+    const comparados = sentido * COMPARADOR[campo](a, b);
+    return comparados !== 0 ? comparados : a.id - b.id;
+  });
+}
+
+function ausenteAoFim(a: Lote[CampoOrdenacao], b: Lote[CampoOrdenacao]): number {
+  if ((a === null) === (b === null)) {
+    return 0;
+  }
+
+  return a === null ? 1 : -1;
 }

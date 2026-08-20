@@ -12,6 +12,7 @@ import { catchError, debounceTime, map, Observable, of, Subject, switchMap } fro
 
 import { FiltrosPesquisaLote } from '../../../core/models/filtros';
 import { Lote } from '../../../core/models/lote';
+import { Ordenacao, ORDENACAO_PADRAO } from '../../../core/models/ordenacao';
 import { ResultadoPaginado, TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
 import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
@@ -40,6 +41,7 @@ type AcaoDeSituacao = 'confirmar' | 'enviar';
 interface PedidoConsulta {
   readonly filtros: FiltrosPesquisaLote;
   readonly pagina: number;
+  readonly ordenacao: Ordenacao;
 }
 
 type RespostaConsulta =
@@ -136,6 +138,7 @@ export class ConsultaLotes {
   protected readonly totalPaginas = signal(1);
   protected readonly total = signal<number | null>(null);
   protected readonly tamanhoPagina = signal(TAMANHO_PAGINA_PADRAO);
+  protected readonly ordenacao = signal<Ordenacao>(ORDENACAO_PADRAO);
 
   protected readonly executando = signal(false);
   protected readonly aviso = signal<Aviso | null>(null);
@@ -189,6 +192,11 @@ export class ConsultaLotes {
 
   protected irPara(pagina: number): void {
     this.consultar(pagina);
+  }
+
+  protected ordenarPor(ordenacao: Ordenacao): void {
+    this.ordenacao.set(ordenacao);
+    this.consultar(1);
   }
 
   protected tentarNovamente(): void {
@@ -365,13 +373,13 @@ export class ConsultaLotes {
     this.carregando.set(true);
     this.erro.set(null);
 
-    this.ultimoPedido = { filtros, pagina };
+    this.ultimoPedido = { filtros, pagina, ordenacao: this.ordenacao() };
     this.consultas.next(this.ultimoPedido);
   }
 
   /** A falha vira resposta: um `error` encerraria o fluxo e a tela pararia de consultar. */
   private buscar(pedido: PedidoConsulta): Observable<RespostaConsulta> {
-    return this.loteService.pesquisar(pedido.filtros, pedido.pagina).pipe(
+    return this.loteService.pesquisar(pedido.filtros, pedido.pagina, pedido.ordenacao).pipe(
       map((resultado) => ({ ok: true, resultado }) as const),
       catchError((falha: Error) => of({ ok: false, mensagem: falha.message } as const)),
     );
