@@ -320,26 +320,31 @@ describe('LancamentosLote', () => {
     lancamentos.lancamentos = [lancamentoCom(1, 1004), lancamentoCom(2, 1004)];
     await abrir('edicao', loteCom(1004));
 
-    await marcar(1);
+    await marcar(2);
     await clicarNaGrade('Excluir');
 
-    expect(lancamentos.lancamentos.map((lancamento) => lancamento.id)).toEqual([2]);
+    expect(lancamentos.lancamentos.map((lancamento) => lancamento.id)).toEqual([1]);
   });
 
   it('duplica o lançamento marcado', async () => {
-    lancamentos.lancamentos = [lancamentoCom(1, 1004, { documento: 'ORIGINAL' })];
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004),
+      lancamentoCom(2, 1004, { documento: 'ORIGINAL' }),
+    ];
     await abrir('edicao', loteCom(1004));
 
-    await marcar(1);
+    await marcar(2);
     await clicarNaGrade('Duplicar');
 
-    expect(lancamentos.lancamentos).toHaveLength(2);
-    expect(lancamentos.lancamentos[1].documento).toBe('ORIGINAL');
+    expect(lancamentos.lancamentos).toHaveLength(3);
+    expect(lancamentos.lancamentos[2].documento).toBe('ORIGINAL');
   });
 
   it('pede a marcação de uma linha antes das ações da grade', async () => {
     lancamentos.lancamentos = [lancamentoCom(1, 1004)];
     await abrir('edicao', loteCom(1004));
+
+    await marcar(1);
 
     expect(texto()).toContain('Marque um lançamento para alterar, excluir ou duplicar.');
   });
@@ -383,6 +388,28 @@ describe('LancamentosLote', () => {
 
     expect(texto()).toContain('Nenhum registro encontrado.');
     expect(texto()).toContain('Inclua o primeiro lançamento pelo formulário acima.');
+  });
+
+  it('abre o lote já alterando o primeiro lançamento', async () => {
+    lancamentos.lancamentos = [
+      lancamentoCom(1, 1004, { documento: 'PRIMEIRO' }),
+      lancamentoCom(2, 1004),
+    ];
+
+    await abrir('edicao', loteCom(1004));
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('PRIMEIRO');
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Alterando o lançamento 1',
+    );
+  });
+
+  it('avisa que o formulário é de lançamento novo quando o lote está vazio', async () => {
+    await abrir('edicao', loteCom(1004));
+
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Novo lançamento',
+    );
   });
 
   it('em leitura mostra o primeiro lançamento na ficha ao abrir', async () => {
@@ -434,7 +461,9 @@ describe('LancamentosLote', () => {
 
     await clicarNoRodape('Cancelar edição');
 
-    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain(
+      'Novo lançamento',
+    );
   });
 
   it('não leva para a próxima abertura o que ficou digitado', async () => {

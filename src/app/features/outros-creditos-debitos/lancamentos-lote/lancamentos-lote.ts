@@ -214,8 +214,11 @@ export class LancamentosLote {
         next: (lancamentos) => {
           this.lancamentos.set(lancamentos);
 
-          if (this.somenteLeitura()) {
-            this.selecionado.set(lancamentos[0]?.id ?? null);
+          const primeiro = lancamentos[0] ?? null;
+          this.selecionado.set(primeiro?.id ?? null);
+
+          if (!this.somenteLeitura()) {
+            this.emEdicao.set(primeiro);
           }
         },
         error: (falha: Error) => this.erro.set(falha.message),

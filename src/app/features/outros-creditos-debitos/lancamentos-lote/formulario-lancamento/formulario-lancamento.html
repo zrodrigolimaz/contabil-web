@@ -29,6 +29,26 @@
         {{ destaque.conta }} · {{ destaque.titular }} · {{ destaque.valor | currency: 'BRL' }}
       </span>
     </p>
+  } @else if (!leitura()) {
+    <p
+      role="status"
+      class="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg border border-petrol-900/10 bg-[#f2f6f5] px-4 py-2.5 text-[13px] text-petrol-700"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        class="size-[15px] shrink-0"
+        aria-hidden="true"
+      >
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+
+      <span class="font-semibold text-petrol-900">Novo lançamento</span>
+      <span>preencha os campos e use Incluir para adicioná-lo ao lote.</span>
+    </p>
   }
 
   <form [id]="idForm" [formGroup]="form" (ngSubmit)="aoEnviar()" class="flex flex-col gap-[26px]">
