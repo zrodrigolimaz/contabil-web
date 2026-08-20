@@ -9,4 +9,5 @@ export const routes: Routes = [
         (m) => m.ConsultaLotes,
       ),
   },
+  { path: '**', redirectTo: '' },
 ];
