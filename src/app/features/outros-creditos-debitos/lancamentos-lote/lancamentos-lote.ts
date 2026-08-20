@@ -139,6 +139,7 @@ export class LancamentosLote {
 
   protected editarMarcado(): void {
     this.emEdicao.set(this.marcado());
+    this.formulario()?.destacar();
   }
 
   protected cancelarEdicao(): void {

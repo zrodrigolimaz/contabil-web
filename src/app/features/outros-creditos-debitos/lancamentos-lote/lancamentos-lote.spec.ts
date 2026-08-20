@@ -385,6 +385,22 @@ describe('LancamentosLote', () => {
     expect(texto()).toContain('Inclua o primeiro lançamento pelo formulário acima.');
   });
 
+  it('diz qual lançamento está em alteração e some ao cancelar', async () => {
+    lancamentos.lancamentos = [lancamentoCom(1, 1004)];
+    await abrir('edicao', loteCom(1004));
+
+    await marcar(1);
+    await clicarNaGrade('Alterar');
+
+    const aviso = fixture.nativeElement.querySelector('[role="status"]');
+    expect(aviso.textContent).toContain('Alterando o lançamento 1');
+    expect(aviso.textContent).toContain('Ana Paula Costa');
+
+    await clicarNoRodape('Cancelar edição');
+
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+  });
+
   it('não leva para a próxima abertura o que ficou digitado', async () => {
     await abrir('novo', null);
     await preencher('RASCUNHO');

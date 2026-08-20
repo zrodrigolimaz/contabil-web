@@ -1,4 +1,29 @@
 <div class="flex flex-col gap-[26px]">
+  @if (lancamentoEmEdicao(); as emEdicao) {
+    <p
+      role="status"
+      class="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg border border-primary-200 bg-primary-50 px-4 py-2.5 text-[13px] text-primary-800"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="size-[15px] shrink-0"
+        aria-hidden="true"
+      >
+        <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      </svg>
+
+      <span class="font-semibold">Alterando o lançamento {{ emEdicao.id }}</span>
+      <span class="text-petrol-700">
+        {{ emEdicao.conta }} · {{ emEdicao.titular }} · {{ emEdicao.valor | currency: 'BRL' }}
+      </span>
+    </p>
+  }
+
   <form [id]="idForm" [formGroup]="form" (ngSubmit)="aoEnviar()" class="flex flex-col gap-[26px]">
     <app-secao-conta-corrente
       [grupo]="form.controls.contaCorrente"
