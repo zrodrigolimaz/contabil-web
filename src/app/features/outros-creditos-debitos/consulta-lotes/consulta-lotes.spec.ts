@@ -513,6 +513,16 @@ describe('ConsultaLotes', () => {
     expect(modalDeLancamentos().textContent).toContain('Lançamentos de um lote novo');
   });
 
+  it('desmarca o lote ao abrir o Incluir, que vai para um lote novo', async () => {
+    await grade([loteCom(1004)]);
+    await marcar(1004);
+
+    await clicarNaAcao('Incluir');
+
+    expect(modalDeLancamentos().textContent).toContain('Lançamentos de um lote novo');
+    expect(caixaDoLote(1004).checked).toBe(false);
+  });
+
   it('pergunta antes de excluir, e não exclui nada enquanto não responderem', async () => {
     await grade([loteCom(1004)]);
     await marcar(1004);
