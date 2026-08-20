@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-/** Abaixo disto a lateral aberta comeria quase metade da tela. */
 const TELA_ESTREITA = '(max-width: 767px)';
 
 @Component({

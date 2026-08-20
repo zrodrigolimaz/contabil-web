@@ -1,14 +1,6 @@
 import { Lote, SituacaoLote } from '../models/lote';
 import { INSTITUICAO, INSTITUICAO_RESPONSAVEL } from './opcoes.mock';
 
-/**
- * 24 lotes cobrindo as três situações, quatro instituições, valores de R$ 1,2 mil
- * a R$ 987 mil e datas de novembro/2025 a agosto/2026 — os casos que os testes e o
- * modal de lançamentos referenciam pelo id.
- *
- * Coerência mantida de propósito: lote `Aberto` não tem usuário de aprovação e sua
- * data/hora de situação é a da entrada; `Confirmado` sempre tem aprovador.
- */
 const LOTES_ESCOLHIDOS: readonly Lote[] = [
   {
     id: 1001,

@@ -19,12 +19,10 @@ export function dataDeIso(iso: string | null): Date | null {
   return new Date(Number(ano), Number(mes) - 1, Number(dia));
 }
 
-/** Início do dia (00:00:00.000) da data informada, sem alterar o original. */
 export function inicioDoDia(data: Date): Date {
   return new Date(data.getFullYear(), data.getMonth(), data.getDate());
 }
 
-/** Fim do dia (23:59:59.999) da data informada, sem alterar o original. */
 export function fimDoDia(data: Date): Date {
   return new Date(data.getFullYear(), data.getMonth(), data.getDate(), 23, 59, 59, 999);
 }

@@ -25,7 +25,6 @@ import {
 } from './formulario-lancamento/formulario-lancamento';
 import { GradeLancamentos } from './grade-lancamentos/grade-lancamentos';
 
-/** Como o modal foi aberto: Incluir, Alterar e Visualizar da barra da Tela 1. */
 export type ModoLancamentos = 'novo' | 'edicao' | 'leitura';
 
 export interface ResultadoLancamentos {
@@ -43,7 +42,6 @@ export class LancamentosLote {
   private readonly loteService = inject(LoteService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** `null` mantém o modal fechado. */
   readonly modo = input.required<ModoLancamentos | null>();
   readonly lote = input<Lote | null>(null);
 
@@ -94,7 +92,6 @@ export class LancamentosLote {
   });
 
   constructor() {
-    /* Cada abertura recomeça do zero. */
     effect(() => {
       const modo = this.modo();
       const lote = this.lote();
@@ -132,7 +129,6 @@ export class LancamentosLote {
       return;
     }
 
-    /* Modo novo: o lote só passa a existir agora, com o primeiro lançamento. */
     this.executar(this.loteService.criar(), (criado) => {
       this.loteDestino.set(criado);
       this.incluir(criado.id, dados);
@@ -231,7 +227,6 @@ export class LancamentosLote {
   }
 
   private atualizarTotais(idLote: number, lancamentos: readonly Lancamento[]): void {
-    /* Estorno não inverte o sinal: o mock soma os valores como foram informados. */
     const valor = lancamentos.reduce((total, lancamento) => total + lancamento.valor, 0);
 
     this.loteService

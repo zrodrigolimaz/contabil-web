@@ -37,7 +37,6 @@ describe('BarraAcoes', () => {
     await fixture.whenStable();
   }
 
-  /* Escopado na toolbar: fora dela mora o botão de limpar seleção, que não é ação. */
   function acoes(): HTMLButtonElement[] {
     return [...fixture.nativeElement.querySelectorAll('[role="toolbar"] button')];
   }
@@ -92,7 +91,6 @@ describe('BarraAcoes', () => {
   it('separa as famílias de ação em vez de enfileirar os sete', async () => {
     await montar([]);
 
-    /* Uma ilha por família: situação, manutenção do lote e leitura. */
     expect(fixture.nativeElement.querySelectorAll('[role="toolbar"] > div').length).toBe(3);
   });
 

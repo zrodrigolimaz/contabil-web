@@ -31,7 +31,6 @@ import { DialogoJustificativa } from './dialogo-justificativa/dialogo-justificat
 import { FiltrosLotes } from './filtros-lotes/filtros-lotes';
 import { TabelaLotes } from './tabela-lotes/tabela-lotes';
 
-/** Espera antes de disparar a consulta; zero nos testes, que controlam o tempo. */
 export const ESPERA_CONSULTA_MS = new InjectionToken<number>('espera da consulta de lotes', {
   factory: () => 250,
 });
@@ -48,7 +47,6 @@ type RespostaConsulta =
   | { readonly ok: true; readonly resultado: ResultadoPaginado<Lote> }
   | { readonly ok: false; readonly mensagem: string };
 
-/** O que o "sim" do diálogo dispara. */
 type AcaoConfirmavel =
   { readonly tipo: AcaoDeSituacao } | { readonly tipo: 'excluir'; readonly lote: Lote };
 
@@ -57,7 +55,6 @@ interface Aviso {
   readonly tom: 'sucesso' | 'informacao';
 }
 
-/** O que a ação alcança e como ela se apresenta no diálogo que a antecede. */
 const PEDIDO: Record<
   AcaoDeSituacao,
   { verbo: string; alcanca: (lote: Lote) => boolean; ignorados: (quantidade: number) => string }
@@ -80,7 +77,6 @@ const PEDIDO: Record<
   },
 };
 
-/** Escritas por extenso porque cada ação tem seu próprio motivo de ignorar um lote. */
 const RESULTADO: Record<
   AcaoDeSituacao,
   { alterados: (quantidade: number) => string; ignorados: (quantidade: number) => string }
@@ -150,20 +146,13 @@ export class ConsultaLotes {
   protected readonly pedido = signal<PedidoConfirmacao | null>(null);
   private acaoPendente: AcaoConfirmavel | null = null;
 
-  /**
-   * Seleção por id, e não por índice: sobrevive à troca de página. Guarda o lote
-   * inteiro porque a barra habilita pela situação, e um lote marcado em outra página
-   * não está mais em `lotes()`.
-   */
   private readonly selecionados = signal<ReadonlyMap<number, Lote>>(new Map());
 
   protected readonly idsSelecionados = computed(() => new Set(this.selecionados().keys()));
   protected readonly lotesSelecionados = computed(() => [...this.selecionados().values()]);
 
-  /** Critérios da última pesquisa, para paginar sem depender do formulário. */
   private filtrosAtuais: FiltrosPesquisaLote | null = null;
 
-  /** Guardado para o "Tentar novamente" repetir a consulta que falhou. */
   private ultimoPedido: PedidoConsulta | null = null;
 
   private readonly consultas = new Subject<PedidoConsulta>();
@@ -171,8 +160,6 @@ export class ConsultaLotes {
   protected readonly pesquisou = computed(() => this.total() !== null);
 
   constructor() {
-    /* switchMap: quem paginar depressa não corre o risco de a resposta antiga chegar
-       por último e sobrescrever a nova. */
     const pedidos =
       this.espera > 0 ? this.consultas.pipe(debounceTime(this.espera)) : this.consultas;
 
@@ -183,8 +170,6 @@ export class ConsultaLotes {
       )
       .subscribe((resposta) => this.aplicar(resposta));
 
-    /* A tela abre com a primeira página em vez de um cartão vazio; o painel continua
-       filtrando a partir daí. */
     this.pesquisar(FILTROS_VAZIOS);
   }
 
@@ -226,7 +211,6 @@ export class ConsultaLotes {
     });
   }
 
-  /** Age só sobre a página exibida; o que foi marcado nas outras continua marcado. */
   protected alternarTodos(marcar: boolean): void {
     const daPagina = this.lotes();
 
@@ -244,7 +228,6 @@ export class ConsultaLotes {
     });
   }
 
-  /** Alcança também o que foi marcado em outras páginas, que a grade não mostra. */
   protected limparSelecao(): void {
     this.selecionados.set(new Map());
   }
@@ -357,8 +340,6 @@ export class ConsultaLotes {
         });
         this.selecionados.set(new Map());
         this.executando.set(false);
-        /* Reconsulta em vez de remendar a lista: um lote que vira Enviado precisa sair
-           de uma consulta filtrada por Aberto. */
         this.consultar(this.pagina());
       },
       error: (falha: Error) => {
@@ -381,7 +362,6 @@ export class ConsultaLotes {
     this.consultas.next(this.ultimoPedido);
   }
 
-  /** A falha vira resposta: um `error` encerraria o fluxo e a tela pararia de consultar. */
   private buscar(pedido: PedidoConsulta): Observable<RespostaConsulta> {
     return this.loteService.pesquisar(pedido.filtros, pedido.pagina, pedido.ordenacao).pipe(
       map((resultado) => ({ ok: true, resultado }) as const),
@@ -402,7 +382,6 @@ export class ConsultaLotes {
     const { resultado } = resposta;
     this.lotes.set(resultado.itens);
     this.total.set(resultado.total);
-    /* A página vem da resposta: o serviço limita o pedido ao intervalo válido. */
     this.pagina.set(resultado.pagina);
     this.totalPaginas.set(resultado.totalPaginas);
     this.tamanhoPagina.set(resultado.tamanhoPagina);

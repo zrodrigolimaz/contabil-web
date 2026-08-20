@@ -10,7 +10,6 @@ import {
 
 let sequencia = 0;
 
-/** Diálogo modal da aplicação; quem abre e fecha é o consumidor, pelo `aberto`. */
 @Component({
   selector: 'app-dialogo',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,15 +20,12 @@ export class Dialogo {
   readonly titulo = input.required<string>();
   readonly larguraMaxima = input('32rem');
 
-  /** Dispara também no Esc e no backdrop. */
   readonly fechar = output<void>();
 
   protected readonly idTitulo = `dialogo-titulo-${sequencia++}`;
 
   private readonly dialogo = viewChild.required<ElementRef<HTMLDialogElement>>('dialogo');
 
-  /* O `close` nativo chega depois do `close()` do efeito; sem esta marca, o eco
-     fecharia um diálogo reaberto nesse intervalo. */
   private fechandoPorComando = false;
 
   constructor() {

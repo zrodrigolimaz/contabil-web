@@ -115,7 +115,6 @@ describe('FormularioLancamento', () => {
     return fixture.nativeElement.querySelector(`#${id}`);
   }
 
-  /* `change` é o evento que o select do Angular escuta. */
   async function digitar(id: string, valor: string): Promise<void> {
     const elemento = campo(id);
     elemento.value = valor;
@@ -335,7 +334,6 @@ describe('FormularioLancamento', () => {
 
     await enviar();
     expect(salvos).toHaveLength(1);
-    /* Em edição o formulário continua preenchido; quem fecha o ciclo é o container. */
     expect((campo('lancamento-conta') as HTMLInputElement).value).toBe('44444');
   });
 

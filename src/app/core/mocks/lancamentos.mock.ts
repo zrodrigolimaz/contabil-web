@@ -1,12 +1,6 @@
 import { Lancamento } from '../models/lancamento';
 import { HISTORICO, PA } from './opcoes.mock';
 
-/**
- * Lançamentos iniciais dos lotes de menor volume — 1002, 1004, 1010 e 1023 —,
- * mantendo a coluna "Quant. Lançamentos" da grade coerente com o conteúdo do modal.
- * Os demais lotes começam sem lançamentos carregados: reproduzir as dezenas de
- * linhas dos lotes grandes não acrescentaria nada à demonstração.
- */
 export const LANCAMENTOS: readonly Lancamento[] = [
   {
     id: 1,

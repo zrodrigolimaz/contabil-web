@@ -12,23 +12,15 @@ import { dataDeIso, fimDoDia, inicioDoDia } from '../utils/data';
 import { paginar } from '../utils/paginar';
 import { erroMock, respostaMock } from './api-mock';
 
-/**
- * Gatilho determinístico do erro simulado: pesquisar com "ID Lote De" igual a 999
- * faz a consulta falhar. Escolhido por ser digitável na própria tela e por ficar
- * fora da faixa dos lotes de demonstração (1001..1078), sem aleatoriedade.
- */
 export const ID_LOTE_ERRO_SIMULADO = 999;
 
-/** A mesma frase serve à dica da barra e à recusa do serviço. */
 export const SO_LOTE_ABERTO_SE_EXCLUI = 'Só é possível excluir lote em situação Aberto.';
 
 @Injectable({ providedIn: 'root' })
 export class LoteService {
-  /** Fonte de verdade em memória: `confirmar` e `enviar` alteram esta lista. */
   private lotes: readonly Lote[] = LOTES;
   private proximoId = Math.max(0, ...LOTES.map((lote) => lote.id)) + 1;
 
-  /** Aplica os filtros do painel, ordena e devolve a página pedida. */
   pesquisar(
     filtros: FiltrosPesquisaLote,
     pagina = 1,
@@ -42,8 +34,6 @@ export class LoteService {
     return respostaMock(paginar(ordenar(encontrados, ordenacao), pagina));
   }
 
-  /** Criado no primeiro lançamento, não na abertura do modal: fechar sem incluir
-      nada não deixa lote vazio na consulta. */
   criar(): Observable<Lote> {
     const agora = new Date();
     const criado: Lote = {
@@ -64,7 +54,6 @@ export class LoteService {
     return respostaMock(criado);
   }
 
-  /** Reflete na consulta o que o modal de lançamentos mudou dentro do lote. */
   atualizarTotais(id: number, valor: number, quantidadeLancamentos: number): Observable<Lote> {
     const atual = this.lotes.find((lote) => lote.id === id);
     if (!atual) {
@@ -91,21 +80,14 @@ export class LoteService {
     return respostaMock<void>(undefined);
   }
 
-  /** Confirma os lotes ainda não confirmados e registra o usuário de aprovação. */
   confirmar(ids: readonly number[]): Observable<readonly Lote[]> {
     return this.mudarSituacao(ids, 'Confirmado', ['Aberto', 'Enviado']);
   }
 
-  /** Envia os lotes que ainda estão abertos. */
   enviar(ids: readonly number[]): Observable<readonly Lote[]> {
     return this.mudarSituacao(ids, 'Enviado', ['Aberto']);
   }
 
-  /**
-   * Muda a situação dos lotes informados que estejam em uma das situações de
-   * origem. Idempotente: lotes fora dessas situações ficam intactos e não entram
-   * no retorno.
-   */
   private mudarSituacao(
     ids: readonly number[],
     destino: SituacaoLote,
@@ -144,12 +126,10 @@ function atendeAosFiltros(lote: Lote, filtros: FiltrosPesquisaLote): boolean {
   );
 }
 
-/** Faixa inclusiva; `null` em um dos lados desativa aquele limite. */
 function dentroDaFaixaNumerica(valor: number, faixa: FaixaNumerica): boolean {
   return (faixa.de === null || valor >= faixa.de) && (faixa.ate === null || valor <= faixa.ate);
 }
 
-/** Compara o dia inteiro: o limite "Até" inclui lotes registrados ao longo do dia. */
 function dentroDaFaixaDeDatas(data: Date, faixa: FaixaData): boolean {
   const de = dataDeIso(faixa.de);
   const ate = dataDeIso(faixa.ate);

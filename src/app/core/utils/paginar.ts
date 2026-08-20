@@ -1,12 +1,5 @@
 import { ResultadoPaginado, TAMANHO_PAGINA_PADRAO } from '../models/paginacao';
 
-/**
- * Fatia a lista já filtrada na página pedida.
- *
- * A página é limitada ao intervalo válido (1..totalPaginas), de modo que pedir uma
- * página inexistente devolve a última em vez de uma grade vazia. Lista vazia
- * resulta em uma única página sem itens.
- */
 export function paginar<T>(
   itens: readonly T[],
   pagina: number,

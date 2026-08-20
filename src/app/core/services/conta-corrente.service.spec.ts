@@ -42,7 +42,6 @@ describe('ContaCorrenteService', () => {
     let repetida: unknown;
     service.buscarPorNumero('44444').subscribe((conta) => (repetida = conta));
 
-    /* Sem avançar o relógio: a segunda consulta não paga a latência de novo. */
     expect(repetida).toEqual({ numero: '44444', titular: 'Ana Paula Costa', agencia: '0101' });
   });
 

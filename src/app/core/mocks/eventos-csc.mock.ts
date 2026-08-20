@@ -1,6 +1,5 @@
 import { EventoCsc } from '../models/evento';
 
-/** Eventos CSC listados pelo sub-modal "Pesquisa Evento". */
 export const EVENTOS_CSC: readonly EventoCsc[] = [
   {
     idEvento: '102',

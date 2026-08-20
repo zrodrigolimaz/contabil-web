@@ -10,7 +10,6 @@ import { LATENCIA_MOCK_MS } from '../services/api-mock';
  * estas funções precisa de `jest.useFakeTimers()` ativo.
  */
 
-/** Assina o observable, avança a latência mock e devolve o valor emitido. */
 export function valorDe<T>(origem: Observable<T>): T {
   let emitido: T | undefined;
   let recebeu = false;
@@ -37,7 +36,6 @@ export function valorDe<T>(origem: Observable<T>): T {
   return emitido as T;
 }
 
-/** Assina o observable, avança a latência mock e devolve o erro recebido. */
 export function erroDe(origem: Observable<unknown>): Error {
   let falha: unknown;
 

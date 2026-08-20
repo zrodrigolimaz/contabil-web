@@ -49,7 +49,6 @@ export interface PedidoConfirmacao {
   `,
 })
 export class DialogoConfirmacao {
-  /** `null` mantém o diálogo fechado. */
   readonly pedido = input.required<PedidoConfirmacao | null>();
 
   readonly confirmar = output<void>();

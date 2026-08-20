@@ -14,7 +14,6 @@ export class AnexoService {
       ...LANCAMENTOS.flatMap((lancamento) => lancamento.anexos.map((anexo) => anexo.id)),
     ) + 1;
 
-  /** Simula o upload: nenhum byte do arquivo é lido, só os metadados são guardados. */
   enviar(dados: NovoAnexo): Observable<Anexo> {
     return respostaMock<Anexo>({
       ...dados,
