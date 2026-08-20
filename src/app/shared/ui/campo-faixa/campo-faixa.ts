@@ -20,10 +20,12 @@ export class CampoFaixa {
   readonly exemploDe = input<string>();
   readonly exemploAte = input<string>();
 
-  protected readonly idRotulo = `rotulo-faixa-${sequencia}`;
-  protected readonly idDe = `faixa-de-${sequencia}`;
-  protected readonly idAte = `faixa-ate-${sequencia}`;
-  protected readonly idErro = `erro-faixa-${sequencia++}`;
+  private readonly numero = sequencia++;
+
+  protected readonly idRotulo = `rotulo-faixa-${this.numero}`;
+  protected readonly idDe = `faixa-de-${this.numero}`;
+  protected readonly idAte = `faixa-ate-${this.numero}`;
+  protected readonly idErro = `erro-faixa-${this.numero}`;
 
   protected readonly estado = estadoDoControle(this.grupo);
 }
