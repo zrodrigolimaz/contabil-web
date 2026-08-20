@@ -10,7 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, map, Observable, of, Subject, switchMap } from 'rxjs';
 
-import { FiltrosPesquisaLote } from '../../../core/models/filtros';
+import { FILTROS_VAZIOS, FiltrosPesquisaLote } from '../../../core/models/filtros';
 import { Lote } from '../../../core/models/lote';
 import { Ordenacao, ORDENACAO_PADRAO } from '../../../core/models/ordenacao';
 import { ResultadoPaginado, TAMANHO_PAGINA_PADRAO } from '../../../core/models/paginacao';
@@ -182,6 +182,10 @@ export class ConsultaLotes {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((resposta) => this.aplicar(resposta));
+
+    /* A tela abre com a primeira página em vez de um cartão vazio; o painel continua
+       filtrando a partir daí. */
+    this.pesquisar(FILTROS_VAZIOS);
   }
 
   protected pesquisar(filtros: FiltrosPesquisaLote): void {
