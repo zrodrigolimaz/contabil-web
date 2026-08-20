@@ -6,18 +6,18 @@
     <span class="regua"></span>
   </div>
 
-  <div class="mb-[18px]">
+  <div class="mb-[18px] grid gap-x-7 gap-y-[18px] sm:grid-cols-2 lg:grid-cols-3">
     <app-campo-form
       rotulo="Conta Corrente"
       paraId="lancamento-conta"
       [controle]="grupo().controls.conta"
       [obrigatorio]="true"
     >
-      <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex items-center gap-2.5">
         <input
           id="lancamento-conta"
           type="text"
-          class="campo w-60"
+          class="campo"
           formControlName="conta"
           inputmode="numeric"
           autocomplete="off"
@@ -43,28 +43,28 @@
             <path d="m20 20-3.5-3.5" />
           </svg>
         </button>
-
-        @if (titular(); as nome) {
-          <p
-            class="flex h-[38px] items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-3.5 text-[13px] font-semibold text-primary-800"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="size-[15px] shrink-0"
-              aria-hidden="true"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-            {{ nome }}
-          </p>
-        }
       </div>
     </app-campo-form>
+
+    @if (titular(); as nome) {
+      <p
+        class="col-span-full flex h-[38px] w-fit max-w-full items-center gap-2 self-end rounded-lg border border-primary-200 bg-primary-50 px-3.5 text-[13px] font-semibold text-primary-800 lg:col-span-2"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-[15px] shrink-0"
+          aria-hidden="true"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+        <span class="truncate">{{ nome }}</span>
+      </p>
+    }
   </div>
 
   <div class="mb-[18px] grid gap-x-7 gap-y-[18px] sm:grid-cols-2 lg:grid-cols-3">
@@ -121,8 +121,9 @@
     Estorno
   </label>
 
-  <div class="grid gap-x-7 gap-y-[18px] lg:grid-cols-[2fr_1fr]">
+  <div class="grid gap-x-7 gap-y-[18px] sm:grid-cols-2 lg:grid-cols-3">
     <app-campo-form
+      class="sm:col-span-2"
       rotulo="Descrição"
       paraId="lancamento-descricao"
       [controle]="grupo().controls.descricao"
