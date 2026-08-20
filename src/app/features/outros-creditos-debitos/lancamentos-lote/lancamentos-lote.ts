@@ -100,6 +100,8 @@ export class LancamentosLote {
       this.emEdicao.set(null);
       this.erro.set(null);
 
+      this.formulario()?.limpar();
+
       if (modo === null) {
         this.lancamentos.set([]);
         this.loteDestino.set(null);

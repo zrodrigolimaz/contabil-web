@@ -11,7 +11,7 @@ import { ContaCorrenteService } from '../../../core/services/conta-corrente.serv
 import { LancamentoService } from '../../../core/services/lancamento.service';
 import { LoteService } from '../../../core/services/lote.service';
 import { aparelharDialogos } from '../../../core/testing/dialogo-jsdom';
-import { LancamentosLote, ResultadoLancamentos } from './lancamentos-lote';
+import { LancamentosLote, ModoLancamentos, ResultadoLancamentos } from './lancamentos-lote';
 
 class ContaCorrenteFalso {
   buscarPorNumero(numero: string): Observable<ContaCorrente | null> {
@@ -141,7 +141,7 @@ describe('LancamentosLote', () => {
     aparelharDialogos(fixture.nativeElement);
   });
 
-  async function abrir(modo: 'novo' | 'edicao' | 'leitura', lote: Lote | null): Promise<void> {
+  async function abrir(modo: ModoLancamentos | null, lote: Lote | null): Promise<void> {
     fixture.componentRef.setInput('lote', lote);
     fixture.componentRef.setInput('modo', modo);
     await fixture.whenStable();
@@ -202,6 +202,12 @@ describe('LancamentosLote', () => {
 
   function texto(): string {
     return fixture.nativeElement.textContent;
+  }
+
+  function errosDeCampo(): string[] {
+    return [...fixture.nativeElement.querySelectorAll('app-campo-form [role="alert"]')].map(
+      (alerta: HTMLElement) => alerta.textContent?.trim() ?? '',
+    );
   }
 
   it('fica fechado enquanto ninguém o abre', () => {
@@ -377,5 +383,28 @@ describe('LancamentosLote', () => {
 
     expect(texto()).toContain('Nenhum registro encontrado.');
     expect(texto()).toContain('Inclua o primeiro lançamento pelo formulário acima.');
+  });
+
+  it('não leva para a próxima abertura o que ficou digitado', async () => {
+    await abrir('novo', null);
+    await preencher('RASCUNHO');
+    await abrir(null, null);
+
+    await abrir('edicao', loteCom(1004));
+
+    expect((campo('lancamento-documento') as HTMLInputElement).value).toBe('');
+    expect((campo('lancamento-valor') as HTMLInputElement).value).toBe('');
+  });
+
+  it('não leva para a próxima abertura os avisos de campo obrigatório', async () => {
+    await abrir('novo', null);
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+    expect(errosDeCampo()).not.toEqual([]);
+
+    await abrir(null, null);
+    await abrir('leitura', loteCom(1004));
+
+    expect(errosDeCampo()).toEqual([]);
   });
 });
